@@ -35,6 +35,7 @@ module.exports = {
     // Check this link for the formulas 
     // https://stackoverflow.com/questions/23856489/pvector-heading-for-3d-rotation
     elevation3D(v) {
-        return Math.acos(v.z / v.length()); 
+        //return Math.acos(v.z / v.length()); 
+        return Math.acos(v.z/v.length());
     }
 }

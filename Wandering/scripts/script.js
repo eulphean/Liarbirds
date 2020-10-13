@@ -16,24 +16,41 @@ import Agent from './Agent.js';
 // Targets where the agent needs to go. 
 var targetObjs = []; 
 
+let agents = []; 
+
  // Reference SphereObject from Scene
 Promise.all([
-    Scene.root.findFirst('Agent'),
+    Scene.root.findFirst('Agent0'),
+    Scene.root.findFirst('Agent1'),
+    Scene.root.findFirst('Agent2'),
+    Scene.root.findFirst('Agent3'),
+    Scene.root.findFirst('Agent4'),
     Scene.root.findFirst('Target1'),
     Scene.root.findFirst('Target2'),
     Scene.root.findFirst('Target3'),
     Scene.root.findFirst('Target4'),
     Scene.root.findFirst('Target5'),
 ]).then(function (objects) {
-    var targetPositions = prepareTargets(objects); 
-    const agent = new Agent(objects[0], targetPositions);
+    //var targetPositions = prepareTargets(objects); 
+    let agent = new Agent(objects[0]);
+    agents.push(agent); 
+    agent = new Agent(objects[1]); 
+    agents.push(agent); 
+    agent = new Agent(objects[2]); 
+    agents.push(agent); 
+    agent = new Agent(objects[3]); 
+    agents.push(agent); 
+    agent = new Agent(objects[4]); 
+    agents.push(agent); 
 
     Diagnostics.log('Setup complete'); 
 
     const timeInterval = 60;
     // Create time interval loop for cannon 
     Time.setInterval(function () {
-        agent.update(); 
+        agents.forEach(a => {
+            a.update(); 
+        });
     }, timeInterval);
 });
 
