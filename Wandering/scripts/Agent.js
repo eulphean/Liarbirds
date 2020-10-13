@@ -2,59 +2,107 @@
 // Class that wraps the SceneObject. Holds the soft body that movies around in the physics world. 
 // TODO: Disable collision, Make the bodies Kinematic (only velocies affect them), Turn off rotation on spheres. 
 
-// Wrapper for the Boid object
-const CANNON = require('cannon');
 const Reactive = require('Reactive'); 
 const Diagnostics = require('Diagnostics');
+const CANNON = require('cannon');
+const Utility = require('./Utility.js');
 
 export default class Agent {
-    constructor(sceneObject, world) {
-        // This.declarations
+    constructor(sceneObject, targets) {
+        // Scene object. 
         this.sceneObject = sceneObject; 
-        this.world = world; 
 
-        // Common soft body properties
-        this.radius = 2.5; 
-        this.mass = 3; 
-        this.softBody = this.createSoftBody();
+        // Agent behavior. 
+        this.position = Utility.getLastPosition(sceneObject);
+        this.velocity = new CANNON.Vec3(0, 0, 0);
+        this.acceleration = new CANNON.Vec3(0, 0, 0); 
 
-        // Initialize the binding for soft body's position to the scene object's transform. 
+        // Tweak this control how the Agent moves.
+        this.maxSpeed = 0.2; 
+        this.maxForce = 0.7;
+        
+        // Tolerance for reaching a point.
+        this.arriveTolerance = 1; 
+        this.slowDownTolerance = 5; 
+
+        // Choose target
+        // [TODO] Send a target with update. Agent shouldn't worry about this. 
+        this.targetPositions = targets; 
+        this.curTargetIdx = 0; 
+        this.target =  this.targetPositions[this.curTargetIdx]; 
+
+        Diagnostics.log(this.target); 
+    }
+
+    // Function declaration. 
+    update() {
+
+        // Calculate steering forces for the target. 
+        this.seek(); 
+        
+        // Update current position based on velocity. 
+        this.updatePosition(); 
+
+        // Sync current position with the Scene Object's transform. 
+        this.syncPosition(); 
+    }
+
+    seek() {
+        let d = this.target.vsub(this.position).length();
+        let vDesired; 
+
+        // Have arrived? 
+        if (d < this.arriveTolerance) {
+            // I have reached, update target
+            // this.curTargetIdx = (this.curTargetIdx + 1) % this.targetPositions.length;
+            this.curTargetIdx = Math.floor(Math.random() * Math.floor(this.targetPositions.length));
+            this.target = this.targetPositions[this.curTargetIdx]; 
+        } else  {
+            // Calculate desired force. 
+            vDesired = this.target.vsub(this.position);
+            vDesired.normalize(); // Changes the vector in place. 
+
+            // Logic for slowing down. 
+            if (d < this.slowDownTolerance && d > this.arriveTolerance) {
+                let newMaxSpeed = Utility.map_range(d, this.arriveTolerance, this.slowDownTolerance, 0.05, this.maxSpeed);
+                vDesired.mult(newMaxSpeed, vDesired); 
+            }
+            else {
+                // Do usual business
+                vDesired.mult(this.maxSpeed, vDesired);
+            }
+
+            let vSteer = vDesired.vsub(this.velocity); 
+            // Limit to max force. 
+            if (vSteer.length() > this.maxForce) {
+                vSteer.normalize(); 
+                vSteer.mult(this.maxForce, vSteer); 
+            }
+
+            // Apply force. 
+            this.acceleration.vadd(vSteer, this.acceleration); 
+        }
 
     }
 
-    createSoftBody() {
-        // Acquire current agent position. 
-        let posX = this.sceneObject.transform.x.pinLastValue(); 
-        let posY = this.sceneObject.transform.y.pinLastValue(); 
-        let posZ = this.sceneObject.transform.z.pinLastValue(); 
+    updatePosition() {
+        this.velocity.vadd(this.acceleration, this.velocity); 
 
-        let curPos = new CANNON.Vec3(posX, posY, posZ); 
+        // Limit the velocity. 
+        if (this.velocity.length() > this.maxSpeed) {
+            this.velocity.normalize(); // Changes the vector in place. 
+            this.velocity.mult(this.maxSpeed, this.velocity); 
+        }
 
-        // Prepare the sphere props and create the body. 
-        // let sphereProps = {
-        //     mass: this.mass,
-        //     position: curPos, // Set the initial position. 
-        //     radius: this.radius,
-        //     shape: new CANNON.Sphere(this.radius),
-        // }
-        // let body = new CANNON.Body(sphereProps); 
-
-        // Add the body to the world. 
-        // this.world.addBody(body); 
-        return curPos; 
+        // Update position. 
+        this.position.vadd(this.velocity, this.position); 
+        this.acceleration.mult(0, this.acceleration); // Reset acceleration. 
     }
 
-    // // Function declaration.
-    update(velocity) {
-        let v =  Reactive.vector(0, velocity, 0); 
-        // Update scene object's velocity
-        // this.softBodyPos.y.add(Reactive.val(velocity));
-        //this.softBody.position.y = this.softBody.position.y + velocity;
-        this.softBody.y = this.softBody.y + velocity;
-        // Diagnostics.log(this.softBody.position); 
-
-        // this.sceneObject.transform.x = this.softBodyPos.x; 
-        this.sceneObject.transform.y = this.softBody.y;
-        // this.sceneObject.transform.z = this.softBodyPos.z; 
+    syncPosition() {
+        // Sync position to the scene object. 
+        this.sceneObject.transform.x = this.position.x; 
+        this.sceneObject.transform.y = this.position.y; 
+        this.sceneObject.transform.z = this.position.z; 
     }
 }
