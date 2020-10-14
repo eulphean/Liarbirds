@@ -22,26 +22,28 @@ let agents = [];
 Promise.all([
     Scene.root.findFirst('Agent0'),
     Scene.root.findFirst('Agent1'),
+    Scene.root.findFirst('Agent2'),
+    Scene.root.findFirst('Agent3'),
     Scene.root.findFirst('Target1'),
     Scene.root.findFirst('Target2'),
     Scene.root.findFirst('Target3'),
     Scene.root.findFirst('Target4'),
-    Scene.root.findFirst('Target5'),
 ]).then(function (objects) {
-    //var targetPositions = prepareTargets(objects); 
-    let t1 = objects[2]; 
-    let t2 = objects[3]; 
+    // Add targets. 
+    let t1 = objects[4]; 
+    let t2 = objects[5]; 
+    let t3 = objects[6]; 
+    let t4 = objects[7]; 
 
+    // Prepare agents. 
     let agent = new Agent(objects[0], t1);
     agents.push(agent); 
     agent = new Agent(objects[1], t2); 
     agents.push(agent); 
-    // agent = new Agent(objects[2]); 
-    // agents.push(agent); 
-    // agent = new Agent(objects[3]); 
-    // agents.push(agent); 
-    // agent = new Agent(objects[4]); 
-    // agents.push(agent); 
+    agent = new Agent(objects[2], t3);
+    agents.push(agent); 
+    agent = new Agent(objects[3], t4); 
+    agents.push(agent); 
 
     Diagnostics.log('Setup complete'); 
 
@@ -54,19 +56,19 @@ Promise.all([
     }, timeInterval);
 });
 
-function prepareTargets(objects) {
-    let targets = []; 
+// function prepareTargets(objects) {
+//     let targets = []; 
     
-    // Store all targets objects.  
-    targetObjs.push(objects[1]); 
-    targetObjs.push(objects[2]);
-    targetObjs.push(objects[3]); 
-    targetObjs.push(objects[4]);
-    targetObjs.push(objects[5]);
+//     // Store all targets objects.  
+//     targetObjs.push(objects[1]); 
+//     targetObjs.push(objects[2]);
+//     targetObjs.push(objects[3]); 
+//     targetObjs.push(objects[4]);
+//     targetObjs.push(objects[5]);
 
-    // Extract positions. 
-    targetObjs.forEach(t => {
-        targets.push(Utility.getLastPosition(t));
-    });
-    return targets; 
-}
+//     // Extract positions. 
+//     targetObjs.forEach(t => {
+//         targets.push(Utility.getLastPosition(t));
+//     });
+//     return targets; 
+// }
