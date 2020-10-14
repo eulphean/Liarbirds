@@ -1,3 +1,6 @@
+// Utility.js 
+// Helper module to do calculations, sceneObjects syncs and other updates. 
+
 const Reactive = require('Reactive'); 
 
 module.exports = {
@@ -27,24 +30,28 @@ module.exports = {
 
     // This is also the heading2D of the vector
     azimuth(v) {
-        let y = v.y.pinLastValue();
-        let x = v.x.pinLastValue();
-        return Math.atan2(y, x); 
+        return Math.atan2(v.y, v.x); 
     },
 
-    // Phi is the angle into the z plane (This is angle from the Z axis)
-    // Math.asin (To get elevation angle from X-Y plan)
-    // Check this link for the formulas 
+    // Phi is the angle into the z plane. Also, called inclination.
     // https://stackoverflow.com/questions/23856489/pvector-heading-for-3d-rotation
     inclination(v) {
-        let z = v.z.pinLastValue();
-        let mag = v.magnitude().pinLastValue();
-        //return Math.acos(v.z / v.length()); 
-        return Math.acos(z / mag);
+        return Math.acos(v.z / v.length());
     },
 
     radians_to_degrees(radians)
     {
         return radians * (180/Math.PI);
-    }
+    },
+
+    axisRotation(axis_x, axis_y, axis_z, angle_radians) {
+        var norm = Math.sqrt(axis_x * axis_x + axis_y * axis_y + axis_z * axis_z);
+        axis_x /= norm;
+        axis_y /= norm;
+        axis_z /= norm;
+        //var angle_radians = angle_degrees * Math.PI / 180.0;
+        var cos = Math.cos(angle_radians / 2);
+        var sin = Math.sin(angle_radians / 2);
+        return Reactive.quaternion(cos, axis_x * sin, axis_y * sin, axis_z * sin);
+      }
 }

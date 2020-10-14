@@ -5,6 +5,7 @@
 const Reactive = require('Reactive'); 
 const Diagnostics = require('Diagnostics');
 const Utility = require('./Utility.js');
+const CANNON = require('cannon');
 
 export default class Agent {
     constructor(sceneObject, t) {
@@ -19,11 +20,11 @@ export default class Agent {
         this.rotation = Reactive.quaternionFromAngleAxis(0, Reactive.vector(0, 1, 0));
 
         // Tweak this control how the Agent moves.
-        this.maxSpeed = 0.2; 
+        this.maxSpeed = 0.5; 
         this.maxForce = 0.1;
         
         // Tolerance for reaching a point.
-        this.arriveTolerance = 1; 
+        this.arriveTolerance = 2; 
         this.slowDownTolerance = 5; 
         
         // Store target position. 
@@ -47,52 +48,60 @@ export default class Agent {
 
     // Calculate new target. 
     calcTarget() {
-        let wanderD = 10; // Max wander distance
+        let wanderD = 20; // Max wander distance
         let wanderR = 5;
         let thetaChange = 5; 
         let wanderTheta = Utility.random(-thetaChange, thetaChange); 
 
-        let newTarget = Reactive.vector(this.velocity.x.pinLastValue(), this.velocity.y.pinLastValue(), this.velocity.z.pinLastValue()); 
-        newTarget = newTarget.normalize(); // Get the heading of the agent. 
-        newTarget = newTarget.mul(wanderD); // Scale it.
-        newTarget = newTarget.add(this.position); // Make it relative to current position.
+        let newTarget = new CANNON.Vec3(this.velocity.x.pinLastValue(), this.velocity.y.pinLastValue(), this.velocity.z.pinLastValue()); 
+        let pos = new CANNON.Vec3(this.position.x.pinLastValue(), this.position.y.pinLastValue(), this.position.z.pinLastValue());
+        newTarget.normalize(); // Get the heading of the agent. 
+        newTarget.scale(wanderD, newTarget); // Scale it.
+        newTarget.vadd(pos, newTarget); // Make it relative to current position.
 
         let azimuth = Utility.azimuth(newTarget); 
         let inclination = Utility.inclination(newTarget); // [TODO] Use this to tilt the head of the Agent
 
         // Calculate New Target. 
-        let xPos = wanderR * Math.cos(azimuth + wanderTheta) * Math.sin(inclination);
-        let yPos = wanderR * Math.sin(azimuth + wanderTheta) * Math.sin(inclination);
-        let zPos = wanderR * Math.cos(inclination + wanderTheta); 
-        let pOffset = Reactive.vector(xPos, yPos, zPos); 
-        newTarget = newTarget.add(pOffset);
+        let xPos = wanderR * Math.cos(azimuth + wanderTheta);
+        let yPos = wanderR * Math.sin(azimuth + wanderTheta);
+        let zPos = wanderR * Math.cos(inclination); 
+        let pOffset = new CANNON.Vec3(xPos, yPos, zPos); 
+        newTarget.vadd(pOffset, newTarget); // With respect to current position 
         
+        // TODO: Optimize this dirty logic to give a dimension box in the beginning. 
         // Use this dirty logic to set bounds on the agent. 
-        if (newTarget.y.pinLastValue() < 0) {
-            newTarget = Reactive.vector(newTarget.x.pinLastValue(), 0, newTarget.z.pinLastValue()); 
+        if (newTarget.y < 0) {
+            //newTarget = Reactive.vector(newTarget.x.pinLastValue(), 0, newTarget.z.pinLastValue()); 
+            newTarget.y = 0; 
         }
-        if (newTarget.y.pinLastValue() > 20) {
-            newTarget = Reactive.vector(newTarget.x.pinLastValue(), 20, newTarget.z.pinLastValue()); 
+        if (newTarget.y > 40) {
+            //newTarget = Reactive.vector(newTarget.x.pinLastValue(), 20, newTarget.z.pinLastValue()); 
+            newTarget.y = 40; 
         }
 
-        if (newTarget.x.pinLastValue() < -20) {
-            newTarget = Reactive.vector(-20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
+        if (newTarget.x < -40) {
+            //newTarget = Reactive.vector(-20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
+            newTarget.x = -40; 
         } 
 
-        if (newTarget.x.pinLastValue() > 20) {
-            newTarget = Reactive.vector(20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
+        if (newTarget.x > 40) {
+            //newTarget = Reactive.vector(20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
+            newTarget.x = 40;
         }
 
-        if (newTarget.z.pinLastValue() < -20) {
-            newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), -20); 
+        if (newTarget.z < -40) {
+            //newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), -20); 
+            newTarget.z = -40; 
         } 
 
-        if (newTarget.z.pinLastValue() > 20) {
-            newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), 20); 
+        if (newTarget.z > 40) {
+            //newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), 20); 
+            newTarget.z = 40; 
         }
 
         // Update target sphere's position to the target
-        this.target = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
+        this.target = Reactive.vector(newTarget.x, newTarget.y, newTarget.z); 
 
 
         // Set target object's position to this
@@ -106,7 +115,6 @@ export default class Agent {
         let vDesired; 
 
         let logic = d.lt(Reactive.val(this.arriveTolerance)); 
-
         // Have arrived? 
         if (logic.pinLastValue()) {
             this.calcTarget();
@@ -114,28 +122,23 @@ export default class Agent {
             // Calculate desired force. 
             vDesired = this.target.sub(this.position);
             vDesired = vDesired.normalize(); // Changes the vector in place. 
+            vDesired = vDesired.mul(this.maxSpeed);
 
+            // Slow down logic (Arrival logic)
             // Logic for slowing down. 
             logic = d.lt(Reactive.val(this.slowDownTolerance)).and(d.gt(Reactive.val(this.arriveTolerance))); 
             if (logic.pinLastValue()) {
                 // // Diagnostics.log('Slowing down'); 
-                // let newMaxSpeed = Utility.map_range(d.pinLastValue(), this.arriveTolerance, this.slowDownTolerance, 0.1, this.maxSpeed); 
-                // vDesired = vDesired.mul(newMaxSpeed); 
+                let newMaxSpeed = Utility.map_range(d.pinLastValue(), this.arriveTolerance, this.slowDownTolerance, 0.1, this.maxSpeed); 
+                vDesired = vDesired.mul(newMaxSpeed); 
             }
             else {
                 // Usual scaling. 
-                vDesired = vDesired.mul(this.maxSpeed);
+                vDesired = vDesired.mul(this.maxSpeed); 
             }
 
             let vSteer = vDesired.sub(this.velocity); 
             vSteer = vSteer.clamp(-this.maxForce, this.maxForce); 
-            
-            
-            // // Limit to max force. 
-            // if (vSteer.length() > this.maxForce) {
-            //     vSteer.normalize(); 
-            //     vSteer.mult(this.maxForce, vSteer); 
-            // }
 
             // Apply force. 
             this.acceleration = this.acceleration.add(vSteer); 
@@ -152,23 +155,23 @@ export default class Agent {
     }
 
     syncPosition() {
-        // Sync position to the scene object. 
+        // this.sceneObject.transform = transform; 
         this.sceneObject.transform.x = this.position.x.pinLastValue(); 
         this.sceneObject.transform.y = this.position.y.pinLastValue(); 
         this.sceneObject.transform.z = this.position.z.pinLastValue(); 
     }
 
     syncRotation() {
-        let targetPos = Reactive.point(this.position.x.pinLastValue(), this.position.y.pinLastValue(), this.position.z.pinLastValue()); 
-        targetPos = targetPos.mul(0.5); 
-        let v = this.velocity.mul(0.5);
-        //this.rotation = this.rotation.slerp(Reactive.quaternionLookAt(targetPos, this.velocity), 0.01);
-        this.rotation = Reactive.quaternionLookAt(targetPos, this.velocity);
+        let v = new CANNON.Vec3(this.velocity.x.pinLastValue(), this.velocity.y.pinLastValue(), this.velocity.z.pinLastValue()); 
+        let azimuth = Utility.azimuth(v); 
+        let inclination = Utility.inclination(v);
 
-        // // Calculate rotation
-        let rotEuler = this.rotation.eulerAngles; 
-        this.sceneObject.transform.rotationX = rotEuler.x;
-        this.sceneObject.transform.rotationY = rotEuler.y;
-        this.sceneObject.transform.rotationZ = rotEuler.z;
+        // Yaw / Roll (rotate around Z-axis)
+        let r = Utility.axisRotation(0, 0, 1, azimuth - Math.PI/2); 
+        this.sceneObject.transform.rotation = r; 
+
+        // Pitch (rotate by Elevation around X-axis)
+        r = r.mul(Utility.axisRotation(1, 0, 0, Math.PI/2 - inclination)); 
+        this.sceneObject.transform.rotation = r;  
     }
 }
