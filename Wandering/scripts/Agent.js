@@ -8,9 +8,10 @@ const CANNON = require('cannon');
 const Utility = require('./Utility.js');
 
 export default class Agent {
-    constructor(sceneObject) {
+    constructor(sceneObject, t) {
         // Scene object. 
         this.sceneObject = sceneObject; 
+        this.wanderTarget = t; 
 
         // Agent behavior. 
         this.position = Utility.getLastPosition(sceneObject);
@@ -18,50 +19,44 @@ export default class Agent {
         this.acceleration = new CANNON.Vec3(0, 0, 0); 
         this.rotation = new CANNON.Quaternion(0, 0, 0, 0); 
         this.yUp = new CANNON.Vec3(0, 1, 0); 
-        // Set initial position. 
-        this.rotation.setFromVectors(this.yUp, this.position); 
+        this.zUp = new CANNON.Vec3(0, 0, 1); 
 
         // Tweak this control how the Agent moves.
-        this.maxSpeed = 0.2; 
-        this.maxForce = 0.5;
+        this.maxSpeed = 0.1; 
+        this.maxForce = 0.001;
         
         // Tolerance for reaching a point.
         this.arriveTolerance = 1; 
-        this.slowDownTolerance = 5; 
+        this.slowDownTolerance = 10; 
 
         //this.targetPositions = targets; 
         this.curTargetIdx = 0; 
-        this.target = new CANNON.Vec3(0, 0, 0);
-
-        // [NOTE: Can use this if we want. ]
-        // this.target =  this.targetPositions[this.curTargetIdx]; 
+        this.target = Utility.getLastPosition(t); 
+        Diagnostics.log(this.target);
     }
 
     // Function declaration. 
     update() {
-        let target = this.wander(); 
-
         // Calculate steering forces for the target. 
-        this.seek(target); 
+        this.seek(); 
         
         // Update current position based on velocity. 
         this.updatePosition(); 
+        
+        // Rotate the object first, then update the position. 
+        this.syncRotation();
 
         // Sync current position with the Scene object's transform. 
         this.syncPosition(); 
-
-        // Sync rotation with the Scene object's rotation.
-        // [TODO] Fix rotation
-        this.syncRotation();
     }
 
     // Complete wander
     // Multiple agents
     // Update agent model and check direction switch. 
     wander() {
-        let wanderD = 20; // Max wander distance
+        let wanderD = 5; // Max wander distance
         let wanderR = 2;
-        let thetaChange = Math.PI; 
+        let thetaChange = 2; 
         let wanderTheta = Utility.random(-thetaChange, thetaChange); 
 
         let newTarget = new CANNON.Vec3(0, 0, 0); 
@@ -70,46 +65,49 @@ export default class Agent {
         newTarget.mult(wanderD, newTarget); // Scale it.
         newTarget.vadd(this.position, newTarget); // Make it relative to current position.
 
-        let heading2D = Utility.heading2D(newTarget); 
-        let elevation3D = Utility.elevation3D(newTarget); // [TODO] Use this to tilt the head of the Agent
+        let azimuth = Utility.azimuth(newTarget); 
+        let inclination = Utility.inclination(newTarget); // [TODO] Use this to tilt the head of the Agent
 
-        Diagnostics.log(heading2D);
-
-        // Calculate offset velocity. 
-        let vOffset = new CANNON.Vec3(wanderR * Math.cos(wanderTheta + heading2D), wanderR * Math.sin(wanderTheta + heading2D), newTarget.z); 
-        newTarget.vadd(vOffset, newTarget);
+        // Calculate New Target. 
+        let xPos = wanderR * Math.cos(azimuth + wanderTheta);
+        let yPos = wanderR * Math.sin(azimuth + wanderTheta);
+        let zPos = wanderR * Math.cos(inclination); 
+        let pOffset = new CANNON.Vec3(xPos, yPos, zPos); 
+        newTarget.vadd(pOffset, newTarget);
         
         // NOTE: If we want to set a minimum position for the
         // Agent, we can use this. 
         if (newTarget.y < 0) {
             newTarget.y = 0; 
         }
-
-        if (newTarget.y > 20) {
-            newTarget.y = 20; 
+        if (newTarget.y > 30) {
+            newTarget.y = 30; 
         }
 
-        if (newTarget.x < 0) {
-            newTarget.x = 0
+        if (newTarget.x < -30) {
+            newTarget.x = -30
         } 
 
-        if (newTarget.x > 20) {
-            newTarget.x = 20;
+        if (newTarget.x > 30) {
+            newTarget.x = 30;
         }
 
-        if (newTarget.z < 0) {
-            newTarget.z = 0
+        if (newTarget.z < -30) {
+            newTarget.z = -30
         } 
 
-        if (newTarget.z > 20) {
-            newTarget.z = 20;
+        if (newTarget.z > 30) {
+            newTarget.z = 30;
         }
+
+        // Update target sphere's position to the target
+        this.wanderTarget.transform.x = newTarget.x; 
+        this.wanderTarget.transform.y = newTarget.y; 
+        this.wanderTarget.transform.z = newTarget.z; 
         return newTarget; 
     }
 
-    seek(newTarget) {
-        this.target.copy(newTarget); 
-
+    seek() {
         let d = this.target.vsub(this.position).length();
         let vDesired; 
 
@@ -159,8 +157,6 @@ export default class Agent {
         // Update position. 
         this.position.vadd(this.velocity, this.position); 
         this.acceleration.mult(0, this.acceleration); // Reset acceleration.
-
-        this.rotation.setFromVectors(this.yUp, this.velocity); 
     }
 
     syncPosition() {
@@ -171,10 +167,29 @@ export default class Agent {
     }
 
     syncRotation() {
-        let rotEuler = {}; 
-        this.rotation.toEuler(rotEuler); 
+        // Convert current velocity into a vector. 
+        let v = Reactive.vector(this.velocity.x, this.velocity.y, this.velocity.z); 
+        v = v.reflect(Reactive.vector(0, 0, 0));  // Normalize target. 
+        v.normalize();
+
+        let targetPos = Reactive.point(this.position.x, this.position.y, this.position.z); 
+        this.rotation = Reactive.quaternionLookAt(targetPos, v);
+
+        // // Calculate rotation
+        let rotEuler = this.rotation.eulerAngles; 
         this.sceneObject.transform.rotationX = rotEuler.x;
         this.sceneObject.transform.rotationY = rotEuler.y;
-        this.sceneObject.transform.rotation.Z  = rotEuler.z;
+        this.sceneObject.transform.rotationZ = rotEuler.z;
     }
+
+    axisRotation(axis_x, axis_y, axis_z, angle_degrees) {
+        var norm = Math.sqrt(axis_x * axis_x + axis_y * axis_y + axis_z * axis_z);
+        axis_x /= norm;
+        axis_y /= norm;
+        axis_z /= norm;
+        var angle_radians = angle_degrees * Math.PI / 180.0;
+        var cos = Math.cos(angle_radians / 2);
+        var sin = Math.sin(angle_radians / 2);
+        return Reactive.quaternion(cos, axis_x * sin, axis_y * sin, axis_z * sin);
+      }
 }

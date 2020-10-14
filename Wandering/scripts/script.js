@@ -22,9 +22,6 @@ let agents = [];
 Promise.all([
     Scene.root.findFirst('Agent0'),
     Scene.root.findFirst('Agent1'),
-    Scene.root.findFirst('Agent2'),
-    Scene.root.findFirst('Agent3'),
-    Scene.root.findFirst('Agent4'),
     Scene.root.findFirst('Target1'),
     Scene.root.findFirst('Target2'),
     Scene.root.findFirst('Target3'),
@@ -32,16 +29,19 @@ Promise.all([
     Scene.root.findFirst('Target5'),
 ]).then(function (objects) {
     //var targetPositions = prepareTargets(objects); 
-    let agent = new Agent(objects[0]);
+    let t1 = objects[2]; 
+    let t2 = objects[3]; 
+
+    let agent = new Agent(objects[0], t1);
     agents.push(agent); 
-    agent = new Agent(objects[1]); 
+    agent = new Agent(objects[1], t2); 
     agents.push(agent); 
-    agent = new Agent(objects[2]); 
-    agents.push(agent); 
-    agent = new Agent(objects[3]); 
-    agents.push(agent); 
-    agent = new Agent(objects[4]); 
-    agents.push(agent); 
+    // agent = new Agent(objects[2]); 
+    // agents.push(agent); 
+    // agent = new Agent(objects[3]); 
+    // agents.push(agent); 
+    // agent = new Agent(objects[4]); 
+    // agents.push(agent); 
 
     Diagnostics.log('Setup complete'); 
 

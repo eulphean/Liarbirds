@@ -25,8 +25,8 @@ module.exports = {
         return Math.floor(Math.random() * (max - min + 1) + min); //The maximum is inclusive and the minimum is inclusive 
     },
 
-    // Theta om the x-y plane. 
-    heading2D(v) {
+    // This is also the heading2D of the vector
+    azimuth(v) {
         return Math.atan2(v.y, v.x); 
     },
 
@@ -34,8 +34,13 @@ module.exports = {
     // Math.asin (To get elevation angle from X-Y plan)
     // Check this link for the formulas 
     // https://stackoverflow.com/questions/23856489/pvector-heading-for-3d-rotation
-    elevation3D(v) {
+    inclination(v) {
         //return Math.acos(v.z / v.length()); 
         return Math.acos(v.z/v.length());
+    },
+
+    radians_to_degrees(radians)
+    {
+        return radians * (180/Math.PI);
     }
 }
