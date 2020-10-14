@@ -20,11 +20,11 @@ export default class Agent {
         this.rotation = new CANNON.Quaternion(0, 0, 0, 0); 
 
         // Tweak this control how the Agent moves.
-        this.maxSpeed = 0.4; 
-        this.maxForce = 0.01;
+        this.maxSpeed = 0.5; 
+        this.maxForce = 0.1;
         
         // Tolerance for reaching a point.
-        this.arriveTolerance = 1; 
+        this.arriveTolerance = 2; 
         this.slowDownTolerance = 5; 
         
         // Store target position
@@ -48,8 +48,8 @@ export default class Agent {
 
     // Calculate new target. 
     calcTarget() {
-        let wanderD = 10; // Max wander distance
-        let wanderR = 3;
+        let wanderD = 20; // Max wander distance
+        let wanderR = 2;
         let thetaChange = 5; 
         let wanderTheta = Utility.random(-thetaChange, thetaChange); 
 
@@ -108,7 +108,7 @@ export default class Agent {
 
         // Have arrived? 
         if (d < this.arriveTolerance) {
-            this.calcTarget(); 
+            // this.calcTarget(); 
         } else  {
             // Calculate desired force. 
             vDesired = this.target.vsub(this.position);
@@ -116,8 +116,8 @@ export default class Agent {
 
             // Logic for slowing down. 
             if (d < this.slowDownTolerance && d > this.arriveTolerance) {
-                let newMaxSpeed = Utility.map_range(d, this.arriveTolerance, this.slowDownTolerance, 0.001, this.maxSpeed);
-                vDesired.mult(newMaxSpeed, vDesired); 
+               // let newMaxSpeed = Utility.map_range(d, this.arriveTolerance, this.slowDownTolerance, 0.1, this.maxSpeed);
+                // vDesired.mult(newMaxSpeed, vDesired); 
             }
             else {
                 // Do usual business
@@ -134,6 +134,8 @@ export default class Agent {
             // Apply force. 
             this.acceleration.vadd(vSteer, this.acceleration); 
         }
+
+        this.calcTarget();
     }
 
     updatePosition() {
