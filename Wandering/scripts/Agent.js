@@ -20,8 +20,8 @@ export default class Agent {
         this.rotation = new CANNON.Quaternion(0, 0, 0, 0); 
 
         // Tweak this control how the Agent moves.
-        this.maxSpeed = 0.1; 
-        this.maxForce = 0.001;
+        this.maxSpeed = 0.4; 
+        this.maxForce = 0.01;
         
         // Tolerance for reaching a point.
         this.arriveTolerance = 1; 
@@ -73,7 +73,7 @@ export default class Agent {
         if (newTarget.y < 0) {
             newTarget.y = 0; 
         }
-        if (newTarget.y > 20) {
+        if (newTarget.y > 150) {
             newTarget.y = 20; 
         }
 
