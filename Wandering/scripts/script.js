@@ -6,9 +6,6 @@ const Scene = require('Scene');
 const Time = require('Time')
 const Diagnostics = require('Diagnostics');
 
-// Third Party libraries
-const CANNON = require('cannon');
-
 // Internal objects
 const Utility = require('./Utility.js'); 
 import Agent from './Agent.js'; 

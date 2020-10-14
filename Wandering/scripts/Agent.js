@@ -4,7 +4,6 @@
 
 const Reactive = require('Reactive'); 
 const Diagnostics = require('Diagnostics');
-const CANNON = require('cannon');
 const Utility = require('./Utility.js');
 
 export default class Agent {
@@ -15,19 +14,19 @@ export default class Agent {
 
         // Agent behavior. 
         this.position = Utility.getLastPosition(sceneObject);
-        this.velocity = new CANNON.Vec3(0, 0, 0);
-        this.acceleration = new CANNON.Vec3(0, 0, 0); 
-        this.rotation = new CANNON.Quaternion(0, 0, 0, 0); 
+        this.velocity = Reactive.vector(0, 1, 0); 
+        this.acceleration = Reactive.vector(0, 0, 0); 
+        this.rotation = Reactive.quaternionFromAngleAxis(0, Reactive.vector(0, 1, 0));
 
         // Tweak this control how the Agent moves.
-        this.maxSpeed = 0.5; 
+        this.maxSpeed = 0.2; 
         this.maxForce = 0.1;
         
         // Tolerance for reaching a point.
-        this.arriveTolerance = 2; 
+        this.arriveTolerance = 1; 
         this.slowDownTolerance = 5; 
         
-        // Store target position
+        // Store target position. 
         this.target = Utility.getLastPosition(this.targetObject); 
     }
 
@@ -48,16 +47,15 @@ export default class Agent {
 
     // Calculate new target. 
     calcTarget() {
-        let wanderD = 20; // Max wander distance
-        let wanderR = 2;
+        let wanderD = 10; // Max wander distance
+        let wanderR = 5;
         let thetaChange = 5; 
         let wanderTheta = Utility.random(-thetaChange, thetaChange); 
 
-        let newTarget = new CANNON.Vec3(0, 0, 0); 
-        newTarget.copy(this.velocity);
-        newTarget.normalize(); // Get the heading of the agent. 
-        newTarget.mult(wanderD, newTarget); // Scale it.
-        newTarget.vadd(this.position, newTarget); // Make it relative to current position.
+        let newTarget = Reactive.vector(this.velocity.x.pinLastValue(), this.velocity.y.pinLastValue(), this.velocity.z.pinLastValue()); 
+        newTarget = newTarget.normalize(); // Get the heading of the agent. 
+        newTarget = newTarget.mul(wanderD); // Scale it.
+        newTarget = newTarget.add(this.position); // Make it relative to current position.
 
         let azimuth = Utility.azimuth(newTarget); 
         let inclination = Utility.inclination(newTarget); // [TODO] Use this to tilt the head of the Agent
@@ -66,109 +64,106 @@ export default class Agent {
         let xPos = wanderR * Math.cos(azimuth + wanderTheta) * Math.sin(inclination);
         let yPos = wanderR * Math.sin(azimuth + wanderTheta) * Math.sin(inclination);
         let zPos = wanderR * Math.cos(inclination + wanderTheta); 
-        let pOffset = new CANNON.Vec3(xPos, yPos, zPos); 
-        newTarget.vadd(pOffset, newTarget);
+        let pOffset = Reactive.vector(xPos, yPos, zPos); 
+        newTarget = newTarget.add(pOffset);
         
         // Use this dirty logic to set bounds on the agent. 
-        if (newTarget.y < 0) {
-            newTarget.y = 0; 
+        if (newTarget.y.pinLastValue() < 0) {
+            newTarget = Reactive.vector(newTarget.x.pinLastValue(), 0, newTarget.z.pinLastValue()); 
         }
-        if (newTarget.y > 150) {
-            newTarget.y = 20; 
+        if (newTarget.y.pinLastValue() > 20) {
+            newTarget = Reactive.vector(newTarget.x.pinLastValue(), 20, newTarget.z.pinLastValue()); 
         }
 
-        if (newTarget.x < -20) {
-            newTarget.x = -20
+        if (newTarget.x.pinLastValue() < -20) {
+            newTarget = Reactive.vector(-20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
         } 
 
-        if (newTarget.x > 20) {
-            newTarget.x = 20;
+        if (newTarget.x.pinLastValue() > 20) {
+            newTarget = Reactive.vector(20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
         }
 
-        if (newTarget.z < -20) {
-            newTarget.z = -20
+        if (newTarget.z.pinLastValue() < -20) {
+            newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), -20); 
         } 
 
-        if (newTarget.z > 20) {
-            newTarget.z = 20;
+        if (newTarget.z.pinLastValue() > 20) {
+            newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), 20); 
         }
 
         // Update target sphere's position to the target
-        this.target.copy(newTarget); 
+        this.target = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
+
 
         // Set target object's position to this
-        this.targetObject.transform.x = this.target.x; 
-        this.targetObject.transform.y = this.target.y; 
-        this.targetObject.transform.z = this.target.z; 
+        this.targetObject.transform.x = this.target.x.pinLastValue(); 
+        this.targetObject.transform.y = this.target.y.pinLastValue(); 
+        this.targetObject.transform.z = this.target.z.pinLastValue(); 
     }
 
     seek() {
-        let d = this.target.vsub(this.position).length();
+        let d = this.target.sub(this.position).magnitude();
         let vDesired; 
 
+        let logic = d.lt(Reactive.val(this.arriveTolerance)); 
+
         // Have arrived? 
-        if (d < this.arriveTolerance) {
-            // this.calcTarget(); 
+        if (logic.pinLastValue()) {
+            this.calcTarget();
         } else  {
             // Calculate desired force. 
-            vDesired = this.target.vsub(this.position);
-            vDesired.normalize(); // Changes the vector in place. 
+            vDesired = this.target.sub(this.position);
+            vDesired = vDesired.normalize(); // Changes the vector in place. 
 
             // Logic for slowing down. 
-            if (d < this.slowDownTolerance && d > this.arriveTolerance) {
-               // let newMaxSpeed = Utility.map_range(d, this.arriveTolerance, this.slowDownTolerance, 0.1, this.maxSpeed);
-                // vDesired.mult(newMaxSpeed, vDesired); 
+            logic = d.lt(Reactive.val(this.slowDownTolerance)).and(d.gt(Reactive.val(this.arriveTolerance))); 
+            if (logic.pinLastValue()) {
+                // // Diagnostics.log('Slowing down'); 
+                // let newMaxSpeed = Utility.map_range(d.pinLastValue(), this.arriveTolerance, this.slowDownTolerance, 0.1, this.maxSpeed); 
+                // vDesired = vDesired.mul(newMaxSpeed); 
             }
             else {
-                // Do usual business
-                vDesired.mult(this.maxSpeed, vDesired);
+                // Usual scaling. 
+                vDesired = vDesired.mul(this.maxSpeed);
             }
 
-            let vSteer = vDesired.vsub(this.velocity); 
-            // Limit to max force. 
-            if (vSteer.length() > this.maxForce) {
-                vSteer.normalize(); 
-                vSteer.mult(this.maxForce, vSteer); 
-            }
+            let vSteer = vDesired.sub(this.velocity); 
+            vSteer = vSteer.clamp(-this.maxForce, this.maxForce); 
+            
+            
+            // // Limit to max force. 
+            // if (vSteer.length() > this.maxForce) {
+            //     vSteer.normalize(); 
+            //     vSteer.mult(this.maxForce, vSteer); 
+            // }
 
             // Apply force. 
-            this.acceleration.vadd(vSteer, this.acceleration); 
+            this.acceleration = this.acceleration.add(vSteer); 
         }
-
-        this.calcTarget();
     }
 
     updatePosition() {
-        this.velocity.vadd(this.acceleration, this.velocity); 
-
-        // Limit the velocity. 
-        if (this.velocity.length() > this.maxSpeed) {
-            this.velocity.normalize(); // Changes the vector in place. 
-            this.velocity.mult(this.maxSpeed, this.velocity); 
-        }
+        this.velocity = this.velocity.add(this.acceleration); 
+        this.velocity = this.velocity.clamp(-this.maxSpeed, this.maxSpeed); 
 
         // Update position. 
-        this.position.vadd(this.velocity, this.position); 
-        this.acceleration.mult(0, this.acceleration); // Reset acceleration.
+        this.position = this.position.add(this.velocity); 
+        this.acceleration = this.acceleration.mul(0); // Reset acceleration.
     }
 
     syncPosition() {
         // Sync position to the scene object. 
-        this.sceneObject.transform.x = this.position.x; 
-        this.sceneObject.transform.y = this.position.y; 
-        this.sceneObject.transform.z = this.position.z; 
+        this.sceneObject.transform.x = this.position.x.pinLastValue(); 
+        this.sceneObject.transform.y = this.position.y.pinLastValue(); 
+        this.sceneObject.transform.z = this.position.z.pinLastValue(); 
     }
 
     syncRotation() {
-        // Convert current velocity into a vector. 
-        let v = Reactive.vector(this.velocity.x, this.velocity.y, this.velocity.z); 
-        //v = v.reflect(Reactive.vector(0, 1, 0));  // Normalize target. 
-        let pos = new CANNON.Vec3(0, 0, 0); 
-        this.position.mult(10, pos); 
-        pos.vadd(this.velocity, pos);
-
-        let targetPos = Reactive.point(pos.x, pos.y, pos.z); 
-        this.rotation = Reactive.quaternionLookAt(targetPos, v);
+        let targetPos = Reactive.point(this.position.x.pinLastValue(), this.position.y.pinLastValue(), this.position.z.pinLastValue()); 
+        targetPos = targetPos.mul(0.5); 
+        let v = this.velocity.mul(0.5);
+        //this.rotation = this.rotation.slerp(Reactive.quaternionLookAt(targetPos, this.velocity), 0.01);
+        this.rotation = Reactive.quaternionLookAt(targetPos, this.velocity);
 
         // // Calculate rotation
         let rotEuler = this.rotation.eulerAngles; 

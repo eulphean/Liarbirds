@@ -1,4 +1,4 @@
-const CANNON = require('cannon'); 
+const Reactive = require('Reactive'); 
 
 module.exports = {
     getLastPosition(sceneObject) {
@@ -6,7 +6,7 @@ module.exports = {
         let posX = sceneObject.transform.x.pinLastValue(); 
         let posY = sceneObject.transform.y.pinLastValue(); 
         let posZ = sceneObject.transform.z.pinLastValue(); 
-        return new CANNON.Vec3(posX, posY, posZ); 
+        return Reactive.vector(posX, posY, posZ); 
     },
 
     syncSceneObject(sceneObject, targetVector) {
@@ -27,7 +27,9 @@ module.exports = {
 
     // This is also the heading2D of the vector
     azimuth(v) {
-        return Math.atan2(v.y, v.x); 
+        let y = v.y.pinLastValue();
+        let x = v.x.pinLastValue();
+        return Math.atan2(y, x); 
     },
 
     // Phi is the angle into the z plane (This is angle from the Z axis)
@@ -35,8 +37,10 @@ module.exports = {
     // Check this link for the formulas 
     // https://stackoverflow.com/questions/23856489/pvector-heading-for-3d-rotation
     inclination(v) {
+        let z = v.z.pinLastValue();
+        let mag = v.magnitude().pinLastValue();
         //return Math.acos(v.z / v.length()); 
-        return Math.acos(v.z/v.length());
+        return Math.acos(z / mag);
     },
 
     radians_to_degrees(radians)
