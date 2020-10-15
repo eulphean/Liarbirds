@@ -14,10 +14,10 @@ let agents = [];
 
  // Reference SphereObject from Scene
 Promise.all([
-    Scene.root.findFirst('Agent0'),
     Scene.root.findFirst('Agent1'),
     Scene.root.findFirst('Agent2'),
     Scene.root.findFirst('Agent3'),
+    Scene.root.findFirst('Agent4'),
     Scene.root.findFirst('Target1'),
     Scene.root.findFirst('Target2'),
     Scene.root.findFirst('Target3'),

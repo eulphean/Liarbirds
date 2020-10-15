@@ -20,12 +20,12 @@ export default class Agent {
         this.rotation = Reactive.quaternionFromAngleAxis(0, Reactive.vector(0, 1, 0));
 
         // Tweak this control how the Agent moves.
-        this.maxSpeed = 0.5; 
-        this.maxForce = 0.1;
+        this.maxSpeed = 0.1; 
+        this.maxForce = 0.05;
         
         // Tolerance for reaching a point.
-        this.arriveTolerance = 2; 
-        this.slowDownTolerance = 5; 
+        this.arriveTolerance = 0.05; 
+        this.slowDownTolerance = 0.2; 
         
         // Store target position. 
         this.target = Utility.getLastPosition(this.targetObject); 
@@ -48,9 +48,9 @@ export default class Agent {
 
     // Calculate new target. 
     calcTarget() {
-        let wanderD = 20; // Max wander distance
-        let wanderR = 5;
-        let thetaChange = 5; 
+        let wanderD = 0.5; // Max wander distance
+        let wanderR = 0.25;
+        let thetaChange = Math.PI/2; 
         let wanderTheta = Utility.random(-thetaChange, thetaChange); 
 
         let newTarget = new CANNON.Vec3(this.velocity.x.pinLastValue(), this.velocity.y.pinLastValue(), this.velocity.z.pinLastValue()); 
@@ -75,29 +75,29 @@ export default class Agent {
             //newTarget = Reactive.vector(newTarget.x.pinLastValue(), 0, newTarget.z.pinLastValue()); 
             newTarget.y = 0; 
         }
-        if (newTarget.y > 40) {
+        if (newTarget.y > 1) {
             //newTarget = Reactive.vector(newTarget.x.pinLastValue(), 20, newTarget.z.pinLastValue()); 
-            newTarget.y = 40; 
+            newTarget.y = 1; 
         }
 
-        if (newTarget.x < -40) {
+        if (newTarget.x < -0.5) {
             //newTarget = Reactive.vector(-20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
-            newTarget.x = -40; 
+            newTarget.x = -0.5; 
         } 
 
-        if (newTarget.x > 40) {
+        if (newTarget.x > 0.5) {
             //newTarget = Reactive.vector(20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
-            newTarget.x = 40;
+            newTarget.x = 0.5;
         }
 
-        if (newTarget.z < -40) {
+        if (newTarget.z < -0.5) {
             //newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), -20); 
-            newTarget.z = -40; 
+            newTarget.z = -0.5; 
         } 
 
-        if (newTarget.z > 40) {
+        if (newTarget.z > 0.5) {
             //newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), 20); 
-            newTarget.z = 40; 
+            newTarget.z = 0.5; 
         }
 
         // Update target sphere's position to the target
@@ -129,7 +129,7 @@ export default class Agent {
             logic = d.lt(Reactive.val(this.slowDownTolerance)).and(d.gt(Reactive.val(this.arriveTolerance))); 
             if (logic.pinLastValue()) {
                 // // Diagnostics.log('Slowing down'); 
-                let newMaxSpeed = Utility.map_range(d.pinLastValue(), this.arriveTolerance, this.slowDownTolerance, 0.1, this.maxSpeed); 
+                let newMaxSpeed = Utility.map_range(d.pinLastValue(), this.arriveTolerance, this.slowDownTolerance, 0.02, this.maxSpeed); 
                 vDesired = vDesired.mul(newMaxSpeed); 
             }
             else {
