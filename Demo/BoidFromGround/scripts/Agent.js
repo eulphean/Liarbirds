@@ -14,7 +14,7 @@ export default class Agent {
         this.targetObject = t; 
 
         // Agent behavior. 
-        this.position = Utility.getLastPosition(sceneObject);
+        this.position = Utility.getLastPosition(sceneObject); // don't need this but let it be here. 
         this.velocity = Reactive.vector(0, 1, 0); 
         this.acceleration = Reactive.vector(0, 0, 0); 
         this.rotation = Reactive.quaternionFromAngleAxis(0, Reactive.vector(0, 1, 0));
@@ -29,25 +29,87 @@ export default class Agent {
         
         // Store target position. 
         this.target = Utility.getLastPosition(this.targetObject); 
+        this.initialTargetPosition = Utility.getLastPosition(this.targetObject); 
+
+        // Is it awake? 
+        // If awake, make visible. 
+        this.awake = false; 
     }
 
     // Function declaration. 
     update() {
-        // Calculate steering forces for the target. 
-        this.seek(); 
-        
-        // Update current position based on velocity. 
-        this.updatePosition(); 
-        
-        // Rotate the object first, then update the position. 
-        this.syncRotation();
+        if (this.awake) {
+            // Calculate steering forces for the target. 
+            this.seek(); 
+            
+            // Update current position based on velocity. 
+            this.updatePosition(); 
+            
+            // Rotate the object first, then update the position. 
+            this.syncRotation();
 
-        // Sync current position with the Scene object's transform. 
-        this.syncPosition(); 
+            // Sync current position with the Scene object's transform. 
+            this.syncPosition(); 
+        }
     }
 
-    // Calculate new target. 
-    calcTarget() {
+    spawn(spawnLocation) {
+        if (this.awake) {
+            // Reset first. 
+            this.hardReset(); 
+        }
+
+        // Update position to spawn point. 
+        this.position = Reactive.vector(spawnLocation.x, spawnLocation.y, spawnLocation.z); 
+
+        // Make the agent visible and awake. 
+        this.sceneObject.hidden = false; 
+        this.awake = true; 
+    }
+
+    hardReset() {
+        this.velocity = Reactive.vector(0, 1, 0); 
+        this.acceleration = Reactive.vector(0, 0, 0); 
+        this.target = Reactive.vector(this.initialTargetPosition.x.pinLastValue(), this.initialTargetPosition.y.pinLastValue(), this.initialTargetPosition.z.pinLastValue()); 
+    }
+
+    seek() {
+        let d = this.target.sub(this.position).magnitude();
+        let vDesired; 
+
+        let logic = d.lt(Reactive.val(this.arriveTolerance)); 
+        // Have arrived? 
+        if (logic.pinLastValue()) {
+            this.calcTarget();
+        } else  {
+            // Calculate desired force. 
+            vDesired = this.target.sub(this.position);
+            vDesired = vDesired.normalize(); // Changes the vector in place. 
+            vDesired = vDesired.mul(this.maxSpeed);
+
+            // Slow down logic (Arrival logic)
+            // Logic for slowing down. 
+            logic = d.lt(Reactive.val(this.slowDownTolerance)).and(d.gt(Reactive.val(this.arriveTolerance))); 
+            if (logic.pinLastValue()) {
+                // // Diagnostics.log('Slowing down'); 
+                let newMaxSpeed = Utility.map_range(d.pinLastValue(), this.arriveTolerance, this.slowDownTolerance, 0.02, this.maxSpeed); 
+                vDesired = vDesired.mul(newMaxSpeed); 
+            }
+            else {
+                // Usual scaling. 
+                vDesired = vDesired.mul(this.maxSpeed); 
+            }
+
+            let vSteer = vDesired.sub(this.velocity); 
+            vSteer = vSteer.clamp(-this.maxForce, this.maxForce); 
+
+            // Apply force. 
+            this.acceleration = this.acceleration.add(vSteer); 
+        }
+    }
+
+        // Calculate new target. 
+     calcTarget() {
         let wanderD = 0.5; // Max wander distance
         let wanderR = 0.25;
         let thetaChange = Math.PI/2; 
@@ -108,42 +170,7 @@ export default class Agent {
         this.targetObject.transform.x = this.target.x.pinLastValue(); 
         this.targetObject.transform.y = this.target.y.pinLastValue(); 
         this.targetObject.transform.z = this.target.z.pinLastValue(); 
-    }
-
-    seek() {
-        let d = this.target.sub(this.position).magnitude();
-        let vDesired; 
-
-        let logic = d.lt(Reactive.val(this.arriveTolerance)); 
-        // Have arrived? 
-        if (logic.pinLastValue()) {
-            this.calcTarget();
-        } else  {
-            // Calculate desired force. 
-            vDesired = this.target.sub(this.position);
-            vDesired = vDesired.normalize(); // Changes the vector in place. 
-            vDesired = vDesired.mul(this.maxSpeed);
-
-            // Slow down logic (Arrival logic)
-            // Logic for slowing down. 
-            logic = d.lt(Reactive.val(this.slowDownTolerance)).and(d.gt(Reactive.val(this.arriveTolerance))); 
-            if (logic.pinLastValue()) {
-                // // Diagnostics.log('Slowing down'); 
-                let newMaxSpeed = Utility.map_range(d.pinLastValue(), this.arriveTolerance, this.slowDownTolerance, 0.02, this.maxSpeed); 
-                vDesired = vDesired.mul(newMaxSpeed); 
-            }
-            else {
-                // Usual scaling. 
-                vDesired = vDesired.mul(this.maxSpeed); 
-            }
-
-            let vSteer = vDesired.sub(this.velocity); 
-            vSteer = vSteer.clamp(-this.maxForce, this.maxForce); 
-
-            // Apply force. 
-            this.acceleration = this.acceleration.add(vSteer); 
-        }
-    }
+    }    
 
     updatePosition() {
         this.velocity = this.velocity.add(this.acceleration); 
