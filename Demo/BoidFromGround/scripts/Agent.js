@@ -33,12 +33,11 @@ export default class Agent {
 
         // Is it awake? 
         // If awake, make visible. 
-        this.awake = false; 
+        this.awake = true; 
     }
 
     // Function declaration. 
     update() {
-        if (this.awake) {
             // Calculate steering forces for the target. 
             this.seek(); 
             
@@ -50,7 +49,6 @@ export default class Agent {
 
             // Sync current position with the Scene object's transform. 
             this.syncPosition(); 
-        }
     }
 
     spawn(spawnLocation) {
@@ -63,7 +61,7 @@ export default class Agent {
         this.position = Reactive.vector(spawnLocation.x, spawnLocation.y, spawnLocation.z); 
 
         // Make the agent visible and awake. 
-        this.sceneObject.hidden = false; 
+        // this.sceneObject.hidden = false; 
         this.awake = true; 
     }
 
