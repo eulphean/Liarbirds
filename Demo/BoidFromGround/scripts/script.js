@@ -14,9 +14,7 @@ import Agent from './Agent.js';
 // Global variable because we need to access it 
 // from a lot of place in this file. 
 var agents = []; 
-var planeTracker; 
 var curAgentIdx = 0; 
-var agentSpawnLocation; 
 
 // Animation drivers for each door. 
 var leftDoorDriver;
@@ -38,40 +36,36 @@ Promise.all([
     Scene.root.findFirst('planeTracker0'), // 8
     Scene.root.findFirst('AgentSpawnPoint'), // 9
     Scene.root.findFirst('door_l'), // 10
-    Scene.root.findFirst('door_r') // 11
+    Scene.root.findFirst('door_r'), // 11
+    Scene.root.findFirst('placer') // 12
 ]).then(function (objects) {
-    // Subscribe to callbacks. 
-    handleTap(); 
+    // Prepare objects. 
+    let sceneObjects = prepareObjects(objects); 
 
-    // Prepare target objects. 
-    let t1 = objects[4]; 
-    let t2 = objects[5]; 
-    let t3 = objects[6]; 
-    let t4 = objects[7]; 
-    planeTracker = objects[8]; 
-    agentSpawnLocation = Utility.getLastPosition(objects[9]); // Get the agent  
-    let doorLeft = objects[10]; 
-    let doorRight = objects[11]; 
+    // Subscribe to interactive callbacks. 
+    handleTap(sceneObjects['planeTracker'], sceneObjects['agentSpawnPoint']); 
+    handlePan(sceneObjects['planeTracker']); 
+    handlePinch(sceneObjects['placer']);
+    handleRotate(sceneObjects['placer']); 
 
     // Create all objects related to animation. 
-    initAnimation(doorLeft, doorRight);
+    initAnimation(sceneObjects['leftDoor'], sceneObjects['rightDoor']);
 
     // Prepare agent objects.  
-    let agent = new Agent(objects[0], t1);
+    let agent = new Agent(sceneObjects['agent1'], sceneObjects['target1']);
     agents.push(agent); 
-    agent = new Agent(objects[1], t2); 
+    agent = new Agent(sceneObjects['agent2'], sceneObjects['target2']); 
     agents.push(agent); 
-    agent = new Agent(objects[2], t3);
+    agent = new Agent(sceneObjects['agent3'], sceneObjects['target3']);
     agents.push(agent); 
-    agent = new Agent(objects[3], t4); 
+    agent = new Agent(sceneObjects['agent4'], sceneObjects['target4']); 
     agents.push(agent); 
 
     Diagnostics.log('Setup complete'); 
 
-    // Custom update loop to 
+    // Custom update loop to update agents in the world. 
     // 15-30 for smoothest results.  
     const timeInterval = 15;
-    // Create time interval loop for cannon 
     Time.setInterval(function () {
         agents.forEach(a => {
             if (a.awake) {
@@ -82,9 +76,29 @@ Promise.all([
     }, timeInterval);
 });
 
-function handleTap() {
+function prepareObjects(objects) {
+    const a = {
+        'agent1' : objects[0],
+        'agent2' : objects[1],
+        'agent3' : objects[2],
+        'agent4' : objects[3],
+        'target1' : objects[4],
+        'target2' : objects[5],
+        'target3' : objects[6],
+        'target4' : objects[7],
+        'planeTracker' : objects[8],
+        'agentSpawnPoint' : Utility.getLastPosition(objects[9]), // const, so all we need is the position from this. 
+        'leftDoor' : objects[10],
+        'rightDoor' : objects[11],
+        'placer' : objects[12]
+    }
+
+    return a; 
+}
+
+function handleTap(planeTracker, agentSpawnLocation) {
     // Event subscription. 
-    TouchGestures.onTap().subscribe(function(gesture) {
+    TouchGestures.onTap().subscribe((gesture) => { // Note: Using ES6 closure to pass in the reference of the function, so this can access planeTracker variable.
         // Do something on tap.
         let pointOnScreen = gesture.location; 
 
@@ -96,18 +110,55 @@ function handleTap() {
                 // Reset the plane tracker to track this point. 
                 planeTracker.trackPoint(pointOnScreen); 
                 
-                //[Animation hook] for the floor opening up. 
-                // When animation ends, spawn the agent. 
-                spawnAgent(); 
+                spawnAgent(agentSpawnLocation); 
             }
         }); 
     });
 }
 
-function spawnAgent() {
+function handlePan(planeTracker) {
+    // Subcribe to panning
+    TouchGestures.onPan().subscribe((gesture) => {
+        // Do something. 
+        planeTracker.trackPoint(gesture.location, gesture.state); 
+    }); 
+}
+
+function handlePinch(placer) {
+    const placerTransform = placer.transform; 
+    TouchGestures.onPinch().subscribeWithSnapshot({
+        'lastScaleX' : placerTransform.scaleX,
+        'lastScaleY' : placerTransform.scaleY,
+        'lastScalez' : placerTransform.scaleZ
+    }, (gesture, snapshot) => {
+        placerTransform.scaleX = gesture.scale.mul(snapshot.lastScaleX);
+        placerTransform.scaleY = gesture.scale.mul(snapshot.lastScaleY);
+        placerTransform.scaleZ = gesture.scale.mul(snapshot.lastScaleZ);
+    });
+}
+
+function handleRotate(placer) {
+    const placerTransform = placer.transform; 
+    TouchGestures.onRotate().subscribeWithSnapshot({
+        'lastRotationY' : placerTransform.rotationY
+    }, (gesture, snapshot) => {
+        const rotationCorrection = gesture.rotation.mul(-1); 
+        placerTransform.rotationY = rotationCorrection.add(snapshot.lastRotationY); 
+    });    
+}
+
+function spawnAgent(agentSpawnLocation) {
     // Reset animation before we begin to clear previous states. 
-    leftDoorDriver.reset();
-    rightDoorDriver.reset();
+    // Clear all subscriptions. 
+    if (leftDoorDriver && rightDoorDriver) {
+        leftDoorDriver.reset();
+        rightDoorDriver.reset();
+    }
+
+    if (leftDoorSubscription && rightDoorSubscription) {
+        leftDoorSubscription.unsubscribe();
+        rightDoorSubscription.unsubscribe();
+    }
 
     // Start animation again. 
     leftDoorDriver.start(); 
@@ -136,7 +187,7 @@ function initAnimation(leftDoor, rightDoor) {
     const leftSampler = Animation.samplers.linear(0, -0.06); 
     const rightSampler = Animation.samplers.linear(0, 0.06);
 
-    // Core object that drives the animation. 
+    // Core object that starts, stops, resets, reverses the animation. 
     leftDoorDriver = Animation.timeDriver(driverParams); 
     rightDoorDriver = Animation.timeDriver(driverParams); 
 
