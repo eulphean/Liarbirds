@@ -1,7 +1,9 @@
 // Utility.js 
 // Helper module to do calculations, sceneObjects syncs and other updates. 
 
+const { clamp } = require('Reactive');
 const Reactive = require('Reactive'); 
+const CANNON = require('cannon');
 
 module.exports = {
     getLastPosition(sceneObject) {
@@ -9,7 +11,7 @@ module.exports = {
         let posX = sceneObject.transform.x.pinLastValue(); 
         let posY = sceneObject.transform.y.pinLastValue(); 
         let posZ = sceneObject.transform.z.pinLastValue(); 
-        return Reactive.vector(posX, posY, posZ); 
+        return new CANNON.Vec3(posX, posY, posZ); 
     },
 
     syncSceneObject(sceneObject, targetVector) {
@@ -44,14 +46,21 @@ module.exports = {
         return radians * (180/Math.PI);
     },
 
+    // Expects angle in radians and the axis around which to rotate. 
     axisRotation(axis_x, axis_y, axis_z, angle_radians) {
         var norm = Math.sqrt(axis_x * axis_x + axis_y * axis_y + axis_z * axis_z);
         axis_x /= norm;
         axis_y /= norm;
         axis_z /= norm;
-        //var angle_radians = angle_degrees * Math.PI / 180.0;
         var cos = Math.cos(angle_radians / 2);
         var sin = Math.sin(angle_radians / 2);
         return Reactive.quaternion(cos, axis_x * sin, axis_y * sin, axis_z * sin);
-      }
+    },
+
+    clamp(vector, maxMag) {
+        let length = vector.length(); 
+        let m = length > maxMag ? maxMag/length : 1.0; 
+        vector = vector.scale(m); 
+        return vector; 
+    }
 }

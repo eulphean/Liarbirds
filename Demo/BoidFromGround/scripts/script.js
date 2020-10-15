@@ -10,10 +10,9 @@ const TouchGestures = require('TouchGestures');
 const Utility = require('./Utility.js'); 
 import Agent from './Agent.js'; 
 
-
-var agents = []; 
 // Global variable because we need to access it 
-// from a lot of place in this root. 
+// from a lot of place in this file. 
+var agents = []; 
 var planeTracker; 
 var curAgentIdx = 0; 
 var agentSpawnLocation; 
@@ -59,7 +58,10 @@ Promise.all([
     // Create time interval loop for cannon 
     Time.setInterval(function () {
         agents.forEach(a => {
-            a.update(); 
+            if (a.awake) {
+                // Update only if active. 
+                a.update(); 
+            }
         });
     }, timeInterval);
 });
