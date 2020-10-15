@@ -20,7 +20,7 @@ export default class Agent {
         this.rotation = Reactive.quaternionFromAngleAxis(0, Reactive.vector(0, 1, 0));
 
         // Tweak this control how the Agent moves.
-        this.maxSpeed = 0.1; 
+        this.maxSpeed = 0.07; 
         this.maxForce = 0.1;
         
         // Tolerance for reaching a point.
