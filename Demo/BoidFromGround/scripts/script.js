@@ -53,8 +53,9 @@ Promise.all([
 
     Diagnostics.log('Setup complete'); 
 
-    // Use 60 or 30 for smooth movements. 
-    const timeInterval = 60;
+    // Custom update loop to 
+    // 15-30 for smoothest results.  
+    const timeInterval = 15;
     // Create time interval loop for cannon 
     Time.setInterval(function () {
         agents.forEach(a => {
@@ -80,8 +81,8 @@ function handleTap() {
                 // Reset the plane tracker to track this point. 
                 planeTracker.trackPoint(pointOnScreen); 
                 
-                // TODO: Drive animation. 
-                // When animation ends, activate agent. 
+                //[Animation hook] for the floor opening up. 
+                // When animation ends, spawn the agent. 
                 spawnAgent(); 
             }
         }); 

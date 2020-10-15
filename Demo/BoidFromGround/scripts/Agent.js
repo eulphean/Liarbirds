@@ -21,7 +21,7 @@ export default class Agent {
 
         // Tweak this control how the Agent moves.
         this.maxSpeed = 0.1; 
-        this.maxForce = 0.05;
+        this.maxForce = 0.1;
         
         // Tolerance for reaching a point.
         this.arriveTolerance = 0.05; 
@@ -43,6 +43,8 @@ export default class Agent {
         
         // Update current position based on velocity. 
         this.updatePosition(); 
+
+        // [Animation Hook] for the movement of wings, etc. 
         
         // Rotate the object first, then update the position. 
         this.syncRotation();
@@ -88,7 +90,7 @@ export default class Agent {
             // Slow down logic (Arrival logic)
             if (d < this.slowDownTolerance && d > this.arriveTolerance) {
                 // // Diagnostics.log('Slowing down'); 
-                let newMaxSpeed = Utility.map_range(d, this.arriveTolerance, this.slowDownTolerance, 0.02, this.maxSpeed); 
+                let newMaxSpeed = Utility.map_range(d, this.arriveTolerance, this.slowDownTolerance, 0.05, this.maxSpeed); 
                 vDesired.scale(newMaxSpeed, vDesired); 
             }
             else {
