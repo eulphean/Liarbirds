@@ -20,7 +20,7 @@ export default class Agent {
         this.rotation = Reactive.quaternionFromAngleAxis(0, Reactive.vector(0, 1, 0));
 
         // Tweak this control how the Agent moves.
-        this.maxSpeed = 0.07; 
+        this.maxSpeed = 0.08; 
         this.maxForce = 0.1;
         
         // Tolerance for reaching a point.
@@ -130,34 +130,34 @@ export default class Agent {
         
         // TODO: Optimize this dirty logic to give a dimension box in the beginning. 
         // Use this dirty logic to set bounds on the agent. 
-        if (newTarget.y < -0.135) {
+        if (newTarget.y < -0.40) {
             //newTarget = Reactive.vector(newTarget.x.pinLastValue(), 0, newTarget.z.pinLastValue()); 
-            newTarget.y = -0.135; 
+            newTarget.y = -0.40; 
         }
-        if (newTarget.y > 0.15) {
+        if (newTarget.y > 0.40) {
             //newTarget = Reactive.vector(newTarget.x.pinLastValue(), 20, newTarget.z.pinLastValue()); 
-            newTarget.y = 0.15; 
+            newTarget.y = 0.40; 
         }
 
-        if (newTarget.x < -0.28) {
+        if (newTarget.x < -0.75) {
             //newTarget = Reactive.vector(-20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
-            newTarget.x = -0.28; 
+            newTarget.x = -0.75; 
         } 
         
         // Into the x plane. 
-        if (newTarget.x > -0.05) {
+        if (newTarget.x > -0.03) {
             //newTarget = Reactive.vector(20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
-            newTarget.x = -0.05;
+            newTarget.x = -0.03;
         }
 
-        if (newTarget.z < -0.135) {
+        if (newTarget.z < -0.7) {
             //newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), -20); 
-            newTarget.z = -0.135; 
+            newTarget.z = -0.7; 
         } 
 
-        if (newTarget.z > 0.135) {
+        if (newTarget.z > 0.40) {
             //newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), 20); 
-            newTarget.z = 0.135; 
+            newTarget.z = 0.40; 
         }
 
         // Update target sphere's position to the target

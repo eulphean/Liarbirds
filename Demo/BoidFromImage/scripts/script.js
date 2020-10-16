@@ -37,16 +37,24 @@ Promise.all([
     Scene.root.findFirst('AgentSpawnPoint'), // 9
     Scene.root.findFirst('door_l'), // 10
     Scene.root.findFirst('door_r'), // 11
-    Scene.root.findFirst('placer') // 12
+    Scene.root.findFirst('placer'), // 12
+    Scene.root.findFirst('Agent5'), // 13
+    Scene.root.findFirst('Agent6'), // 14
+    Scene.root.findFirst('Agent7'), // 15
+    Scene.root.findFirst('Agent8'), // 16
+    Scene.root.findFirst('Target5'), // 17
+    Scene.root.findFirst('Target6'), // 18
+    Scene.root.findFirst('Target7'), // 19
+    Scene.root.findFirst('Target8'), // 20
 ]).then(function (objects) {
     // Prepare objects. 
     let sceneObjects = prepareObjects(objects); 
 
     // Subscribe to interactive callbacks. 
     handleTap(sceneObjects['targetTracker'], sceneObjects['agentSpawnPoint']); 
-    handlePan(sceneObjects['planeTracker']); 
+    //handlePan(sceneObjects['planeTracker']); 
     handlePinch(sceneObjects['placer']);
-    handleRotate(sceneObjects['placer']); 
+    //handleRotate(sceneObjects['placer']); 
 
     // Create all objects related to animation. 
     initAnimation(sceneObjects['leftDoor'], sceneObjects['rightDoor']);
@@ -59,6 +67,14 @@ Promise.all([
     agent = new Agent(sceneObjects['agent3'], sceneObjects['target3']);
     agents.push(agent); 
     agent = new Agent(sceneObjects['agent4'], sceneObjects['target4']); 
+    agents.push(agent); 
+    agent = new Agent(sceneObjects['agent5'], sceneObjects['target5']);
+    agents.push(agent); 
+    agent = new Agent(sceneObjects['agent6'], sceneObjects['target6']); 
+    agents.push(agent); 
+    agent = new Agent(sceneObjects['agent7'], sceneObjects['target7']);
+    agents.push(agent); 
+    agent = new Agent(sceneObjects['agent8'], sceneObjects['target8']); 
     agents.push(agent); 
 
     Diagnostics.log('Setup complete'); 
@@ -90,7 +106,15 @@ function prepareObjects(objects) {
         'agentSpawnPoint' : Utility.getLastPosition(objects[9]), // const, so all we need is the position from this. 
         'leftDoor' : objects[10],
         'rightDoor' : objects[11],
-        'placer' : objects[12]
+        'placer' : objects[12],
+        'agent5' : objects[13],
+        'agent6' : objects[14],
+        'agent7' : objects[15],
+        'agent8' : objects[16],
+        'target5' : objects[17],
+        'target6' : objects[18],
+        'target7' : objects[19],
+        'target8' : objects[20]
     }
 
     return a; 
