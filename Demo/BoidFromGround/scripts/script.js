@@ -23,6 +23,8 @@ var rightDoorDriver;
 var leftDoorSubscription; 
 var rightDoorSubscription; 
 
+let hasTracked = false; 
+
  // Reference SphereObject from Scene
 Promise.all([
     Scene.root.findFirst('Agent1'), // 0
@@ -37,13 +39,22 @@ Promise.all([
     Scene.root.findFirst('AgentSpawnPoint'), // 9
     Scene.root.findFirst('door_l'), // 10
     Scene.root.findFirst('door_r'), // 11
-    Scene.root.findFirst('placer') // 12
+    Scene.root.findFirst('placer'), // 12
+    Scene.root.findFirst('spawner'), // 13
+    Scene.root.findFirst('Agent5'), // 14
+    Scene.root.findFirst('Agent6'), // 15
+    Scene.root.findFirst('Agent7'), // 16
+    Scene.root.findFirst('Agent8'), // 17
+    Scene.root.findFirst('Target5'), // 18
+    Scene.root.findFirst('Target6'), // 19
+    Scene.root.findFirst('Target7'), // 20
+    Scene.root.findFirst('Target8') // 21
 ]).then(function (objects) {
     // Prepare objects. 
     let sceneObjects = prepareObjects(objects); 
 
     // Subscribe to interactive callbacks. 
-    handleTap(sceneObjects['planeTracker'], sceneObjects['agentSpawnPoint']); 
+    handleTap(sceneObjects['planeTracker'], sceneObjects['agentSpawnPoint'], sceneObjects['spawner']); 
     handlePan(sceneObjects['planeTracker']); 
     handlePinch(sceneObjects['placer']);
     handleRotate(sceneObjects['placer']); 
@@ -59,6 +70,14 @@ Promise.all([
     agent = new Agent(sceneObjects['agent3'], sceneObjects['target3']);
     agents.push(agent); 
     agent = new Agent(sceneObjects['agent4'], sceneObjects['target4']); 
+    agents.push(agent); 
+    agent = new Agent(sceneObjects['agent5'], sceneObjects['target5']); 
+    agents.push(agent); 
+    agent = new Agent(sceneObjects['agent6'], sceneObjects['target6']); 
+    agents.push(agent); 
+    agent = new Agent(sceneObjects['agent7'], sceneObjects['target7']); 
+    agents.push(agent); 
+    agent = new Agent(sceneObjects['agent8'], sceneObjects['target8']); 
     agents.push(agent); 
 
     Diagnostics.log('Setup complete'); 
@@ -87,16 +106,25 @@ function prepareObjects(objects) {
         'target3' : objects[6],
         'target4' : objects[7],
         'planeTracker' : objects[8],
-        'agentSpawnPoint' : Utility.getLastPosition(objects[9]), // const, so all we need is the position from this. 
+        'agentSpawnPoint' : objects[9], // const, so all we need is the position from this. 
         'leftDoor' : objects[10],
         'rightDoor' : objects[11],
-        'placer' : objects[12]
+        'placer' : objects[12],
+        'spawner' : objects[13],
+        'agent5' : objects[14],
+        'agent6' : objects[15],
+        'agent7' : objects[16],
+        'agent8' : objects[17],
+        'target5' : objects[18],
+        'target6' : objects[19],
+        'target7' : objects[20],
+        'target8' : objects[21]
     }
 
     return a; 
 }
 
-function handleTap(planeTracker, agentSpawnLocation) {
+function handleTap(planeTracker, agentSpawnLocation, spawner) {
     // Event subscription. 
     TouchGestures.onTap().subscribe((gesture) => { // Note: Using ES6 closure to pass in the reference of the function, so this can access planeTracker variable.
         // Do something on tap.
@@ -108,8 +136,12 @@ function handleTap(planeTracker, agentSpawnLocation) {
                 Diagnostics.log('Nothing found');
             } else {
                 // Reset the plane tracker to track this point. 
-                planeTracker.trackPoint(pointOnScreen); 
-                
+                if (!hasTracked) {
+                    planeTracker.trackPoint(pointOnScreen); 
+                    hasTracked = true;
+                }
+                // Utility.syncSceneObject(spawner, location); 
+                // Utility.syncSceneObject(agentSpawnLocation, location); 
                 spawnAgent(agentSpawnLocation); 
             }
         }); 

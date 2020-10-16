@@ -60,7 +60,7 @@ export default class Agent {
         }
 
         // Update position to spawn point. 
-        this.position.copy(spawnLocation); 
+        this.position.copy(Utility.getLastPosition(spawnLocation)); 
 
         // Make the agent visible and awake. 
         this.sceneObject.hidden = false; 
@@ -132,31 +132,31 @@ export default class Agent {
         // Use this dirty logic to set bounds on the agent. 
         if (newTarget.y < 0) {
             //newTarget = Reactive.vector(newTarget.x.pinLastValue(), 0, newTarget.z.pinLastValue()); 
-            newTarget.y = 0; 
+            newTarget.y = 0.05; 
         }
-        if (newTarget.y > 1) {
+        if (newTarget.y > 0.35) {
             //newTarget = Reactive.vector(newTarget.x.pinLastValue(), 20, newTarget.z.pinLastValue()); 
-            newTarget.y = 1; 
+            newTarget.y = 0.35; 
         }
 
-        if (newTarget.x < -0.5) {
+        if (newTarget.x < -0.35) {
             //newTarget = Reactive.vector(-20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
-            newTarget.x = -0.5; 
+            newTarget.x = -0.35; 
         } 
 
-        if (newTarget.x > 0.5) {
+        if (newTarget.x > 0.35) {
             //newTarget = Reactive.vector(20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
-            newTarget.x = 0.5;
+            newTarget.x = 0.35;
         }
 
-        if (newTarget.z < -0.5) {
+        if (newTarget.z < -0.35) {
             //newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), -20); 
-            newTarget.z = -0.5; 
+            newTarget.z = -0.35; 
         } 
 
-        if (newTarget.z > 0.5) {
+        if (newTarget.z > 0.35) {
             //newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), 20); 
-            newTarget.z = 0.5; 
+            newTarget.z = 0.35; 
         }
 
         // Update target sphere's position to the target
@@ -184,7 +184,7 @@ export default class Agent {
 
         // Yaw / Roll (rotate around Z-axis)
         let r = Utility.axisRotation(0, 0, 1, azimuth - Math.PI/2); 
-        this.sceneObject.transform.rotation = r; 
+        // this.sceneObject.transform.rotation = r; 
 
         // Pitch (rotate by Elevation around X-axis)
         r = r.mul(Utility.axisRotation(1, 0, 0, Math.PI/2 - inclination)); 
