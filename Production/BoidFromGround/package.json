@@ -1,15 +1,16 @@
 {
-  "name": "example",
+  "name": "BoidsFromGround",
   "version": "1.0.0",
-  "description": "Spark AR physics example",
-  "main": "src/index.js",
+  "description": "HPAC Production Projects",
+  "main": "src/main.js",
+  "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --watch --config webpack.prod.js",
     "dev": "webpack --watch --config webpack.dev.js"
   },
   "keywords": [],
-  "author": "Ashley Fletcher <ashleymarkfletcher@gmail.com>",
+  "author": "Amay Kataria",
   "license": "ISC",
   "devDependencies": {
     "babel-core": "^6.26.3",

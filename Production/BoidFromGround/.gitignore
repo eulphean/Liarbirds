@@ -1,0 +1,9 @@
+// Ignore all the webpack compiles scripts and source maps.
+// Completely ignore that folder. 
+scripts/*
+
+// Ignore these dirty files from max
+*.DS_Store
+
+// Drop the entire node_modules folder
+node_modules/
