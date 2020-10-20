@@ -24,10 +24,14 @@ const map_range = (value, low1, high1, low2, high2) => {
     return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
 
-const random = (min, max) => {
+const random = (min, max, isDecimal = false) => {
     min = Math.ceil(min);
     max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1) + min); //The maximum is inclusive and the minimum is inclusive 
+    if (isDecimal) {
+        return (Math.random() * (max - min) + min).toFixed(3);
+    } else {
+        return Math.floor(Math.random() * (max - min + 1) + min);
+    }
 }
 
 const azimuth = (v) => {

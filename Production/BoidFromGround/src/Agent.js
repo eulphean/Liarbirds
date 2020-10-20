@@ -15,7 +15,8 @@ export default class Agent {
 
         // Agent behavior. 
         this.position = Utility.getLastPosition(sceneObject); // don't need this but let it be here. 
-        this.velocity = new CANNON.Vec3(0, 0, 0); 
+        let vx = Utility.random(0.0001, 0.0005, true);
+        this.velocity = new CANNON.Vec3(vx/10000, 0.0002, 0); 
         this.acceleration = new CANNON.Vec3(0, 0, 0); 
         this.rotation = Reactive.quaternionFromAngleAxis(0, Reactive.vector(0, 1, 0));
 
@@ -28,12 +29,18 @@ export default class Agent {
         this.slowDownTolerance = 0.2; 
 
         // Group behavioral weights. 
-        this.seperationWeight = 1.0; // Keep this weight high / Higher than maxForce 
-        this.seperationPerceptionRad = 0.05; 
+        this.seperationWeight = 0.01; // Keep this weight high / Higher than maxForce 
+        this.seperationPerceptionRad = 0.03; 
+
+        this.cohesionWeight = 0.003; // Keep this weight high / Higher than maxForce 
+        this.cohesionPerceptionRad = 0.2; 
+
+        this.alignmentWeight = 0.001; // Keep this weight high / Higher than maxForce 
+        this.alignmentPerceptionRad = 0.2; 
         
         // Store target position. 
-        this.target = Utility.getLastPosition(this.targetObject); 
-        this.initialTargetPosition = Utility.getLastPosition(this.targetObject); // Save this to be reused during spawning. 
+        // this.target = Utility.getLastPosition(this.targetObject); 
+        // this.initialTargetPosition = Utility.getLastPosition(this.targetObject); // Save this to be reused during spawning. 
 
         // Is it awake? 
         // If awake up, make visible. 
@@ -57,16 +64,28 @@ export default class Agent {
         this.syncPosition(); 
     }
 
+    // Flocking behavior. 
     applyBehaviors(agents) {
-        // seek the target
-        this.seperation(agents); 
+        let steer; 
 
-        // Seek target (don't touch this logic right now)
-        this.seek(); 
+        // Seperation. 
+        steer = this.seperation(agents); 
+        steer.scale(this.seperationWeight, steer); 
+        this.applyForce(steer); 
+
+        // Alignment
+        steer = this.align(agents); 
+        steer.scale(this.alignmentWeight, steer);
+        this.applyForce(steer); 
+
+        // Cohesion 
+        steer = this.cohesion(agents); 
+        steer.scale(this.cohesionWeight, steer); 
+        this.applyForce(steer); 
     }
 
     seperation(agents) {
-        let steer; 
+        let vSteer = new CANNON.Vec3(0, 0, 0);
         let sum = new CANNON.Vec3(0, 0, 0); 
         let count = 0;
 
@@ -84,18 +103,64 @@ export default class Agent {
 
                 // Calculate average vector away from the oncoming boid. 
                 if (count > 0) {
-                    Diagnostics.log('Calculating Seperation');
                     sum.scale(1/count); 
                     sum.normalize(); 
                     sum = Utility.clamp(sum, this.maxSpeed); 
-                    steer = sum.vsub(this.velocity); // Calculate desired velocity
-                    steer = Utility.clamp(steer, this.maxForce); 
-                    steer.scale(this.seperationWeight, steer);
-                    this.applyForce(steer); 
-                    this.calcTarget(); // Calculate a new target here because my direction has changed. 
+                    vSteer = sum.vsub(this.velocity); // Calculate desired velocity
+                    vSteer = Utility.clamp(vSteer, this.maxForce); 
                 }
             }
         }); 
+
+        return vSteer; 
+    }
+
+    cohesion(agents) {
+        let vSteer = new CANNON.Vec3(0, 0, 0); 
+        let target = new CANNON.Vec3(0, 0, 0);   // Start with empty vector to accumulate all positions
+        let count = 0;
+       
+        agents.forEach(a => {
+            if (a.awake) {
+                let diff = this.position.vsub(a.position);
+                if (diff.length() > 0 && diff.length() < this.cohesionPerceptionRad) {
+                    target.vadd(a.position, target); 
+                    count++; 
+                }
+            }
+
+            if (count > 0) {
+                target.scale(1/count, target); 
+                vSteer = this.seek(target); 
+            }
+        }); 
+
+        return vSteer; 
+    }
+
+    // Calculate average velocity by looking at its neighbours. 
+    align(agents) {
+        let vSteer = new CANNON.Vec3(0, 0, 0); 
+        let count = 0; 
+        agents.forEach(a => {
+            if (a.awake) {
+                let diff = this.position.vsub(a.position); 
+                if (diff.length() > 0 && diff.length() < this.alignmentPerceptionRad) {
+                    vSteer.vadd(a.velocity, vSteer); 
+                    count++; 
+                }
+
+                if (count > 0) {
+                    vSteer.scale(1/count, vSteer); 
+                    vSteer.normalize(); 
+                    vSteer.scale(this.maxSpeed, vSteer); 
+                    vSteer.vsub(this.velocity, vSteer); 
+                    vSteer = Utility.clamp(vSteer, this.maxForce); 
+                }
+            }
+        });
+
+        return vSteer; 
     }
 
     spawn(spawnLocation) {
@@ -114,52 +179,37 @@ export default class Agent {
 
     hardReset() {
         // Reset all the parameters to original parameters. 
-        this.velocity.set(0, 1, 0); 
+        this.velocity.set(0, 0, 0); 
         this.acceleration.set(0, 0, 0); 
-        this.target.copy(this.initialTargetPosition); 
+        // this.target.copy(this.initialTargetPosition); 
     }
 
-    seek() {
-        let d = this.target.vsub(this.position).length();
-        let vDesired; 
+    seek(target) {
+        let d = target.vsub(this.position).length();
+        let vDesired;
+        // Calculate desired force. 
+        vDesired = target.vsub(this.position);
+        vDesired.normalize(); // Changes the vector in place. 
+        vDesired.scale(this.maxSpeed, vDesired);
 
-        // Have arrived? 
-        if (d < this.arriveTolerance) {
-            this.calcTarget();
-        } else  {
-            // Calculate desired force. 
-            vDesired = this.target.vsub(this.position);
-            vDesired.normalize(); // Changes the vector in place. 
-            vDesired.scale(this.maxSpeed, vDesired);
-
-            // Slow down logic (Arrival logic)
-            if (d < this.slowDownTolerance && d > this.arriveTolerance) {
-                // // Diagnostics.log('Slowing down'); 
-                let newMaxSpeed = Utility.map_range(d, this.arriveTolerance, this.slowDownTolerance, 0.05, this.maxSpeed); 
-                vDesired.scale(newMaxSpeed, vDesired); 
-            }
-            else {
-                // Usual scaling. 
-                vDesired.scale(this.maxSpeed, vDesired); 
-            }
-
-            let vSteer = vDesired.vsub(this.velocity); 
-            vSteer = Utility.clamp(vSteer, this.maxForce); 
-
-            // Modify acceleration and velocity. 
-            this.applyForce(vSteer); 
+        // Slow down logic (Arrival logic)
+        if (d < this.slowDownTolerance && d > this.arriveTolerance) {
+            // // Diagnostics.log('Slowing down'); 
+            let newMaxSpeed = Utility.map_range(d, this.arriveTolerance, this.slowDownTolerance, 0.05, this.maxSpeed); 
+            vDesired.scale(newMaxSpeed, vDesired); 
         }
+        else {
+            // Usual scaling. 
+            vDesired.scale(this.maxSpeed, vDesired); 
+        }
+
+        let vSteer = vDesired.vsub(this.velocity); 
+        vSteer = Utility.clamp(vSteer, this.maxForce); 
+        return vSteer;  
     }
 
     applyForce(steer) {
         this.acceleration.vadd(steer, this.acceleration); 
-
-        // We update velocity right here because we want the most upto date heading
-        // when we are calculating the new position. 
-        this.velocity.vadd(this.acceleration, this.velocity); 
-        this.velocity = Utility.clamp(this.velocity, this.maxSpeed); 
-
-        this.acceleration.scale(0, this.acceleration); // Reset acceleration.
     }
 
         // Calculate new target. 
@@ -222,8 +272,13 @@ export default class Agent {
     }    
 
     updatePosition() {
-        // Update position using the current velocity. 
+        // Update velocity. 
+        this.velocity.vadd(this.acceleration, this.velocity); 
+        this.velocity = Utility.clamp(this.velocity, this.maxSpeed); 
+
+        // Calculate position. 
         this.position.vadd(this.velocity, this.position); 
+        this.acceleration.scale(0, this.acceleration); // Reset acceleration.
     }
 
     syncPosition() {
@@ -236,7 +291,6 @@ export default class Agent {
 
         // Yaw / Roll (rotate around Z-axis)
         let r = Utility.axisRotation(0, 0, 1, azimuth - Math.PI/2); 
-        // this.sceneObject.transform.rotation = r; 
 
         // Pitch (rotate by Elevation around X-axis)
         r = r.mul(Utility.axisRotation(1, 0, 0, Math.PI/2 - inclination)); 
