@@ -30,13 +30,13 @@ export default class Agent {
 
         // Group behavioral weights. 
         this.seperationWeight = 0.01; // Keep this weight high / Higher than maxForce 
-        this.seperationPerceptionRad = 0.03; 
+        this.seperationPerceptionRad = 0.01; 
 
-        this.cohesionWeight = 0.003; // Keep this weight high / Higher than maxForce 
-        this.cohesionPerceptionRad = 0.2; 
+        this.cohesionWeight = 0.3; // Keep this weight high / Higher than maxForce 
+        this.cohesionPerceptionRad = 0.1; 
 
         this.alignmentWeight = 0.001; // Keep this weight high / Higher than maxForce 
-        this.alignmentPerceptionRad = 0.2; 
+        this.alignmentPerceptionRad = 0.05; 
         
         // Store target position. 
         // this.target = Utility.getLastPosition(this.targetObject); 
