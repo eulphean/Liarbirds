@@ -88,7 +88,7 @@ Promise.all([
         agents.forEach(a => {
             if (a.awake) {
                 // Update only if active. 
-                a.update(); 
+                a.update(agents); 
             }
         });
     }, timeInterval);
@@ -139,8 +139,6 @@ function handleTap(planeTracker, agentSpawnLocation, spawner) {
                     planeTracker.trackPoint(pointOnScreen); 
                     hasTracked = true;
                 }
-                // Utility.syncSceneObject(spawner, location); 
-                // Utility.syncSceneObject(agentSpawnLocation, location); 
                 spawnAgent(agentSpawnLocation); 
             }
         }); 

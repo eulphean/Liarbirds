@@ -15,17 +15,21 @@ export default class Agent {
 
         // Agent behavior. 
         this.position = Utility.getLastPosition(sceneObject); // don't need this but let it be here. 
-        this.velocity = new CANNON.Vec3(0, 1, 0); 
+        this.velocity = new CANNON.Vec3(0, 0, 0); 
         this.acceleration = new CANNON.Vec3(0, 0, 0); 
         this.rotation = Reactive.quaternionFromAngleAxis(0, Reactive.vector(0, 1, 0));
 
         // Tweak this control how the Agent moves.
-        this.maxSpeed = 0.07; 
-        this.maxForce = 0.1;
+        this.maxSpeed = 0.06; 
+        this.maxForce = 0.05;
         
         // Tolerance for reaching a point.
         this.arriveTolerance = 0.05; 
         this.slowDownTolerance = 0.2; 
+
+        // Group behavioral weights. 
+        this.seperationWeight = 1.0; // Keep this weight high / Higher than maxForce 
+        this.seperationPerceptionRad = 0.05; 
         
         // Store target position. 
         this.target = Utility.getLastPosition(this.targetObject); 
@@ -37,10 +41,10 @@ export default class Agent {
     }
 
     // Function declaration. 
-    update() {
-        // Calculate steering forces for the target. 
-        this.seek(); 
-        
+    update(agents) {
+        // Calculate 
+        this.applyBehaviors(agents);  
+
         // Update current position based on velocity. 
         this.updatePosition(); 
 
@@ -51,6 +55,47 @@ export default class Agent {
 
         // Sync current position with the Scene object's transform. 
         this.syncPosition(); 
+    }
+
+    applyBehaviors(agents) {
+        // seek the target
+        this.seperation(agents); 
+
+        // Seek target (don't touch this logic right now)
+        this.seek(); 
+    }
+
+    seperation(agents) {
+        let steer; 
+        let sum = new CANNON.Vec3(0, 0, 0); 
+        let count = 0;
+
+        // For every boid in the system, check if it's too close
+        agents.forEach(a => {
+            // Very important check here else there will be bugs. 
+            if (a.awake) {
+                let diff = this.position.vsub(a.position); 
+                if (diff.length() > 0 && diff.length() < this.seperationPerceptionRad) {
+                    diff.normalize(); 
+                    diff.scale(1/(diff.length()), diff); // Weight the vector properly based on the distance from the target. 
+                    sum.vadd(diff, sum); 
+                    count++; // Keep a count of all the agents in the purview of this agent. 
+                }
+
+                // Calculate average vector away from the oncoming boid. 
+                if (count > 0) {
+                    Diagnostics.log('Calculating Seperation');
+                    sum.scale(1/count); 
+                    sum.normalize(); 
+                    sum = Utility.clamp(sum, this.maxSpeed); 
+                    steer = sum.vsub(this.velocity); // Calculate desired velocity
+                    steer = Utility.clamp(steer, this.maxForce); 
+                    steer.scale(this.seperationWeight, steer);
+                    this.applyForce(steer); 
+                    this.calcTarget(); // Calculate a new target here because my direction has changed. 
+                }
+            }
+        }); 
     }
 
     spawn(spawnLocation) {
@@ -101,9 +146,20 @@ export default class Agent {
             let vSteer = vDesired.vsub(this.velocity); 
             vSteer = Utility.clamp(vSteer, this.maxForce); 
 
-            // Apply force. 
-            this.acceleration.vadd(vSteer, this.acceleration); 
+            // Modify acceleration and velocity. 
+            this.applyForce(vSteer); 
         }
+    }
+
+    applyForce(steer) {
+        this.acceleration.vadd(steer, this.acceleration); 
+
+        // We update velocity right here because we want the most upto date heading
+        // when we are calculating the new position. 
+        this.velocity.vadd(this.acceleration, this.velocity); 
+        this.velocity = Utility.clamp(this.velocity, this.maxSpeed); 
+
+        this.acceleration.scale(0, this.acceleration); // Reset acceleration.
     }
 
         // Calculate new target. 
@@ -130,7 +186,7 @@ export default class Agent {
         
         // TODO: Optimize this dirty logic to give a dimension box in the beginning. 
         // Use this dirty logic to set bounds on the agent. 
-        if (newTarget.y < 0) {
+        if (newTarget.y < 0.05) {
             //newTarget = Reactive.vector(newTarget.x.pinLastValue(), 0, newTarget.z.pinLastValue()); 
             newTarget.y = 0.05; 
         }
@@ -166,12 +222,8 @@ export default class Agent {
     }    
 
     updatePosition() {
-        this.velocity.vadd(this.acceleration, this.velocity); 
-        this.velocity = Utility.clamp(this.velocity, this.maxSpeed); 
-
-        // Update position. 
+        // Update position using the current velocity. 
         this.position.vadd(this.velocity, this.position); 
-        this.acceleration.scale(0, this.acceleration); // Reset acceleration.
     }
 
     syncPosition() {
