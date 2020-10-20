@@ -15,8 +15,8 @@ export default class Agent {
 
         // Agent behavior. 
         this.position = Utility.getLastPosition(sceneObject); // don't need this but let it be here. 
-        let vx = Utility.random(0.0001, 0.0005, true);
-        this.velocity = new CANNON.Vec3(vx/10000, 0.0002, 0); 
+        // let vx = Utility.random(0.0001, 0.0005, true);
+        this.velocity = new CANNON.Vec3(0, 0, 0); 
         this.acceleration = new CANNON.Vec3(0, 0, 0); 
         this.rotation = Reactive.quaternionFromAngleAxis(0, Reactive.vector(0, 1, 0));
 
@@ -37,9 +37,13 @@ export default class Agent {
 
         this.alignmentWeight = 0.001; // Keep this weight high / Higher than maxForce 
         this.alignmentPerceptionRad = 0.05; 
-        
+
+        // Try to reuse this when calculating targets.
+        // This will help optimize new vector creation.
+        // Copy starting targets. 
+        this.target = Utility.getLastPosition(this.targetObject); 
+
         // Store target position. 
-        // this.target = Utility.getLastPosition(this.targetObject); 
         // this.initialTargetPosition = Utility.getLastPosition(this.targetObject); // Save this to be reused during spawning. 
 
         // Is it awake? 
@@ -66,22 +70,32 @@ export default class Agent {
 
     // Flocking behavior. 
     applyBehaviors(agents) {
-        let steer; 
+        let steer; // Optimize steer as well. 
 
-        // Seperation. 
-        steer = this.seperation(agents); 
-        steer.scale(this.seperationWeight, steer); 
+        // Have I reached a target? 
+        this.calcTarget(); 
+        steer = this.seek(); 
         this.applyForce(steer); 
+        
+        // If I have, calc a new target
+        // If not, keep seeking the old target, do I save the target or do I keep th
 
-        // Alignment
-        steer = this.align(agents); 
-        steer.scale(this.alignmentWeight, steer);
-        this.applyForce(steer); 
+        // Flocking algorithm. 
+        
+        // // Seperation. 
+        // steer = this.seperation(agents); 
+        // steer.scale(this.seperationWeight, steer); 
+        // this.applyForce(steer); 
 
-        // Cohesion 
-        steer = this.cohesion(agents); 
-        steer.scale(this.cohesionWeight, steer); 
-        this.applyForce(steer); 
+        // // Alignment
+        // steer = this.align(agents); 
+        // steer.scale(this.alignmentWeight, steer);
+        // this.applyForce(steer); 
+
+        // // Cohesion 
+        // steer = this.cohesion(agents); 
+        // steer.scale(this.cohesionWeight, steer); 
+        // this.applyForce(steer); 
     }
 
     seperation(agents) {
@@ -184,18 +198,16 @@ export default class Agent {
         // this.target.copy(this.initialTargetPosition); 
     }
 
-    seek(target) {
-        let d = target.vsub(this.position).length();
-        let vDesired;
-        // Calculate desired force. 
-        vDesired = target.vsub(this.position);
+    seek() {
+        let vDesired = this.target.vsub(this.position); 
+        let d = vDesired.length();
         vDesired.normalize(); // Changes the vector in place. 
         vDesired.scale(this.maxSpeed, vDesired);
 
         // Slow down logic (Arrival logic)
         if (d < this.slowDownTolerance && d > this.arriveTolerance) {
             // // Diagnostics.log('Slowing down'); 
-            let newMaxSpeed = Utility.map_range(d, this.arriveTolerance, this.slowDownTolerance, 0.05, this.maxSpeed); 
+            let newMaxSpeed = Utility.map_range(d, this.arriveTolerance, this.slowDownTolerance, 0.02, this.maxSpeed); 
             vDesired.scale(newMaxSpeed, vDesired); 
         }
         else {
@@ -203,72 +215,44 @@ export default class Agent {
             vDesired.scale(this.maxSpeed, vDesired); 
         }
 
-        let vSteer = vDesired.vsub(this.velocity); 
-        vSteer = Utility.clamp(vSteer, this.maxForce); 
-        return vSteer;  
+        vDesired.vsub(this.velocity, vDesired); 
+        vDesired = Utility.clamp(vDesired, this.maxForce); 
+        return vDesired;  
     }
 
     applyForce(steer) {
         this.acceleration.vadd(steer, this.acceleration); 
     }
 
-        // Calculate new target. 
-     calcTarget() {
-        let wanderD = 0.5; // Max wander distance
-        let wanderR = 0.25;
-        let thetaChange = Math.PI/2; 
-        let wanderTheta = Utility.random(-thetaChange, thetaChange); 
-
-        let newTarget = new CANNON.Vec3(this.velocity.x, this.velocity.y, this.velocity.z); 
-        newTarget.normalize(); // Get the heading of the agent. 
-        newTarget.scale(wanderD, newTarget); // Scale it.
-        newTarget.vadd(this.position, newTarget); // Make it relative to current position.
-
-        let azimuth = Utility.azimuth(newTarget); 
-        let inclination = Utility.inclination(newTarget); // [TODO] Use this to tilt the head of the Agent
-
-        // Calculate New Target. 
-        let xPos = wanderR * Math.cos(azimuth + wanderTheta);
-        let yPos = wanderR * Math.sin(azimuth + wanderTheta);
-        let zPos = wanderR * Math.cos(inclination); 
-        let pOffset = new CANNON.Vec3(xPos, yPos, zPos); 
-        newTarget.vadd(pOffset, newTarget); // With respect to current position 
-        
-        // TODO: Optimize this dirty logic to give a dimension box in the beginning. 
-        // Use this dirty logic to set bounds on the agent. 
-        if (newTarget.y < 0.05) {
-            //newTarget = Reactive.vector(newTarget.x.pinLastValue(), 0, newTarget.z.pinLastValue()); 
-            newTarget.y = 0.05; 
+    // [TODO] I should be able to force new target calculation. 
+    // Calculate new target. 
+    calcTarget() {
+        // Have I reached the target? 
+        let d = this.target.vsub(this.position).length(); 
+        if (d < this.arriveTolerance) {
+            let wanderD = 0.1; // Max wander distance
+            let wanderR = 0.05;
+            let thetaChange = Math.PI; 
+            let wanderTheta = Utility.random(-thetaChange, thetaChange); 
+    
+            this.target.set(this.velocity.x, this.velocity.y, this.velocity.z); 
+            this.target.normalize(); // Get the heading of the agent. 
+            this.target.scale(wanderD, this.target); // Scale it.
+            this.target.vadd(this.position, this.target); // Make it relative to current position.
+    
+            let azimuth = Utility.azimuth(this.target); 
+            let inclination = Utility.inclination(this.target); // [TODO] Use this to tilt the head of the Agent
+    
+            // Calculate New Target. 
+            let xPos = wanderR * Math.cos(azimuth + wanderTheta);
+            let yPos = wanderR * Math.sin(azimuth + wanderTheta);
+            let zPos = wanderR * Math.cos(inclination); 
+            let pOffset = new CANNON.Vec3(xPos, yPos, zPos); 
+            this.target.vadd(pOffset, this.target); // With respect to current position 
+        } else {
+            // Still trying to get to the target. 
+            // no changes to this.target. 
         }
-        if (newTarget.y > 0.35) {
-            //newTarget = Reactive.vector(newTarget.x.pinLastValue(), 20, newTarget.z.pinLastValue()); 
-            newTarget.y = 0.35; 
-        }
-
-        if (newTarget.x < -0.35) {
-            //newTarget = Reactive.vector(-20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
-            newTarget.x = -0.35; 
-        } 
-
-        if (newTarget.x > 0.35) {
-            //newTarget = Reactive.vector(20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
-            newTarget.x = 0.35;
-        }
-
-        if (newTarget.z < -0.35) {
-            //newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), -20); 
-            newTarget.z = -0.35; 
-        } 
-
-        if (newTarget.z > 0.35) {
-            //newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), 20); 
-            newTarget.z = 0.35; 
-        }
-
-        // Update target sphere's position to the target
-        this.target.copy(newTarget); 
-        // Set target object's position to this
-        Utility.syncSceneObject(this.targetObject, this.target); 
     }    
 
     updatePosition() {
@@ -297,3 +281,41 @@ export default class Agent {
         this.sceneObject.transform.rotation = r;  
     }
 }
+
+
+            
+            // // TODO: Optimize this dirty logic to give a dimension box in the beginning. 
+            // // Use this dirty logic to set bounds on the agent. 
+            // if (newTarget.y < 0.05) {
+            //     //newTarget = Reactive.vector(newTarget.x.pinLastValue(), 0, newTarget.z.pinLastValue()); 
+            //     newTarget.y = 0.05; 
+            // }
+            // if (newTarget.y > 0.35) {
+            //     //newTarget = Reactive.vector(newTarget.x.pinLastValue(), 20, newTarget.z.pinLastValue()); 
+            //     newTarget.y = 0.35; 
+            // }
+    
+            // if (newTarget.x < -0.35) {
+            //     //newTarget = Reactive.vector(-20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
+            //     newTarget.x = -0.35; 
+            // } 
+    
+            // if (newTarget.x > 0.35) {
+            //     //newTarget = Reactive.vector(20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
+            //     newTarget.x = 0.35;
+            // }
+    
+            // if (newTarget.z < -0.35) {
+            //     //newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), -20); 
+            //     newTarget.z = -0.35; 
+            // } 
+    
+            // if (newTarget.z > 0.35) {
+            //     //newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), 20); 
+            //     newTarget.z = 0.35; 
+            // }
+    
+            // // Update target sphere's position to the target
+            // // this.target.copy(newTarget); 
+            // // Set target object's position to this
+            // //Utility.syncSceneObject(this.targetObject, this.target); 
