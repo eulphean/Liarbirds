@@ -44,7 +44,7 @@ export default class Agent {
         this.target = Utility.getLastPosition(this.targetObject); 
 
         // Store target position. 
-        // this.initialTargetPosition = Utility.getLastPosition(this.targetObject); // Save this to be reused during spawning. 
+        this.initialTargetPosition = Utility.getLastPosition(this.targetObject); // Save this to be reused during spawning. 
 
         // Is it awake? 
         // If awake up, make visible. 
@@ -199,7 +199,7 @@ export default class Agent {
         // Reset all the parameters to original parameters. 
         this.velocity.set(0, 0, 0); 
         this.acceleration.set(0, 0, 0); 
-        // this.target.copy(this.initialTargetPosition); 
+        this.target.copy(this.initialTargetPosition); 
     }
 
     seek() {
