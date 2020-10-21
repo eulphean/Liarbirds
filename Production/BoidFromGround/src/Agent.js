@@ -14,45 +14,49 @@ export default class Agent {
         this.targetObject = obj['target']; 
         this.boundary = obj['boundary']; 
 
-        // Agent behavior. 
+        // Core Vec3 to determine agent's whereabouts. These should be reused aggressively to avoid the need
+        // to create new Vec3s on the fly. That's expensive. 
         this.position = Utility.getLastPosition(this.sceneObject); // don't need this but let it be here. 
         this.velocity = new CANNON.Vec3(0, 0, 0); 
         this.acceleration = new CANNON.Vec3(0, 0, 0); 
         this.rotation = Reactive.quaternionFromAngleAxis(0, Reactive.vector(0, 1, 0));
+        this.target = Utility.getLastPosition(this.targetObject); 
+        this.initialTargetPosition = Utility.getLastPosition(this.targetObject); // Save this to be reused during spawning. 
+        this.fSteer = new CANNON.Vec3(0, 0, 0); 
 
-        // Tweak this control how the Agent moves.
-        this.maxSpeed = 0.05; 
-        this.maxForce = 0.03;
+        // [Critical] Constants to determine how the agent moves. 
+        // maxForce determines the maximum acceleration
+        // maxSpeed determines the maximum velocity
+        this.maxSpeed = 0.003; 
+        this.maxSlowDownSpeed = 0.0003; 
+        this.maxForce = 0.001;
         
-        // Tolerance for reaching a point.
-        this.arriveTolerance = 0.05; 
-        this.slowDownTolerance = 0.2; 
+        // [Critical] Constants to determine the agent's arrival behavior.
+        // Note this distance*distance
+        this.arriveTolerance = 0.02 * 0.02; 
+        this.slowDownTolerance = 0.15 * 0.15; 
 
-        // Group behavioral weights. 
+        // When agent is awake, then it's visible, 
+        // else it's sleeping and invisible by default. 
+        this.awake = false; 
+
+        // Lerp factor that we use to smooth rotations. 
+        // Higher number indicates a faster rotation, whereas lower is smoother. 
+        this.smoothFactor = 0.03; 
+
+        // Flocking behavior weights. 
+
+        // Seperation
         this.seperationWeight = 0.01; // Keep this weight high / Higher than maxForce 
         this.seperationPerceptionRad = 0.01; 
 
+        // Cohesion
         this.cohesionWeight = 0.3; // Keep this weight high / Higher than maxForce 
         this.cohesionPerceptionRad = 0.1; 
 
+        // Alignment
         this.alignmentWeight = 0.001; // Keep this weight high / Higher than maxForce 
         this.alignmentPerceptionRad = 0.05; 
-
-        // Try to reuse this when calculating targets.
-        // This will help optimize new vector creation.
-        // Copy starting targets. 
-        this.target = Utility.getLastPosition(this.targetObject); 
-
-        // Store target position. 
-        this.initialTargetPosition = Utility.getLastPosition(this.targetObject); // Save this to be reused during spawning. 
-
-        // Is it awake? 
-        // If awake up, make visible. 
-        this.awake = false; 
-
-        // This is an approximate size of the agent. 
-        // We use this number to wrap around the agent in the world. 
-        this.sizeFactor = 0.02;
     }
 
     // Function declaration. 
@@ -78,8 +82,8 @@ export default class Agent {
 
         // Have I reached a target? 
         this.calcTarget(); 
-        steer = this.seek(); 
-        this.applyForce(steer); 
+        this.seek(); // Calculates new fSteer.
+        this.applyForce(); // Applies fSteer to the acceleration. 
         
         // Flocking coordination. 
         // // Seperation. 
@@ -198,34 +202,28 @@ export default class Agent {
         this.target.copy(this.initialTargetPosition); 
     }
 
-    // TODO: Optimize, only do the calculations if I ought to seek. 
-    // If I'm already moving at the right velocity, then I don't have to 
-    // do all that calculation. 
     seek() {
         // If target hasn't changed, we don't seek. 
-        let vDesired = this.target.vsub(this.position); 
-        let d = vDesired.length();
-        vDesired.normalize(); // Changes the vector in place. 
-        vDesired.scale(this.maxSpeed, vDesired);
+        this.target.vsub(this.position, this.fSteer); 
+        let d = this.fSteer.lengthSquared();
+        this.fSteer.normalize();
 
-        // Slow down logic (Arrival logic)
         if (d < this.slowDownTolerance && d > this.arriveTolerance) {
-            // // Diagnostics.log('Slowing down'); 
-            let newMaxSpeed = Utility.map_range(d, this.arriveTolerance, this.slowDownTolerance, 0.02, this.maxSpeed); 
-            vDesired.scale(newMaxSpeed, vDesired); 
-        }
-        else {
-            // Usual scaling. 
-            vDesired.scale(this.maxSpeed, vDesired); 
+            Diagnostics.log('Slowing down'); 
+            // Start slowing down. 
+            let newMaxSpeed = Utility.map_range(d, this.arriveTolerance, this.slowDownTolerance, this.maxSlowDownSpeed, this.maxSpeed); 
+            this.fSteer.scale(newMaxSpeed, this.fSteer); 
+        } else {
+            // We are still trying to get to the target. 
+            this.fSteer.scale(this.maxSpeed, this.fSteer); 
         }
 
-        vDesired.vsub(this.velocity, vDesired); 
-        vDesired = Utility.clamp(vDesired, this.maxForce); 
-        return vDesired;  
+        this.fSteer.vsub(this.velocity, this.fSteer); 
+        this.fSteer = Utility.clamp(this.fSteer, this.maxForce); 
     }
 
-    applyForce(steer) {
-        this.acceleration.vadd(steer, this.acceleration); 
+    applyForce() {
+        this.acceleration.vadd(this.fSteer, this.acceleration); 
     }
 
     // Uses the agent's current position and current velocity (heading) to calculate a 
@@ -233,14 +231,13 @@ export default class Agent {
     // velocity are set correctly, else the calculated target will be somewhere unexpected. 
     // We can force the agent to calculate a new target. 
     calcTarget(forceRecal = false) {
-        // Have I reached the target? 
-        let d = this.target.vsub(this.position).length(); 
+        // Have I reached the target or am I forcing a recalculation of the target? 
+        let d = this.target.vsub(this.position).lengthSquared(); 
         if (d < this.arriveTolerance || forceRecal) {
-            let wanderD = 0.15; // Max wander distance
+            let wanderD = 0.20; // Max wander distance
             let wanderR = 0.05;
             let thetaChange = 5; 
             let wanderTheta = Utility.random(-thetaChange, thetaChange); 
-            Diagnostics.log(wanderTheta);
     
             this.target.set(this.velocity.x, this.velocity.y, this.velocity.z); 
             this.target.normalize(); // Get the heading of the agent. 
@@ -257,23 +254,24 @@ export default class Agent {
             let pOffset = new CANNON.Vec3(xPos, yPos, zPos); 
             this.target.vadd(pOffset, this.target); // With respect to current position 
 
-            // Check if the target is over-extended our bounds. 
-            // Turn the boid around beyond this. 
+            // Check if the target is over-extending our bounds. 
+            // Trim the target (for debugging turn on the sync object below to see where the next target is)
             this.trimTarget(); 
 
             // Sync the target scene object to the target. 
             Utility.syncSceneObject(this.targetObject, this.target); 
         } else {
             // Still trying to get to the target. 
-            // no changes to this.target. 
         }
     }    
 
     updatePosition() {
-        // Update velocity. 
+        // What's my target velocity? 
         let targetVelocity = this.velocity.vadd(this.acceleration); 
+        
+        // What's my intermediate velocity? 
         // Lerp the velocity rather than just updating straight up.
-        this.velocity.lerp(targetVelocity, 0.05, this.velocity); 
+        this.velocity.lerp(targetVelocity, this.smoothFactor, this.velocity); 
         this.velocity = Utility.clamp(this.velocity, this.maxSpeed); 
 
         // Calculate position. 
@@ -285,6 +283,7 @@ export default class Agent {
         Utility.syncSceneObject(this.sceneObject, this.position); 
     }
 
+    // [CAUTION] Do not modify this function. 
     syncRotation() {
         let azimuth = Utility.azimuth(this.velocity); 
         let inclination = Utility.inclination(this.velocity);
@@ -293,8 +292,8 @@ export default class Agent {
         let r = Utility.axisRotation(0, 0, 1, azimuth - Math.PI/2); 
 
         // Pitch (rotate by Elevation around X-axis)
-        r = r.mul(Utility.axisRotation(1, 0, 0, Math.PI/2 - inclination)); 
-        this.sceneObject.transform.rotation = r;  
+        r = r.mul(Utility.axisRotation(1, 0, 0, Math.PI/2 - inclination)); // Accumulate rotation using Quaternions. 
+        this.sceneObject.transform.rotation = r;  // Assign rotation.
     }
 
     trimTarget() {
@@ -331,102 +330,3 @@ export default class Agent {
         }
     }
 }
-
-
-            
-            // // TODO: Optimize this dirty logic to give a dimension box in the beginning. 
-            // // Use this dirty logic to set bounds on the agent. 
-            // if (newTarget.y < 0.05) {
-            //     //newTarget = Reactive.vector(newTarget.x.pinLastValue(), 0, newTarget.z.pinLastValue()); 
-            //     newTarget.y = 0.05; 
-            // }
-            // if (newTarget.y > 0.35) {
-            //     //newTarget = Reactive.vector(newTarget.x.pinLastValue(), 20, newTarget.z.pinLastValue()); 
-            //     newTarget.y = 0.35; 
-            // }
-    
-            // if (newTarget.x < -0.35) {
-            //     //newTarget = Reactive.vector(-20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
-            //     newTarget.x = -0.35; 
-            // } 
-    
-            // if (newTarget.x > 0.35) {
-            //     //newTarget = Reactive.vector(20, newTarget.y.pinLastValue(), newTarget.z.pinLastValue()); 
-            //     newTarget.x = 0.35;
-            // }
-    
-            // if (newTarget.z < -0.35) {
-            //     //newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), -20); 
-            //     newTarget.z = -0.35; 
-            // } 
-    
-            // if (newTarget.z > 0.35) {
-            //     //newTarget = Reactive.vector(newTarget.x.pinLastValue(), newTarget.y.pinLastValue(), 20); 
-            //     newTarget.z = 0.35; 
-            // }
-    
-            // // Update target sphere's position to the target
-            // // this.target.copy(newTarget); 
-            // // Set target object's position to this
-            // //Utility.syncSceneObject(this.targetObject, this.target); 
-
-
-            // function wraparound(agent, sceneObjects) {
-            //     // Check the bounds of this agent
-            //     let bottom = sceneObjects['bottom']; 
-            //     let top = sceneObjects['top'];
-            //     let left = sceneObjects['left'];
-            //     let right = sceneObjects['right'];
-            //     let forward = sceneObjects['forward'];
-            //     let backward = sceneObjects['backward']; 
-            //     let calcNewTarget = false; 
-            
-            //     let curPos = agent.position; 
-            //     if (curPos.x > left.x + agent.sizeFactor) {
-            //         // Wrap it around
-            //         curPos.x = right.x + agent.sizeFactor; 
-            //         agent.position.copy(curPos); 
-            //         calcNewTarget = true; 
-            //     }
-            
-            //     if (curPos.x < right.x - agent.sizeFactor) {
-            //         // Wrap it around
-            //         curPos.x = left.x - agent.sizeFactor; 
-            //         agent.position.copy(curPos); 
-            //         calcNewTarget = true; 
-            //     }
-            
-            //     if (curPos.y > top.y + agent.sizeFactor) {
-            //         // Wrap it around
-            //         curPos.y = bottom.y + agent.sizeFactor; 
-            //         agent.position.copy(curPos); 
-            //         calcNewTarget = true; 
-            //     }
-            
-            //     if (curPos.y < bottom.y - agent.sizeFactor) {
-            //         // Wrap it around
-            //         curPos.y = top.y - agent.sizeFactor; 
-            //         agent.position.copy(curPos); 
-            //         calcNewTarget = true; 
-            //     }
-            
-            //     if (curPos.z > forward.z + agent.sizeFactor) {
-            //         // Wrap it around
-            //         curPos.z = backward.z + agent.sizeFactor; 
-            //         agent.position.copy(curPos);
-            //         calcNewTarget = true; 
-            //     }
-            
-            //     if (curPos.z < backward.z - agent.sizeFactor) {
-            //         // Wrap it around
-            //         curPos.z = forward.z - agent.sizeFactor; 
-            //         agent.position.copy(curPos); 
-            //         calcNewTarget = true; 
-            //     }
-            
-            //     // We need to do a 
-            //     if (calcNewTarget) {
-            //         agent.calcTarget(true); 
-            //         agent.updatePosition(); 
-            //     }
-            // }
