@@ -78,8 +78,6 @@ export default class Agent {
 
     // Flocking behavior. 
     applyBehaviors(agents) {
-        let steer; // Optimize steer as well. 
-
         // Have I reached a target? 
         this.calcTarget(); 
         this.seek(); // Calculates new fSteer.
@@ -202,6 +200,7 @@ export default class Agent {
         this.target.copy(this.initialTargetPosition); 
     }
 
+    // SteerForce = VDesired - VActual
     seek() {
         // If target hasn't changed, we don't seek. 
         this.target.vsub(this.position, this.fSteer); 
