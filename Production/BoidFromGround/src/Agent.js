@@ -21,8 +21,8 @@ export default class Agent {
         this.rotation = Reactive.quaternionFromAngleAxis(0, Reactive.vector(0, 1, 0));
 
         // Tweak this control how the Agent moves.
-        this.maxSpeed = 0.06; 
-        this.maxForce = 0.05;
+        this.maxSpeed = 0.05; 
+        this.maxForce = 0.03;
         
         // Tolerance for reaching a point.
         this.arriveTolerance = 0.05; 
@@ -81,11 +81,7 @@ export default class Agent {
         steer = this.seek(); 
         this.applyForce(steer); 
         
-        // If I have, calc a new target
-        // If not, keep seeking the old target, do I save the target or do I keep th
-
-        // Flocking algorithm. 
-        
+        // Flocking coordination. 
         // // Seperation. 
         // steer = this.seperation(agents); 
         // steer.scale(this.seperationWeight, steer); 
@@ -202,7 +198,11 @@ export default class Agent {
         this.target.copy(this.initialTargetPosition); 
     }
 
+    // TODO: Optimize, only do the calculations if I ought to seek. 
+    // If I'm already moving at the right velocity, then I don't have to 
+    // do all that calculation. 
     seek() {
+        // If target hasn't changed, we don't seek. 
         let vDesired = this.target.vsub(this.position); 
         let d = vDesired.length();
         vDesired.normalize(); // Changes the vector in place. 
@@ -236,10 +236,11 @@ export default class Agent {
         // Have I reached the target? 
         let d = this.target.vsub(this.position).length(); 
         if (d < this.arriveTolerance || forceRecal) {
-            let wanderD = 0.1; // Max wander distance
+            let wanderD = 0.15; // Max wander distance
             let wanderR = 0.05;
-            let thetaChange = Math.PI; 
+            let thetaChange = 5; 
             let wanderTheta = Utility.random(-thetaChange, thetaChange); 
+            Diagnostics.log(wanderTheta);
     
             this.target.set(this.velocity.x, this.velocity.y, this.velocity.z); 
             this.target.normalize(); // Get the heading of the agent. 
@@ -252,7 +253,7 @@ export default class Agent {
             // Calculate New Target. 
             let xPos = wanderR * Math.cos(azimuth + wanderTheta);
             let yPos = wanderR * Math.sin(azimuth + wanderTheta);
-            let zPos = wanderR * Math.cos(inclination); 
+            let zPos = wanderR * Math.cos(inclination + wanderTheta); 
             let pOffset = new CANNON.Vec3(xPos, yPos, zPos); 
             this.target.vadd(pOffset, this.target); // With respect to current position 
 
@@ -260,6 +261,8 @@ export default class Agent {
             // Turn the boid around beyond this. 
             this.trimTarget(); 
 
+            // Sync the target scene object to the target. 
+            Utility.syncSceneObject(this.targetObject, this.target); 
         } else {
             // Still trying to get to the target. 
             // no changes to this.target. 
@@ -268,7 +271,9 @@ export default class Agent {
 
     updatePosition() {
         // Update velocity. 
-        this.velocity.vadd(this.acceleration, this.velocity); 
+        let targetVelocity = this.velocity.vadd(this.acceleration); 
+        // Lerp the velocity rather than just updating straight up.
+        this.velocity.lerp(targetVelocity, 0.05, this.velocity); 
         this.velocity = Utility.clamp(this.velocity, this.maxSpeed); 
 
         // Calculate position. 
