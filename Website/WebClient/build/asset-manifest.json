@@ -1,0 +1,29 @@
+{
+  "files": {
+    "main.css": "/static/css/main.9e847670.chunk.css",
+    "main.js": "/static/js/main.222a3c67.chunk.js",
+    "main.js.map": "/static/js/main.222a3c67.chunk.js.map",
+    "runtime-main.js": "/static/js/runtime-main.cccb6e54.js",
+    "runtime-main.js.map": "/static/js/runtime-main.cccb6e54.js.map",
+    "static/js/2.5ae0319d.chunk.js": "/static/js/2.5ae0319d.chunk.js",
+    "static/js/2.5ae0319d.chunk.js.map": "/static/js/2.5ae0319d.chunk.js.map",
+    "index.html": "/index.html",
+    "precache-manifest.8bf10e674b46f66bd6ec73a56f9da181.js": "/precache-manifest.8bf10e674b46f66bd6ec73a56f9da181.js",
+    "service-worker.js": "/service-worker.js",
+    "static/css/main.9e847670.chunk.css.map": "/static/css/main.9e847670.chunk.css.map",
+    "static/js/2.5ae0319d.chunk.js.LICENSE.txt": "/static/js/2.5ae0319d.chunk.js.LICENSE.txt",
+    "static/media/bird.jpg": "/static/media/bird.363ab49b.jpg",
+    "static/media/stylesheet.css": "/static/media/opensans-regular-webfont.d407a585.woff2",
+    "static/media/flatlogo.87b5b563.svg": "/static/media/flatlogo.87b5b563.svg",
+    "static/media/leaf.fc856b1f.svg": "/static/media/leaf.fc856b1f.svg",
+    "static/media/roundlogo.77f718e7.svg": "/static/media/roundlogo.77f718e7.svg",
+    "static/media/rye.jpg": "/static/media/rye.617ea547.jpg",
+    "static/media/sourdough.jpg": "/static/media/sourdough.ddb0ac5e.jpg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.cccb6e54.js",
+    "static/js/2.5ae0319d.chunk.js",
+    "static/css/main.9e847670.chunk.css",
+    "static/js/main.222a3c67.chunk.js"
+  ]
+}
