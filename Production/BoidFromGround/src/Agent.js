@@ -8,14 +8,14 @@ import * as Utility from './Utility.js';
 import * as CANNON from 'cannon-es';
 
 export default class Agent {
-    constructor(sceneObject, t) {
+    constructor(obj) {
         // Scene object. 
-        this.sceneObject = sceneObject; 
-        this.targetObject = t; 
+        this.sceneObject = obj['agent']; 
+        this.targetObject = obj['target']; 
+        this.boundary = obj['boundary']; 
 
         // Agent behavior. 
-        this.position = Utility.getLastPosition(sceneObject); // don't need this but let it be here. 
-        // let vx = Utility.random(0.0001, 0.0005, true);
+        this.position = Utility.getLastPosition(this.sceneObject); // don't need this but let it be here. 
         this.velocity = new CANNON.Vec3(0, 0, 0); 
         this.acceleration = new CANNON.Vec3(0, 0, 0); 
         this.rotation = Reactive.quaternionFromAngleAxis(0, Reactive.vector(0, 1, 0));
@@ -49,6 +49,10 @@ export default class Agent {
         // Is it awake? 
         // If awake up, make visible. 
         this.awake = false; 
+
+        // This is an approximate size of the agent. 
+        // We use this number to wrap around the agent in the world. 
+        this.sizeFactor = 0.02;
     }
 
     // Function declaration. 
@@ -184,7 +188,7 @@ export default class Agent {
         }
 
         // Update position to spawn point. 
-        this.position.copy(Utility.getLastPosition(spawnLocation)); 
+        this.position.copy(spawnLocation); 
 
         // Make the agent visible and awake. 
         this.sceneObject.hidden = false; 
@@ -224,12 +228,14 @@ export default class Agent {
         this.acceleration.vadd(steer, this.acceleration); 
     }
 
-    // [TODO] I should be able to force new target calculation. 
-    // Calculate new target. 
-    calcTarget() {
+    // Uses the agent's current position and current velocity (heading) to calculate a 
+    // new target position. Extremely critical that agent's current position and current 
+    // velocity are set correctly, else the calculated target will be somewhere unexpected. 
+    // We can force the agent to calculate a new target. 
+    calcTarget(forceRecal = false) {
         // Have I reached the target? 
         let d = this.target.vsub(this.position).length(); 
-        if (d < this.arriveTolerance) {
+        if (d < this.arriveTolerance || forceRecal) {
             let wanderD = 0.1; // Max wander distance
             let wanderR = 0.05;
             let thetaChange = Math.PI; 
@@ -249,6 +255,11 @@ export default class Agent {
             let zPos = wanderR * Math.cos(inclination); 
             let pOffset = new CANNON.Vec3(xPos, yPos, zPos); 
             this.target.vadd(pOffset, this.target); // With respect to current position 
+
+            // Check if the target is over-extended our bounds. 
+            // Turn the boid around beyond this. 
+            this.trimTarget(); 
+
         } else {
             // Still trying to get to the target. 
             // no changes to this.target. 
@@ -279,6 +290,40 @@ export default class Agent {
         // Pitch (rotate by Elevation around X-axis)
         r = r.mul(Utility.axisRotation(1, 0, 0, Math.PI/2 - inclination)); 
         this.sceneObject.transform.rotation = r;  
+    }
+
+    trimTarget() {
+        // Check the bounds of this agent
+        let bottom = this.boundary['bottom']; 
+        let top = this.boundary['top'];
+        let left = this.boundary['left'];
+        let right = this.boundary['right'];
+        let forward = this.boundary['forward'];
+        let backward = this.boundary['backward']; 
+
+        if (this.target.x > left.x) {
+            this.target.x = left.x; 
+        }
+    
+        if (this.target.x < right.x) {
+            this.target.x = right.x; 
+        }
+    
+        if (this.target.y > top.y) {
+            this.target.y = top.y; 
+        }
+    
+        if (this.target.y < bottom.y) {
+            this.target.y = bottom.y; 
+        }
+    
+        if (this.target.z > forward.z) {
+            this.target.z = forward.z; 
+        }
+    
+        if (this.target.z < backward.z) {
+            this.target.z = backward.z; 
+        }
     }
 }
 
@@ -319,3 +364,64 @@ export default class Agent {
             // // this.target.copy(newTarget); 
             // // Set target object's position to this
             // //Utility.syncSceneObject(this.targetObject, this.target); 
+
+
+            // function wraparound(agent, sceneObjects) {
+            //     // Check the bounds of this agent
+            //     let bottom = sceneObjects['bottom']; 
+            //     let top = sceneObjects['top'];
+            //     let left = sceneObjects['left'];
+            //     let right = sceneObjects['right'];
+            //     let forward = sceneObjects['forward'];
+            //     let backward = sceneObjects['backward']; 
+            //     let calcNewTarget = false; 
+            
+            //     let curPos = agent.position; 
+            //     if (curPos.x > left.x + agent.sizeFactor) {
+            //         // Wrap it around
+            //         curPos.x = right.x + agent.sizeFactor; 
+            //         agent.position.copy(curPos); 
+            //         calcNewTarget = true; 
+            //     }
+            
+            //     if (curPos.x < right.x - agent.sizeFactor) {
+            //         // Wrap it around
+            //         curPos.x = left.x - agent.sizeFactor; 
+            //         agent.position.copy(curPos); 
+            //         calcNewTarget = true; 
+            //     }
+            
+            //     if (curPos.y > top.y + agent.sizeFactor) {
+            //         // Wrap it around
+            //         curPos.y = bottom.y + agent.sizeFactor; 
+            //         agent.position.copy(curPos); 
+            //         calcNewTarget = true; 
+            //     }
+            
+            //     if (curPos.y < bottom.y - agent.sizeFactor) {
+            //         // Wrap it around
+            //         curPos.y = top.y - agent.sizeFactor; 
+            //         agent.position.copy(curPos); 
+            //         calcNewTarget = true; 
+            //     }
+            
+            //     if (curPos.z > forward.z + agent.sizeFactor) {
+            //         // Wrap it around
+            //         curPos.z = backward.z + agent.sizeFactor; 
+            //         agent.position.copy(curPos);
+            //         calcNewTarget = true; 
+            //     }
+            
+            //     if (curPos.z < backward.z - agent.sizeFactor) {
+            //         // Wrap it around
+            //         curPos.z = forward.z - agent.sizeFactor; 
+            //         agent.position.copy(curPos); 
+            //         calcNewTarget = true; 
+            //     }
+            
+            //     // We need to do a 
+            //     if (calcNewTarget) {
+            //         agent.calcTarget(true); 
+            //         agent.updatePosition(); 
+            //     }
+            // }

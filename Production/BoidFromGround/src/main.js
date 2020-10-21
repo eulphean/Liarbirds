@@ -47,10 +47,23 @@ Promise.all([
     Scene.root.findFirst('Target6'), // 19
     Scene.root.findFirst('Target7'), // 20
     Scene.root.findFirst('Target8'), // 21
-    Scene.root.findFirst('Target9') // 21
+    Scene.root.findFirst('bottom'), // 22
+    Scene.root.findFirst('top'), // 23
+    Scene.root.findFirst('forward'), // 24
+    Scene.root.findFirst('backward'), // 25
+    Scene.root.findFirst('left'), // 26
+    Scene.root.findFirst('right') // 27
 ]).then(function (objects) {
     // Prepare objects. 
     let sceneObjects = prepareObjects(objects); 
+    let boundary = {
+        'top' : sceneObjects['top'],
+        'bottom' : sceneObjects['bottom'],
+        'forward' : sceneObjects['forward'],
+        'backward' : sceneObjects['backward'],
+        'left' : sceneObjects['left'],
+        'right' : sceneObjects['right']
+    }; 
 
     // Subscribe to interactive callbacks. 
     handleTap(sceneObjects['planeTracker'], sceneObjects['agentSpawnPoint'], sceneObjects['spawner']); 
@@ -61,38 +74,37 @@ Promise.all([
     // Create all objects related to animation. 
     initAnimation(sceneObjects['leftDoor'], sceneObjects['rightDoor']);
 
-    // Prepare agent objects.  
-    let agent = new Agent(sceneObjects['agent1'], sceneObjects['target1']);
-    agents.push(agent); 
-    agent = new Agent(sceneObjects['agent2'], sceneObjects['target2']); 
-    agents.push(agent); 
-    agent = new Agent(sceneObjects['agent3'], sceneObjects['target3']);
-    agents.push(agent); 
-    agent = new Agent(sceneObjects['agent4'], sceneObjects['target4']); 
-    agents.push(agent); 
-    agent = new Agent(sceneObjects['agent5'], sceneObjects['target5']); 
-    agents.push(agent); 
-    agent = new Agent(sceneObjects['agent6'], sceneObjects['target6']); 
-    agents.push(agent); 
-    agent = new Agent(sceneObjects['agent7'], sceneObjects['target7']); 
-    agents.push(agent); 
-    agent = new Agent(sceneObjects['agent8'], sceneObjects['target8']); 
-    agents.push(agent); 
+    // Push all the agents. 
+    for (let i = 1; i <= 8; i++) {
+        let aString = 'agent' + i.toString(); 
+        let tString = 'target' + i.toString(); 
+        let agent = prepareAgent(sceneObjects[aString], sceneObjects[tString], boundary);
+        agents.push(agent); 
+    }
 
     Diagnostics.log('Setup complete'); 
 
     // Custom update loop to update agents in the world. 
     // 15-30 for smoothest results.  
     const timeInterval = 15;
-    Time.setInterval(function () {
-        agents.forEach(a => {
+    Time.setInterval(() => { // Bind local scope. 
+        agents.forEach(a => { // Bind local scope. 
             if (a.awake) {
                 // Update only if active. 
-                a.update(agents); 
+                a.update(agents, boundary); 
             }
         });
     }, timeInterval);
 });
+
+function prepareAgent(agentObject, targetObject, boundary) {
+    let o = {
+        'agent' : agentObject, 
+        'target' : targetObject,
+        'boundary' : boundary
+    }; 
+    return new Agent(o); 
+}
 
 function prepareObjects(objects) {
     const a = {
@@ -105,7 +117,7 @@ function prepareObjects(objects) {
         'target3' : objects[6],
         'target4' : objects[7],
         'planeTracker' : objects[8],
-        'agentSpawnPoint' : objects[9], // const, so all we need is the position from this. 
+        'agentSpawnPoint' : Utility.getLastPosition(objects[9]), // Static 
         'leftDoor' : objects[10],
         'rightDoor' : objects[11],
         'placer' : objects[12],
@@ -117,7 +129,13 @@ function prepareObjects(objects) {
         'target5' : objects[18],
         'target6' : objects[19],
         'target7' : objects[20],
-        'target8' : objects[21]
+        'target8' : objects[21],
+        'bottom' : Utility.getLastPosition(objects[22]), // Static 
+        'top' : Utility.getLastPosition(objects[23]), // Static 
+        'forward' : Utility.getLastPosition(objects[24]), // Static 
+        'backward' : Utility.getLastPosition(objects[25]), // Static 
+        'left' : Utility.getLastPosition(objects[26]), // Static 
+        'right' : Utility.getLastPosition(objects[27]) // Static 
     }
 
     return a; 
