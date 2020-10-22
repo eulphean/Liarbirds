@@ -52,10 +52,17 @@ Promise.all([
     Scene.root.findFirst('forward'), // 24
     Scene.root.findFirst('backward'), // 25
     Scene.root.findFirst('left'), // 26
-    Scene.root.findFirst('right') // 27
+    Scene.root.findFirst('right'), // 27
+    // Scene.root.findByPath('planeTracker0/placer/324Bins/Cube*'),
+    Scene.root.findByPath('planeTracker0/placer/605Bins/Bin*')
 ]).then(function (objects) {
     // Prepare objects. 
     let sceneObjects = prepareObjects(objects); 
+    Diagnostics.log(sceneObjects['agents'].length);
+    // sceneObjects['agents'].findFirst('Agent1')
+    //     .then(a => {
+    //         Diagnostics.log(a); 
+    //     });
     let boundary = {
         'top' : sceneObjects['top'],
         'bottom' : sceneObjects['bottom'],
@@ -135,7 +142,8 @@ function prepareObjects(objects) {
         'forward' : Utility.getLastPosition(objects[24]), // Static 
         'backward' : Utility.getLastPosition(objects[25]), // Static 
         'left' : Utility.getLastPosition(objects[26]), // Static 
-        'right' : Utility.getLastPosition(objects[27]) // Static 
+        'right' : Utility.getLastPosition(objects[27]), // Static 
+        'agents' : objects[28] // Array of all agents
     }
 
     return a; 
