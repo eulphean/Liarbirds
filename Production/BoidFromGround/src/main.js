@@ -217,13 +217,13 @@ function spawnAgent(agentSpawnLocation) {
     // spawn the agent at curAgentId
     agents.forEach(a => {
         // Only spawn 2 right now. 
-        if (curAgentIdx < 4) {
+        // if (curAgentIdx < 4) {
             // Give them a starting push. 
             a.seek(a.initialTargetPosition); 
             a.applyForce(); 
             a.spawn(agentSpawnLocation);
-        }
-        curAgentIdx = (curAgentIdx + 1) % agents.length; 
+        // }
+        //curAgentIdx = (curAgentIdx + 1) % agents.length; 
     });
     // let a = agents[curAgentIdx]; 
     // a.spawn(agentSpawnLocation); 
@@ -237,7 +237,7 @@ function spawnAgent(agentSpawnLocation) {
                 // Calculate new target
                 a.calcTarget(true); 
                 a.seek(a.target); 
-                a.fSteer.scale(20.0, a.fSteer); 
+                a.fSteer.scale(2.0, a.fSteer); 
                 a.applyForce(); 
             }
         }); 
