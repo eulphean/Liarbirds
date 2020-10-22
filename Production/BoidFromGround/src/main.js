@@ -215,11 +215,34 @@ function spawnAgent(agentSpawnLocation) {
     rightDoorSubscription = rightDoorDriver.onCompleted().subscribe(rightAnimationComplete); 
 
     // spawn the agent at curAgentId
-    let a = agents[curAgentIdx]; 
-    a.spawn(agentSpawnLocation); 
+    agents.forEach(a => {
+        // Only spawn 2 right now. 
+        if (curAgentIdx < 4) {
+            // Give them a starting push. 
+            a.seek(a.initialTargetPosition); 
+            a.applyForce(); 
+            a.spawn(agentSpawnLocation);
+        }
+        curAgentIdx = (curAgentIdx + 1) % agents.length; 
+    });
+    // let a = agents[curAgentIdx]; 
+    // a.spawn(agentSpawnLocation); 
 
     // Ensures a priority queue of activating the agents. 
-    curAgentIdx = (curAgentIdx + 1) % agents.length; 
+
+    const timeInterval = 5000; 
+    Time.setInterval(() => {
+        agents.forEach(a => {
+            if (a.awake) {
+                // Calculate new target
+                a.calcTarget(true); 
+                a.seek(a.target); 
+                a.fSteer.scale(20.0, a.fSteer); 
+                a.applyForce(); 
+            }
+        }); 
+    }, timeInterval); 
+
 }
 
 function initAnimation(leftDoor, rightDoor) {
