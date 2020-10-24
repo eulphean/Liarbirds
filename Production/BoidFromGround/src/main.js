@@ -25,36 +25,22 @@ let hasTracked = false;
 
  // Reference SphereObject from Scene
 Promise.all([
-    Scene.root.findFirst('Agent1'), // 0
-    Scene.root.findFirst('Agent2'), // 1
-    Scene.root.findFirst('Agent3'), // 2
-    Scene.root.findFirst('Agent4'), // 3
-    Scene.root.findFirst('Target1'), // 4
-    Scene.root.findFirst('Target2'), // 5
-    Scene.root.findFirst('Target3'), // 6
-    Scene.root.findFirst('Target4'), // 7
-    Scene.root.findFirst('planeTracker0'), // 8
-    Scene.root.findFirst('AgentSpawnPoint'), // 9
-    Scene.root.findFirst('door_l'), // 10
-    Scene.root.findFirst('door_r'), // 11
-    Scene.root.findFirst('placer'), // 12
-    Scene.root.findFirst('spawner'), // 13
-    Scene.root.findFirst('Agent5'), // 14
-    Scene.root.findFirst('Agent6'), // 15
-    Scene.root.findFirst('Agent7'), // 16
-    Scene.root.findFirst('Agent8'), // 17
-    Scene.root.findFirst('Target5'), // 18
-    Scene.root.findFirst('Target6'), // 19
-    Scene.root.findFirst('Target7'), // 20
-    Scene.root.findFirst('Target8'), // 21
-    Scene.root.findFirst('bottom'), // 22
-    Scene.root.findFirst('top'), // 23
-    Scene.root.findFirst('forward'), // 24
-    Scene.root.findFirst('backward'), // 25
-    Scene.root.findFirst('left'), // 26
-    Scene.root.findFirst('right'), // 27
+    Scene.root.findFirst('planeTracker'), // 8
+    Scene.root.findByPath('planeTracker/placer/agents'),
+    Scene.root.findByPath('planeTracker/placer/targets'),
+    // Scene.root.findFirst('AgentSpawnPoint'), // 9
+    // Scene.root.findFirst('door_l'), // 10
+    // Scene.root.findFirst('door_r'), // 11
+    // Scene.root.findFirst('placer'), // 12
+    Scene.root.findByPath('planeTracker/placer/wraparound'),
+    Scene.root.findByPath('planeTracker/placer/spawner'),
+    // Scene.root.findFirst('bottom'), // 22
+    // Scene.root.findFirst('top'), // 23
+    // Scene.root.findFirst('forward'), // 24
+    // Scene.root.findFirst('backward'), // 25
+    // Scene.root.findFirst('left'), // 26
+    // Scene.root.findFirst('right'), // 27
     // Scene.root.findByPath('planeTracker0/placer/324Bins/Cube*'),
-    Scene.root.findByPath('planeTracker0/placer/605Bins/Bin*')
 ]).then(function (objects) {
     // Prepare objects. 
     let sceneObjects = prepareObjects(objects); 
@@ -73,7 +59,7 @@ Promise.all([
     }; 
 
     // Subscribe to interactive callbacks. 
-    handleTap(sceneObjects['planeTracker'], sceneObjects['agentSpawnPoint'], sceneObjects['spawner']); 
+    handleTap(sceneObjects['planeTracker'], sceneObjects['agentSpawnPoint']); 
     handlePan(sceneObjects['planeTracker']); 
     handlePinch(sceneObjects['placer']);
     handleRotate(sceneObjects['placer']); 
@@ -115,41 +101,38 @@ function prepareAgent(agentObject, targetObject, boundary) {
 
 function prepareObjects(objects) {
     const a = {
-        'agent1' : objects[0],
-        'agent2' : objects[1],
-        'agent3' : objects[2],
-        'agent4' : objects[3],
-        'target1' : objects[4],
-        'target2' : objects[5],
-        'target3' : objects[6],
-        'target4' : objects[7],
-        'planeTracker' : objects[8],
-        'agentSpawnPoint' : Utility.getLastPosition(objects[9]), // Static 
-        'leftDoor' : objects[10],
-        'rightDoor' : objects[11],
-        'placer' : objects[12],
-        'spawner' : objects[13],
-        'agent5' : objects[14],
-        'agent6' : objects[15],
-        'agent7' : objects[16],
-        'agent8' : objects[17],
-        'target5' : objects[18],
-        'target6' : objects[19],
-        'target7' : objects[20],
-        'target8' : objects[21],
-        'bottom' : Utility.getLastPosition(objects[22]), // Static 
-        'top' : Utility.getLastPosition(objects[23]), // Static 
-        'forward' : Utility.getLastPosition(objects[24]), // Static 
-        'backward' : Utility.getLastPosition(objects[25]), // Static 
-        'left' : Utility.getLastPosition(objects[26]), // Static 
-        'right' : Utility.getLastPosition(objects[27]), // Static 
-        'agents' : objects[28] // Array of all agents
+        'planeTracker' : objects[0],
+        'agents' : objects[1],
+        'targets' : objects[2],
+        'wraparound' : objects[3],
+        'spawner' : objects[4]
+        // 'planeTracker' : objects[0],
+        // 'agentSpawnPoint' : Utility.getLastPosition(objects[9]), // Static 
+        // 'leftDoor' : objects[10],
+        // 'rightDoor' : objects[11],
+        // 'placer' : objects[12],
+        // 'spawner' : objects[13],
+        // 'agent5' : objects[14],
+        // 'agent6' : objects[15],
+        // 'agent7' : objects[16],
+        // 'agent8' : objects[17],
+        // 'target5' : objects[18],
+        // 'target6' : objects[19],
+        // 'target7' : objects[20],
+        // 'target8' : objects[21],
+        // 'bottom' : Utility.getLastPosition(objects[22]), // Static 
+        // 'top' : Utility.getLastPosition(objects[23]), // Static 
+        // 'forward' : Utility.getLastPosition(objects[24]), // Static 
+        // 'backward' : Utility.getLastPosition(objects[25]), // Static 
+        // 'left' : Utility.getLastPosition(objects[26]), // Static 
+        // 'right' : Utility.getLastPosition(objects[27]), // Static 
+        // 'agents' : objects[28] // Array of all agents
     }
 
     return a; 
 }
 
-function handleTap(planeTracker, agentSpawnLocation, spawner) {
+function handleTap(planeTracker, agentSpawnLocation) {
     // Event subscription. 
     TouchGestures.onTap().subscribe((gesture) => { // Note: Using ES6 closure to pass in the reference of the function, so this can access planeTracker variable.
         // Do something on tap.
