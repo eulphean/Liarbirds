@@ -32,7 +32,7 @@ Promise.all([
     // Scene.root.findFirst('door_l'), // 10
     // Scene.root.findFirst('door_r'), // 11
     // Scene.root.findFirst('placer'), // 12
-    Scene.root.findByPath('planeTracker/placer/wraparound'),
+    Scene.root.findByPath('planeTracker/placer/boundary'),
     Scene.root.findByPath('planeTracker/placer/spawner'),
     // Scene.root.findFirst('bottom'), // 22
     // Scene.root.findFirst('top'), // 23
@@ -42,52 +42,53 @@ Promise.all([
     // Scene.root.findFirst('right'), // 27
     // Scene.root.findByPath('planeTracker0/placer/324Bins/Cube*'),
 ]).then(function (objects) {
-    // Prepare objects. 
-    let sceneObjects = prepareObjects(objects); 
-    Diagnostics.log(sceneObjects['agents'].length);
-    // sceneObjects['agents'].findFirst('Agent1')
-    //     .then(a => {
-    //         Diagnostics.log(a); 
+    D
+    // // Prepare objects. 
+    // let sceneObjects = prepareObjects(objects); 
+    // Diagnostics.log(sceneObjects['agents'].length);
+    // // sceneObjects['agents'].findFirst('Agent1')
+    // //     .then(a => {
+    // //         Diagnostics.log(a); 
+    // //     });
+    // let boundary = {
+    //     'top' : sceneObjects['top'],
+    //     'bottom' : sceneObjects['bottom'],
+    //     'forward' : sceneObjects['forward'],
+    //     'backward' : sceneObjects['backward'],
+    //     'left' : sceneObjects['left'],
+    //     'right' : sceneObjects['right']
+    // }; 
+
+    // // Subscribe to interactive callbacks. 
+    // handleTap(sceneObjects['planeTracker'], sceneObjects['agentSpawnPoint']); 
+    // handlePan(sceneObjects['planeTracker']); 
+    // handlePinch(sceneObjects['placer']);
+    // handleRotate(sceneObjects['placer']); 
+
+    // // Create all objects related to animation. 
+    // initAnimation(sceneObjects['leftDoor'], sceneObjects['rightDoor']);
+
+    // // Push all the agents. 
+    // for (let i = 1; i <= 8; i++) {
+    //     let aString = 'agent' + i.toString(); 
+    //     let tString = 'target' + i.toString(); 
+    //     let agent = prepareAgent(sceneObjects[aString], sceneObjects[tString], boundary);
+    //     agents.push(agent); 
+    // }
+
+    // Diagnostics.log('Setup complete'); 
+
+    // // Custom update loop to update agents in the world. 
+    // // 15-30 for smoothest results.  
+    // const timeInterval = 15;
+    // Time.setInterval(() => { // Bind local scope. 
+    //     agents.forEach(a => { // Bind local scope. 
+    //         if (a.awake) {
+    //             // Update only if active. 
+    //             a.update(agents, boundary); 
+    //         }
     //     });
-    let boundary = {
-        'top' : sceneObjects['top'],
-        'bottom' : sceneObjects['bottom'],
-        'forward' : sceneObjects['forward'],
-        'backward' : sceneObjects['backward'],
-        'left' : sceneObjects['left'],
-        'right' : sceneObjects['right']
-    }; 
-
-    // Subscribe to interactive callbacks. 
-    handleTap(sceneObjects['planeTracker'], sceneObjects['agentSpawnPoint']); 
-    handlePan(sceneObjects['planeTracker']); 
-    handlePinch(sceneObjects['placer']);
-    handleRotate(sceneObjects['placer']); 
-
-    // Create all objects related to animation. 
-    initAnimation(sceneObjects['leftDoor'], sceneObjects['rightDoor']);
-
-    // Push all the agents. 
-    for (let i = 1; i <= 8; i++) {
-        let aString = 'agent' + i.toString(); 
-        let tString = 'target' + i.toString(); 
-        let agent = prepareAgent(sceneObjects[aString], sceneObjects[tString], boundary);
-        agents.push(agent); 
-    }
-
-    Diagnostics.log('Setup complete'); 
-
-    // Custom update loop to update agents in the world. 
-    // 15-30 for smoothest results.  
-    const timeInterval = 15;
-    Time.setInterval(() => { // Bind local scope. 
-        agents.forEach(a => { // Bind local scope. 
-            if (a.awake) {
-                // Update only if active. 
-                a.update(agents, boundary); 
-            }
-        });
-    }, timeInterval);
+    // }, timeInterval);
 });
 
 function prepareAgent(agentObject, targetObject, boundary) {
