@@ -26,8 +26,8 @@ export default class Agent {
         // [Critical] Constants to determine how the agent moves. 
         // maxForce determines the maximum acceleration
         // maxSpeed determines the maximum velocity
-        this.maxSpeed = 0.005; 
-        this.maxSlowDownSpeed = 0.0005; 
+        this.maxSpeed = 0.01; 
+        this.maxSlowDownSpeed = 0; 
         this.maxForce = 0.01;
         
         // [Critical] Constants to determine the agent's arrival behavior.
@@ -48,16 +48,16 @@ export default class Agent {
         // Flocking behavior weights. 
 
         // Seperation
-        this.seperationWeight = 0.03; // Keep this weight high / Higher than maxForce 
-        this.seperationPerceptionRad = 0.04; 
+        this.seperationWeight = 0.15; // Keep this weight high / Higher than maxForce 
+        this.seperationPerceptionRad = 0.1; 
 
         // Cohesion
-        this.cohesionWeight = 0.02; // Keep this weight high / Higher than maxForce 
-        this.cohesionPerceptionRad = 0.15; 
+        this.cohesionWeight = 0.05; // Keep this weight high / Higher than maxForce 
+        this.cohesionPerceptionRad = 0.2; 
 
         // Alignment
-        this.alignmentWeight = 0.005; // Keep this weight high / Higher than maxForce 
-        this.alignmentPerceptionRad = 0.15; 
+        this.alignmentWeight = 0.1; // Keep this weight high / Higher than maxForce 
+        this.alignmentPerceptionRad = 0.02; 
     }
 
     // Function declaration. 
@@ -77,7 +77,26 @@ export default class Agent {
 
     // Flocking behavior. 
     applyBehaviors(agents, camTarget) {
+        // ATTRACTOR 
         this.seekCameraTarget(camTarget);
+
+        this.flock(agents); 
+    }
+
+    flock(agents) {
+        if (this.hasReachedInitialTarget) {
+            // SEPERATION
+            this.seperation(agents); 
+            this.applyForce(); 
+
+            // COHESION
+            this.cohesion(agents); 
+            this.applyForce(); 
+
+            // ALIGNMENT
+            this.align(agents); 
+            this.applyForce();
+        }
     }
 
     seekCameraTarget(camTarget) {
@@ -170,5 +189,88 @@ export default class Agent {
         this.velocity.set(0, 0, 0); 
         this.acceleration.set(0, 0, 0); 
         this.target.copy(this.initialTargetPosition); 
+    }
+
+    seperation(agents) {
+        let count = 0;
+        this.fSteer.set(0, 0, 0); // Reset fSteer
+
+        // For every boid in the system, check if it's within the seperation radius. 
+        agents.forEach(a => {
+            // Very important check here else there will be bugs. 
+            if (a.awake) {
+                let diff = this.position.vsub(a.position); 
+                // This is a locality query. 
+                if (diff.length() > 0 && diff.length() < this.seperationPerceptionRad) {
+                    diff.normalize(); 
+                    diff.scale(1/diff.length(), diff); // Weight the vector properly based on the distance from the target. 
+                    this.sumVec.vadd(diff, this.sumVec); 
+                    count++; // Keep a count of all the agents in the purview of this agent. 
+                }
+            }
+        }); 
+
+        // Calculate average vector away from the oncoming boid. 
+        if (count > 0) {
+            this.sumVec.scale(1/count); 
+            if (this.sumVec.lengthSquared() > 0) {
+                this.sumVec.normalize(); 
+                this.sumVec = Utility.clamp(this.sumVec, this.maxSpeed); 
+                this.sumVec.vsub(this.velocity, this.fSteer);
+                this.fSteer = Utility.clamp(this.fSteer, this.maxForce); 
+                this.fSteer.scale(this.seperationWeight, this.fSteer); // Apply seperation weight. 
+            }
+        } else {
+            this.fSteer.set(0, 0, 0); 
+        }
+    }
+
+    cohesion(agents) {
+        let count = 0;
+        this.target.set(0, 0, 0); 
+
+        agents.forEach(a => {
+            if (a.awake) {
+                let d = this.position.distanceTo(a.position); 
+                if (d > 0 && d < this.cohesionPerceptionRad) {
+                    this.target.vadd(a.position, this.target); 
+                    count++; 
+                }
+            }
+        }); 
+
+        if (count > 0) {
+            this.target.scale(1/count, this.target); 
+            this.seek(); 
+            this.fSteer.scale(this.cohesionWeight, this.fSteer); // Apply cohesion weight. 
+        } else {
+            this.fSteer.set(0, 0, 0); 
+        }
+    }
+
+    // Calculate average velocity by looking at its neighbours. 
+    align(agents) {
+        let count = 0; 
+        agents.forEach(a => {
+            if (a.awake) {
+                let d = this.position.distanceTo(a.position) 
+                if (d > 0 && d < this.alignmentPerceptionRad) {
+                    this.fSteer.vadd(a.velocity, this.fSteer); 
+                    count++; 
+                }
+            }
+        });
+
+        if (count > 0) {
+            // Calculate average. 
+            this.fSteer.scale(1/count, this.fSteer); 
+            this.fSteer.normalize(); 
+            this.fSteer.scale(this.maxSpeed, this.fSteer); 
+            this.fSteer.vsub(this.velocity, this.fSteer); 
+            this.fSteer = Utility.clamp(this.fSteer, this.maxForce); 
+            this.fSteer.scale(this.alignmentWeight, this.fSteer); // Apply alignment weight. 
+        } else {
+            this.fSteer.set(0, 0, 0); 
+        }
     }
 }

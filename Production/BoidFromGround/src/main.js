@@ -5,14 +5,14 @@ const Diagnostics = require('Diagnostics');
 const TouchGestures = require('TouchGestures'); 
 const Animation = require('Animation'); 
 
-// Internal objects
+// Internal helpers
 import * as Utility from './Utility.js'; 
 import Agent from './Agent.js'; 
 
 // All agents in the world. 
 var agents = []; 
 var curAgentIdx = 0; 
-var staggerTime = 1000; // Delay between the release of each agent. Sync it with the animation from Phil. 
+var staggerTime = 2000; // Delay between the release of each agent. Sync it with the animation from Phil. 
 var maxAgentsToSpawn = 8; // Debug parameter to control number of agents. 
 
 // Animation drivers for each door. 
