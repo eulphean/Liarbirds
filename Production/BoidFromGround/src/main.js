@@ -35,15 +35,15 @@ Promise.all([
     Scene.root.findByPath('planeTracker/placer/targets/*'),
     Scene.root.findByPath('planeTracker/placer/boundary/*'),
     Scene.root.findByPath('planeTracker/placer/spawner/*'),
-    Scene.root.findFirst('planeTarget'),
-    Scene.root.findFirst('camTarget')
+    Scene.root.findFirst('camTarget'),
+    Scene.root.findFirst('focalTarget')
 ]).then(function (objects) {
     let sceneObjects = prepareObjects(objects); 
-    let spawner = sceneObjects['spawner']; let camTarget = sceneObjects['camTarget']; let planeTarget = sceneObjects['planeTarget']; 
+    let spawner = sceneObjects['spawner']; let camTarget = sceneObjects['camTarget']; let focalTarget = sceneObjects['focalTarget']; 
 
-    // REACTIVE bind the target object infront of the camera. 
-    let t = camTarget.worldTransform; 
-    planeTarget.worldTransform.position = t.position; 
+    // REACTIVE bind the focal target object to the cam target object in plane tracker
+    let t = focalTarget.worldTransform; 
+    camTarget.worldTransform.position = t.position; 
 
     let spawnPoint = Utility.getLastPosition(spawner[0]);
     handleTap(sceneObjects['planeTracker'], spawnPoint); 
@@ -61,9 +61,9 @@ Promise.all([
     // // 15-30 for smoothest results.  
     const timeInterval = 15;
     Time.setIntervalWithSnapshot({
-            'lastTargetX' : planeTarget.transform.x,
-            'lastTargetY' : planeTarget.transform.y,
-            'lastTargetZ' : planeTarget.transform.z
+            'lastTargetX' : camTarget.transform.x,
+            'lastTargetY' : camTarget.transform.y,
+            'lastTargetZ' : camTarget.transform.z
         }, (elapsedTime, snapshot) => { // Bind local scope. 
         agents.forEach(a => { // Bind local scope. 
             if (a.awake) {
@@ -89,8 +89,8 @@ function prepareObjects(objects) {
         'targets' : objects[3],
         'boundary' : objects[4],
         'spawner' : objects[5],
-        'planeTarget': objects[6],
-        'camTarget' : objects[7]
+        'camTarget': objects[6],
+        'focalTarget' : objects[7]
     }
     return a; 
 }
