@@ -1,7 +1,6 @@
 // Agent.js
-// Class that wraps the SceneObject. Holds the soft body that movies around in the physics world. 
-// TODO: Disable collision, Make the bodies Kinematic (only velocies affect them), Turn off rotation on spheres. 
-
+// Core class that represents the agent. 
+// [TODO] Activate 
 const Reactive = require('Reactive'); 
 const Diagnostics = require('Diagnostics');
 import * as Utility from './Utility.js';
@@ -63,18 +62,16 @@ export default class Agent {
 
     // Function declaration. 
     update(agents, camTarget) {
-        // Calculate 
+        // Calculate and apply forces for agent behaviors. 
         this.applyBehaviors(agents, camTarget);  
 
-        // Update current position based on velocity. 
+        // Update local position based on current velocity and acceleration. 
         this.updatePosition(); 
-
-        // [Animation Hook] for the movement of wings, etc. 
         
-        // Rotate the object first, then update the position. 
+        // Sync local rotation to scene object's rotation. 
         this.syncRotation();
 
-        // Sync current position with the Scene object's transform. 
+        // Sync local vector position to scene object's position.
         this.syncPosition(); 
     }
 
