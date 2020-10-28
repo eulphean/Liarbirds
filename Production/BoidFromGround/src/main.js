@@ -33,10 +33,17 @@ Promise.all([
     Scene.root.findByPath('planeTracker/placer/agents/*'),
     Scene.root.findByPath('planeTracker/placer/targets/*'),
     Scene.root.findByPath('planeTracker/placer/boundary/*'),
-    Scene.root.findByPath('planeTracker/placer/spawner/*')
+    Scene.root.findByPath('planeTracker/placer/spawner/*'),
+    Scene.root.findFirst('planeTarget'),
+    Scene.root.findFirst('camTarget')
 ]).then(function (objects) {
     let sceneObjects = prepareObjects(objects); 
-    let spawner = sceneObjects['spawner']; 
+    let spawner = sceneObjects['spawner']; let camTarget = sceneObjects['camTarget']; let planeTarget = sceneObjects['planeTarget']; 
+
+    // Reactive bind for a target infront of the camera
+    let t = camTarget.worldTransform; 
+    planeTarget.worldTransform.position = t.position; 
+
     let spawnPoint = Utility.getLastPosition(spawner[0]);
     handleTap(sceneObjects['planeTracker'], spawnPoint); 
     
@@ -77,9 +84,10 @@ function prepareObjects(objects) {
         'agents' : objects[2],
         'targets' : objects[3],
         'boundary' : objects[4],
-        'spawner' : objects[5]
+        'spawner' : objects[5],
+        'planeTarget': objects[6],
+        'camTarget' : objects[7]
     }
-
     return a; 
 }
 
@@ -123,7 +131,7 @@ function releaseNextAgent(spawnPoint) {
 
 
 
-// USEFUL Animation code in case we need to drive animation using scripts
+// [NOTE] UNUSED USEFUL Animation code in case we need to drive animation using scripts. 
 
 // function setupAnimation(leftDoor, rightDoor) {
 //     // Same for both the doors. 
@@ -189,7 +197,7 @@ function releaseNextAgent(spawnPoint) {
 
 
 
-// // Unused Gestures right now (Don't know what if we want to use them for now)
+// [NOTE] UNUSED USEFUL Gesture code, which we should integrate at some point of time. 
 // function handlePan(planeTracker) {
 //     // Subcribe to panning
 //     TouchGestures.onPan().subscribe((gesture) => {

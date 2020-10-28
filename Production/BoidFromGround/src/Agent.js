@@ -125,8 +125,6 @@ export default class Agent {
         // Make the agent visible and awake. 
         this.sceneObject.hidden = false; 
         this.awake = true; 
-
-        Diagnostics.log('Spawn Successful');
     }
 
     hardReset() {
