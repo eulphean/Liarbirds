@@ -1,9 +1,12 @@
+// main.js
+// Entry level file to do things. 
 // Spark Libraries
 const Scene = require('Scene');
 const Time = require('Time')
 const Diagnostics = require('Diagnostics');
 const TouchGestures = require('TouchGestures'); 
 const Animation = require('Animation'); 
+const Patches = require('Patches'); 
 
 // Internal helpers
 import * as Utility from './Utility.js'; 
@@ -13,18 +16,14 @@ import Agent from './Agent.js';
 var agents = []; 
 var curAgentIdx = 0; 
 var staggerTime = 2000; // Delay between the release of each agent. Sync it with the animation from Phil. 
-var maxAgentsToSpawn = 8; // Debug parameter to control number of agents. 
-
-// Animation drivers for each door. 
-var leftDoorDriver;
-var rightDoorDriver; 
-
-// We use these to kick off our reverse animation logic. 
-var leftDoorSubscription; 
-var rightDoorSubscription; 
+var maxAgentsToSpawn = 4; // Debug parameter to control number of agents. 
 
 // Boolean that helps us from retracking the plane on multiple taps. 
-let hasTracked = false; 
+var hasTracked = false; 
+
+// After interactionTime, we can start interacting with the agents. 
+var agentInteractionTime = 10000;  // 10 seconds
+var activateInteraction = false; 
 
 // Use a wild card (*) to read the entire tree. 
 // Array Hierarchy = Scene Viewer Hierarchy
@@ -101,20 +100,36 @@ function handleTap(planeTracker, spawnPoint) {
         // Do something on tap.
         let pointOnScreen = gesture.location; 
 
-        // Location is a Point3D. 
-        planeTracker.performHitTest(pointOnScreen).then(location => {
-            if (location === null) {
-                Diagnostics.log('Nothing found');
-            } else {
-                // Don't retrack if the plane has already been tracked. 
-                if (!hasTracked) {
+        if (!hasTracked) {
+            // Location is a Point3D. 
+            planeTracker.performHitTest(pointOnScreen).then(location => {
+                if (location === null) {
+                    Diagnostics.log('Nothing found');
+                } else {
+                    // Don't retrack if the plane has already been tracked. 
                     planeTracker.trackPoint(pointOnScreen); 
                     hasTracked = true; // Plane is tracked. Stick with it. 
+                    releaseNextAgent(spawnPoint);
                 }
+            }); 
+        }
 
-                releaseNextAgent(spawnPoint); 
-            }
-        }); 
+        if (activateInteraction) {
+            // Pick a random agent
+            // Do something to it. 
+            let idx = Utility.random(0, agents.length);
+            
+            // [HOOK] Into the patch editor to do something with this agent. 
+            // Use this to trigger something in the patch editor. 
+            Patches.setScalarValue('agentNum', idx); 
+            Patches.setScalarValue('animationNum', idx+1); 
+        } else {
+            // Enables agent interaction after agentInteractionTime
+            Time.setTimeout(() => {
+                activateInteraction = true; 
+                Diagnostics.log('Agent Interaction is now enabled'); 
+            }, agentInteractionTime); 
+        }
     });
 }
 
@@ -125,8 +140,12 @@ function releaseNextAgent(spawnPoint) {
         a.spawn(spawnPoint);
         curAgentIdx++; 
 
+        // Recursively invoke itself until we are done releasing all the agents. 
         Time.setTimeout(() => {
             releaseNextAgent(spawnPoint); 
         }, staggerTime); 
     }
 }
+
+// Tomorrow. 
+// Integrate octree

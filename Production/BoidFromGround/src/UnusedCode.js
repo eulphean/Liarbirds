@@ -1,5 +1,15 @@
 
+
 ////////////// ANIMATION CODE FROM MAIN.jS //////////////////
+
+// // Animation drivers for each door. 
+// var leftDoorDriver;
+// var rightDoorDriver; 
+
+// // We use these to kick off our reverse animation logic. 
+// var leftDoorSubscription; 
+// var rightDoorSubscription; 
+
 // [NOTE] UNUSED USEFUL Animation code in case we need to drive animation using scripts. 
 
 // function setupAnimation(leftDoor, rightDoor) {
