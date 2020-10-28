@@ -1,10 +1,11 @@
 // Agent.js
 // Core class that represents the agent. 
-// [TODO] Activate 
 const Reactive = require('Reactive'); 
 const Diagnostics = require('Diagnostics');
+
 import * as Utility from './Utility.js';
 import * as CANNON from 'cannon-es';
+import Octree from './Octree.js'
 
 export default class Agent {
     constructor(obj) {
@@ -61,9 +62,9 @@ export default class Agent {
     }
 
     // Function declaration. 
-    update(agents, camTarget) {
+    update(agents, targetSnapshot) {
         // Calculate and apply forces for agent behaviors. 
-        this.applyBehaviors(agents, camTarget);  
+        this.applyBehaviors(agents, targetSnapshot);  
 
         // Update local position based on current velocity and acceleration. 
         this.updatePosition(); 
@@ -76,10 +77,10 @@ export default class Agent {
     }
 
     // Flocking behavior. 
-    applyBehaviors(agents, camTarget) {
+    applyBehaviors(agents, targetSnapshot) {
         // ATTRACTOR 
-        this.seekCameraTarget(camTarget);
-
+        this.seekCameraTarget(targetSnapshot);
+        // FLOCKING
         this.flock(agents); 
     }
 
@@ -99,7 +100,7 @@ export default class Agent {
         }
     }
 
-    seekCameraTarget(camTarget) {
+    seekCameraTarget(targetSnapshot) {
         // Update target as soon as we know that we have reached the initial target. 
         if (!this.hasReachedInitialTarget) {
             let d = this.target.vsub(this.position).lengthSquared(); 
@@ -107,7 +108,7 @@ export default class Agent {
                 this.hasReachedInitialTarget = true; 
             }
         } else {
-            this.target.set(camTarget['lastTargetX'], camTarget['lastTargetY'], camTarget['lastTargetZ']);
+            this.target.set(targetSnapshot['lastTargetX'], targetSnapshot['lastTargetY'], targetSnapshot['lastTargetZ']);
         }
 
         this.seek(); // Calculates new fSteer.

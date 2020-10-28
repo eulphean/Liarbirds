@@ -11,6 +11,7 @@ const Patches = require('Patches');
 // Internal helpers
 import * as Utility from './Utility.js'; 
 import Agent from './Agent.js'; 
+import Octree from './Octree.js';
 
 // All agents in the world. 
 var agents = []; 
@@ -25,6 +26,9 @@ var hasTracked = false;
 var agentInteractionTime = 10000;  // 10 seconds
 var activateInteraction = false; 
 
+// Octree handler
+var octree; 
+
 // Use a wild card (*) to read the entire tree. 
 // Array Hierarchy = Scene Viewer Hierarchy
 Promise.all([
@@ -32,21 +36,28 @@ Promise.all([
     Scene.root.findFirst('placer'),
     Scene.root.findByPath('planeTracker/placer/agents/*'),
     Scene.root.findByPath('planeTracker/placer/targets/*'),
-    Scene.root.findByPath('planeTracker/placer/boundary/*'),
+    Scene.root.findByPath('planeTracker/placer/camBoundary/*'),
+    Scene.root.findByPath('Device/Camera/Focal Distance/focalBoundary/*'),
     Scene.root.findByPath('planeTracker/placer/spawner/*'),
     Scene.root.findFirst('camTarget'),
     Scene.root.findFirst('focalTarget')
 ]).then(function (objects) {
     let sceneObjects = prepareObjects(objects); 
-    let spawner = sceneObjects['spawner']; let camTarget = sceneObjects['camTarget']; let focalTarget = sceneObjects['focalTarget']; 
 
-    // REACTIVE bind the focal target object to the cam target object in plane tracker
-    let t = focalTarget.worldTransform; 
-    camTarget.worldTransform.position = t.position; 
+    // REACTIVE bind the focal target object to the cam target object in plane tracker. 
+    let camTarget = sceneObjects['camTarget']; let focalTarget = sceneObjects['focalTarget']; 
+    bindFocalTarget(focalTarget, camTarget); 
 
+    // REACTIVE bind the focal octree boundary to the cam octree boundary. 
+    let camBoundary = sceneObjects['camBoundary']; let focalBoundary = sceneObjects['focalBoundary']; 
+    bindOctreeBoundary(focalBoundary, camBoundary); 
+
+    // Setup spawner. 
+    let spawner = sceneObjects['spawner'];
     let spawnPoint = Utility.getLastPosition(spawner[0]);
     handleTap(sceneObjects['planeTracker'], spawnPoint); 
     
+    // Setup agents. 
     let sceneAgents = sceneObjects['agents']; 
     let sceneTargets = sceneObjects['targets']; 
     for (let i = 0; i < sceneAgents.length; i++) {
@@ -54,7 +65,7 @@ Promise.all([
         agents.push(agent); 
     }
     
-    Diagnostics.log('Setup complete. Beginning Update.'); 
+    Diagnostics.log('Setup complete -> Begin Update loop.'); 
 
     // // Custom update loop to update agents in the world. 
     // // 15-30 for smoothest results.  
@@ -62,15 +73,42 @@ Promise.all([
     Time.setIntervalWithSnapshot({
             'lastTargetX' : camTarget.transform.x,
             'lastTargetY' : camTarget.transform.y,
-            'lastTargetZ' : camTarget.transform.z
+            'lastTargetZ' : camTarget.transform.z,
+            'lastLowerBoundX' : camBoundary[0].transform.x, // Lower Bound Z
+            'lastLowerBoundY' : camBoundary[0].transform.y, // Lower Bound Y
+            'lastLowerBoundZ' : camBoundary[0].transform.z, // Lower Bound Z
+            'lastUpperBoundX' : camBoundary[1].transform.x, // Upper Bound X
+            'lastUpperBoundY' : camBoundary[1].transform.y, // Upper Bound Y
+            'lastUpperBoundZ' : camBoundary[1].transform.z  // Upper Bound Z
         }, (elapsedTime, snapshot) => { // Bind local scope. 
+        octree = new Octree(snapshot); 
+        // If agent's position is within the bounds of the octree, then insert it in the octree
+
         agents.forEach(a => { // Bind local scope. 
             if (a.awake) {
+                // If quad tree has something? 
+                // Find all agents within the range of the current agent's position
+                // Send those agents into the update loop to apply forces
+                // Simplify the forces. 
+
+                // Send the new agents into the loop. 
                 a.update(agents, snapshot); 
             }
         });
     }, timeInterval);
 });
+
+function bindFocalTarget(focalTarget, camTarget) {
+    let t = focalTarget.worldTransform; 
+    camTarget.worldTransform.position = t.position; 
+}
+
+function bindOctreeBoundary(focalBoundary, camBoundary) {
+    for (let i = 0; i < focalBoundary.length; i++) {
+        camBoundary[i].worldTransform.position = focalBoundary[i].worldTransform.position; 
+        camBoundary[i].worldTransform.rotation = focalBoundary[i].worldTransform.rotation; 
+    }
+}
 
 function prepareAgent(sceneAgent, sceneTarget) {
     let o = {
@@ -86,10 +124,11 @@ function prepareObjects(objects) {
         'placer' : objects[1],
         'agents' : objects[2],
         'targets' : objects[3],
-        'boundary' : objects[4],
-        'spawner' : objects[5],
-        'camTarget': objects[6],
-        'focalTarget' : objects[7]
+        'camBoundary' : objects[4],
+        'focalBoundary' : objects[5],
+        'spawner' : objects[6],
+        'camTarget': objects[7],
+        'focalTarget' : objects[8]
     }
     return a; 
 }
@@ -121,8 +160,8 @@ function handleTap(planeTracker, spawnPoint) {
             
             // [HOOK] Into the patch editor to do something with this agent. 
             // Use this to trigger something in the patch editor. 
-            Patches.setScalarValue('agentNum', idx); 
-            Patches.setScalarValue('animationNum', idx+1); 
+            Patches.inputs.setScalarValue('agentNum', idx); 
+            Patches.inputs.setScalarValue('animationNum', idx+1); 
         } else {
             // Enables agent interaction after agentInteractionTime
             Time.setTimeout(() => {
@@ -146,6 +185,3 @@ function releaseNextAgent(spawnPoint) {
         }, staggerTime); 
     }
 }
-
-// Tomorrow. 
-// Integrate octree
