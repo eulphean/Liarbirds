@@ -40,6 +40,8 @@ export default class Agent {
         // else it's sleeping and invisible by default. 
         this.awake = false; 
 
+        this.hasReachedInitialTarget = false; 
+
         // Lerp factor that we use to smooth rotations. 
         // Higher number indicates a faster rotation, whereas lower is smoother. 
         this.smoothFactor = 0.03; 
@@ -60,9 +62,9 @@ export default class Agent {
     }
 
     // Function declaration. 
-    update(agents) {
+    update(agents, planeTarget) {
         // Calculate 
-        this.applyBehaviors();  
+        this.applyBehaviors(agents, planeTarget);  
 
         // Update current position based on velocity. 
         this.updatePosition(); 
@@ -77,7 +79,9 @@ export default class Agent {
     }
 
     // Flocking behavior. 
-    applyBehaviors(agents) {
+    applyBehaviors(agents, planeTarget) {
+        this.seekDeviceTarget(planeTarget); 
+
         // // Seperation
         // this.seperation(agents); 
         // this.applyForce(); 
@@ -91,12 +95,6 @@ export default class Agent {
 
         // this.seek(this.initialTargetPosition);
         // this.applyForce();
-
-
-        // Have I reached a target? 
-       // this.calcTarget(); 
-        this.seek(); // Calculates new fSteer.
-        this.applyForce(); // Applies fSteer to the acceleration. 
         
         // Flocking coordination. 
         // // Seperation. 
@@ -113,25 +111,19 @@ export default class Agent {
         // this.applyForce(steer); 
     }
 
-    spawn(spawnLocation) {
-        if (this.awake) {
-            // Reset first. 
-            this.hardReset(); 
+    seekDeviceTarget(planeTarget) {
+        // Update target as soon as we know that we have reached the initial target. 
+        if (!this.hasReachedInitialTarget) {
+            let d = this.target.vsub(this.position).lengthSquared(); 
+            if (d < this.arriveTolerance) {
+                this.hasReachedInitialTarget = true; 
+            }
+        } else {
+            this.target = Utility.getLastPosition(planeTarget); 
         }
 
-        // Update position to spawn point. 
-        this.position.copy(spawnLocation); 
-
-        // Make the agent visible and awake. 
-        this.sceneObject.hidden = false; 
-        this.awake = true; 
-    }
-
-    hardReset() {
-        // Reset all the parameters to original parameters. 
-        this.velocity.set(0, 0, 0); 
-        this.acceleration.set(0, 0, 0); 
-        this.target.copy(this.initialTargetPosition); 
+        this.seek(); // Calculates new fSteer.
+        this.applyForce(); // Applies fSteer to the acceleration. 
     }
 
     // SteerForce = VDesired - VActual
@@ -189,7 +181,30 @@ export default class Agent {
         r = r.mul(Utility.axisRotation(1, 0, 0, Math.PI/2 - inclination)); // Accumulate rotation using Quaternions. 
         this.sceneObject.transform.rotation = r;  // Assign rotation.
     }
+
+    spawn(spawnLocation) {
+        if (this.awake) {
+            // Reset first. 
+            this.hardReset(); 
+        }
+
+        // Update position to spawn point. 
+        this.position.copy(spawnLocation); 
+
+        // Make the agent visible and awake. 
+        this.sceneObject.hidden = false; 
+        this.awake = true; 
+    }
+
+    hardReset() {
+        // Reset all the parameters to original parameters. 
+        this.velocity.set(0, 0, 0); 
+        this.acceleration.set(0, 0, 0); 
+        this.target.copy(this.initialTargetPosition); 
+    }
 }
+
+// Once the agent reaches the intial target, set the target to the phone's target. 
 
 // trimTarget() {
 //     // Check the bounds of this agent

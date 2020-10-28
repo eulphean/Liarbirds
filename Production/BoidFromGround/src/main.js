@@ -13,6 +13,7 @@ import Agent from './Agent.js';
 var agents = []; 
 var curAgentIdx = 0; 
 var staggerTime = 1000; // Delay between the release of each agent. Sync it with the animation from Phil. 
+var maxAgentsToSpawn = 5; // Debug parameter to control number of agents. 
 
 // Animation drivers for each door. 
 var leftDoorDriver;
@@ -22,6 +23,7 @@ var rightDoorDriver;
 var leftDoorSubscription; 
 var rightDoorSubscription; 
 
+// Boolean that helps us from retracking the plane on multiple taps. 
 let hasTracked = false; 
 
 // Use a wild card (*) to read the entire tree. 
@@ -40,9 +42,11 @@ Promise.all([
     let sceneObjects = prepareObjects(objects); 
     let spawner = sceneObjects['spawner']; let camTarget = sceneObjects['camTarget']; let planeTarget = sceneObjects['planeTarget']; 
 
-    // Reactive bind for a target infront of the camera
+    // REACTIVE bind the target object infront of the camera. 
     let t = camTarget.worldTransform; 
     planeTarget.worldTransform.position = t.position; 
+
+    Diagnostics.log(planeTarget); 
 
     let spawnPoint = Utility.getLastPosition(spawner[0]);
     handleTap(sceneObjects['planeTracker'], spawnPoint); 
@@ -63,7 +67,7 @@ Promise.all([
         agents.forEach(a => { // Bind local scope. 
             if (a.awake) {
                 // Update only if active. 
-                a.update(agents); 
+                a.update(agents, planeTarget); 
             }
         });
     }, timeInterval);
@@ -108,8 +112,6 @@ function handleTap(planeTracker, spawnPoint) {
                     hasTracked = true; // Plane is tracked. Stick with it. 
                 }
 
-                // [TODO] Check if I have already spawned agents or currently spawning agents. 
-                // If yes, skip this call. 
                 releaseNextAgent(spawnPoint); 
             }
         }); 
@@ -117,19 +119,17 @@ function handleTap(planeTracker, spawnPoint) {
 }
 
 function releaseNextAgent(spawnPoint) {
-    // Recursively call itself till it's done staggering all the agents. 
-    let a = agents[curAgentIdx];
-    a.spawn(spawnPoint);
-    curAgentIdx++; 
+    if (curAgentIdx < maxAgentsToSpawn) {
+        // Recursively call itself till it's done staggering all the agents. 
+        let a = agents[curAgentIdx];
+        a.spawn(spawnPoint);
+        curAgentIdx++; 
 
-    if (curAgentIdx < agents.length) {
         Time.setTimeout(() => {
             releaseNextAgent(spawnPoint); 
         }, staggerTime); 
     }
 }
-
-
 
 // [NOTE] UNUSED USEFUL Animation code in case we need to drive animation using scripts. 
 
