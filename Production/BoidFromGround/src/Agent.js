@@ -12,7 +12,6 @@ export default class Agent {
         // Scene object. 
         this.sceneObject = obj['agent']; 
         this.targetObject = obj['target']; 
-        this.boundary = obj['boundary']; 
 
         // Core Vec3 to determine agent's whereabouts. These should be reused aggressively to avoid the need
         // to create new Vec3s on the fly. That's expensive. 
@@ -28,9 +27,9 @@ export default class Agent {
         // [Critical] Constants to determine how the agent moves. 
         // maxForce determines the maximum acceleration
         // maxSpeed determines the maximum velocity
-        this.maxSpeed = 0.01; 
-        this.maxSlowDownSpeed = 0.0003; 
-        this.maxForce = 0.1;
+        this.maxSpeed = 0.005; 
+        this.maxSlowDownSpeed = 0.0005; 
+        this.maxForce = 0.01;
         
         // [Critical] Constants to determine the agent's arrival behavior.
         // Note this distance*distance
@@ -63,7 +62,7 @@ export default class Agent {
     // Function declaration. 
     update(agents) {
         // Calculate 
-        this.applyBehaviors(agents);  
+        this.applyBehaviors();  
 
         // Update current position based on velocity. 
         this.updatePosition(); 
@@ -79,16 +78,16 @@ export default class Agent {
 
     // Flocking behavior. 
     applyBehaviors(agents) {
-        // Seperation
-        this.seperation(agents); 
-        this.applyForce(); 
+        // // Seperation
+        // this.seperation(agents); 
+        // this.applyForce(); 
         
-        // // Cohesion
-        this.cohesion(agents);
-        this.applyForce(); 
+        // // // Cohesion
+        // this.cohesion(agents);
+        // this.applyForce(); 
 
-        this.align(agents); 
-        this.applyForce(); 
+        // this.align(agents); 
+        // this.applyForce(); 
 
         // this.seek(this.initialTargetPosition);
         // this.applyForce();
@@ -96,8 +95,8 @@ export default class Agent {
 
         // Have I reached a target? 
        // this.calcTarget(); 
-        //this.seek(); // Calculates new fSteer.
-        //this.applyForce(); // Applies fSteer to the acceleration. 
+        this.seek(); // Calculates new fSteer.
+        this.applyForce(); // Applies fSteer to the acceleration. 
         
         // Flocking coordination. 
         // // Seperation. 
@@ -114,90 +113,6 @@ export default class Agent {
         // this.applyForce(steer); 
     }
 
-    seperation(agents) {
-        let count = 0;
-        this.fSteer.set(0, 0, 0); // Reset fSteer
-
-        // For every boid in the system, check if it's too close
-        agents.forEach(a => {
-            // Very important check here else there will be bugs. 
-            if (a.awake) {
-                let diff = this.position.vsub(a.position); 
-                // This is a locality query. 
-                if (diff.length() > 0 && diff.length() < this.seperationPerceptionRad) {
-                    diff.normalize(); 
-                    diff.scale(1/diff.length(), diff); // Weight the vector properly based on the distance from the target. 
-                    this.sumVec.vadd(diff, this.sumVec); 
-                    count++; // Keep a count of all the agents in the purview of this agent. 
-                }
-            }
-        }); 
-
-        // Calculate average vector away from the oncoming boid. 
-        if (count > 0) {
-            this.sumVec.scale(1/count); 
-
-            if (this.sumVec.lengthSquared() > 0) {
-                this.sumVec.normalize(); 
-                this.sumVec = Utility.clamp(this.sumVec, this.maxSpeed); 
-                this.sumVec.vsub(this.velocity, this.fSteer); // Calculate desired force. 
-                this.fSteer = Utility.clamp(this.fSteer, this.maxForce); 
-                this.fSteer.scale(this.seperationWeight, this.fSteer); // Apply seperation weight. 
-            }
-        } else {
-            this.fSteer.set(0, 0, 0); 
-        }
-    }
-
-    cohesion(agents) {
-        let count = 0;
-        this.target.set(0, 0, 0); 
-
-        agents.forEach(a => {
-            if (a.awake) {
-                let d = this.position.distanceTo(a.position); 
-                if (d > 0 && d < this.cohesionPerceptionRad) {
-                    this.target.vadd(a.position, this.target); 
-                    count++; 
-                }
-            }
-        }); 
-
-        if (count > 0) {
-            this.target.scale(1/count, this.target); 
-            this.seek(this.target); 
-            this.fSteer.scale(this.cohesionWeight, this.fSteer);
-        } else {
-            this.fSteer.set(0, 0, 0); 
-        }
-    }
-
-    // Calculate average velocity by looking at its neighbours. 
-    align(agents) {
-        let count = 0; 
-        agents.forEach(a => {
-            if (a.awake) {
-                let d = this.position.distanceTo(a.position) 
-                if (d > 0 && d < this.alignmentPerceptionRad) {
-                    this.fSteer.vadd(a.velocity, this.fSteer); 
-                    count++; 
-                }
-            }
-        });
-
-        if (count > 0) {
-            // Calculate average. 
-            this.fSteer.scale(1/count, this.fSteer); 
-            this.fSteer.normalize(); 
-            this.fSteer.scale(this.maxSpeed, this.fSteer); 
-            this.fSteer.vsub(this.velocity, this.fSteer); 
-            this.fSteer = Utility.clamp(this.fSteer, this.maxForce); 
-            this.fSteer.scale(this.cohesionWeight, this.fSteer); 
-        } else {
-            this.fSteer.set(0, 0, 0); 
-        }
-    }
-
     spawn(spawnLocation) {
         if (this.awake) {
             // Reset first. 
@@ -210,6 +125,8 @@ export default class Agent {
         // Make the agent visible and awake. 
         this.sceneObject.hidden = false; 
         this.awake = true; 
+
+        Diagnostics.log('Spawn Successful');
     }
 
     hardReset() {
@@ -220,20 +137,20 @@ export default class Agent {
     }
 
     // SteerForce = VDesired - VActual
-    seek(target) {
+    seek() {
         // If target hasn't changed, we don't seek. 
-        target.vsub(this.position, this.fSteer); 
+        this.target.vsub(this.position, this.fSteer); 
         let d = this.fSteer.lengthSquared();
         this.fSteer.normalize();
 
-        // if (d < this.slowDownTolerance && d > this.arriveTolerance) {
-        //     // Start slowing down. 
-        //     let newMaxSpeed = Utility.map_range(d, this.arriveTolerance, this.slowDownTolerance, this.maxSlowDownSpeed, this.maxSpeed); 
-        //     this.fSteer.scale(newMaxSpeed, this.fSteer); 
-        // } else {
+        if (d < this.slowDownTolerance && d > this.arriveTolerance) {
+            // Start slowing down. 
+            let newMaxSpeed = Utility.map_range(d, this.arriveTolerance, this.slowDownTolerance, this.maxSlowDownSpeed, this.maxSpeed); 
+            this.fSteer.scale(newMaxSpeed, this.fSteer); 
+        } else {
             // We are still trying to get to the target. 
             this.fSteer.scale(this.maxSpeed, this.fSteer); 
-        //}
+        }
 
         this.fSteer.vsub(this.velocity, this.fSteer); 
         this.fSteer = Utility.clamp(this.fSteer, this.maxForce); 
@@ -241,46 +158,7 @@ export default class Agent {
 
     applyForce() {
         this.acceleration.vadd(this.fSteer, this.acceleration); 
-    }
-
-    // Uses the agent's current position and current velocity (heading) to calculate a 
-    // new target position. Extremely critical that agent's current position and current 
-    // velocity are set correctly, else the calculated target will be somewhere unexpected. 
-    // We can force the agent to calculate a new target. 
-    calcTarget(forceRecal = false) {
-        // Have I reached the target or am I forcing a recalculation of the target? 
-        let d = this.target.vsub(this.position).lengthSquared(); 
-        if (d < this.arriveTolerance || forceRecal) {
-            let wanderD = 0.20; // Max wander distance
-            let wanderR = 0.05;
-            let thetaChange = 5; 
-            let wanderTheta = Utility.random(-thetaChange, thetaChange); 
-    
-            this.target.set(this.velocity.x, this.velocity.y, this.velocity.z); 
-            this.target.normalize(); // Get the heading of the agent. 
-            this.target.scale(wanderD, this.target); // Scale it.
-            this.target.vadd(this.position, this.target); // Make it relative to current position.
-    
-            let azimuth = Utility.azimuth(this.target); 
-            let inclination = Utility.inclination(this.target); // [TODO] Use this to tilt the head of the Agent
-    
-            // Calculate New Target. 
-            let xPos = wanderR * Math.cos(azimuth + wanderTheta);
-            let yPos = wanderR * Math.sin(azimuth + wanderTheta);
-            let zPos = wanderR * Math.cos(inclination + wanderTheta); 
-            let pOffset = new CANNON.Vec3(xPos, yPos, zPos); 
-            this.target.vadd(pOffset, this.target); // With respect to current position 
-
-            // Check if the target is over-extending our bounds. 
-            // Trim the target (for debugging turn on the sync object below to see where the next target is)
-            this.trimTarget(); 
-
-            // Sync the target scene object to the target. 
-            Utility.syncSceneObject(this.targetObject, this.target); 
-        } else {
-            // Still trying to get to the target. 
-        }
-    }    
+    }  
 
     updatePosition() {
         // What's my target velocity? 
@@ -293,6 +171,7 @@ export default class Agent {
 
         // Calculate position. 
         this.position.vadd(this.velocity, this.position); 
+
         this.acceleration.scale(0, this.acceleration); // Reset acceleration.
     }
 
@@ -312,38 +191,162 @@ export default class Agent {
         r = r.mul(Utility.axisRotation(1, 0, 0, Math.PI/2 - inclination)); // Accumulate rotation using Quaternions. 
         this.sceneObject.transform.rotation = r;  // Assign rotation.
     }
-
-    trimTarget() {
-        // Check the bounds of this agent
-        let bottom = this.boundary['bottom']; 
-        let top = this.boundary['top'];
-        let left = this.boundary['left'];
-        let right = this.boundary['right'];
-        let forward = this.boundary['forward'];
-        let backward = this.boundary['backward']; 
-
-        if (this.target.x > left.x) {
-            this.target.x = left.x; 
-        }
-    
-        if (this.target.x < right.x) {
-            this.target.x = right.x; 
-        }
-    
-        if (this.target.y > top.y) {
-            this.target.y = top.y; 
-        }
-    
-        if (this.target.y < bottom.y) {
-            this.target.y = bottom.y; 
-        }
-    
-        if (this.target.z > forward.z) {
-            this.target.z = forward.z; 
-        }
-    
-        if (this.target.z < backward.z) {
-            this.target.z = backward.z; 
-        }
-    }
 }
+
+// trimTarget() {
+//     // Check the bounds of this agent
+//     let bottom = this.boundary['bottom']; 
+//     let top = this.boundary['top'];
+//     let left = this.boundary['left'];
+//     let right = this.boundary['right'];
+//     let forward = this.boundary['forward'];
+//     let backward = this.boundary['backward']; 
+
+//     if (this.target.x > left.x) {
+//         this.target.x = left.x; 
+//     }
+
+//     if (this.target.x < right.x) {
+//         this.target.x = right.x; 
+//     }
+
+//     if (this.target.y > top.y) {
+//         this.target.y = top.y; 
+//     }
+
+//     if (this.target.y < bottom.y) {
+//         this.target.y = bottom.y; 
+//     }
+
+//     if (this.target.z > forward.z) {
+//         this.target.z = forward.z; 
+//     }
+
+//     if (this.target.z < backward.z) {
+//         this.target.z = backward.z; 
+//     }
+// }
+
+
+// seperation(agents) {
+//     let count = 0;
+//     this.fSteer.set(0, 0, 0); // Reset fSteer
+
+//     // For every boid in the system, check if it's too close
+//     agents.forEach(a => {
+//         // Very important check here else there will be bugs. 
+//         if (a.awake) {
+//             let diff = this.position.vsub(a.position); 
+//             // This is a locality query. 
+//             if (diff.length() > 0 && diff.length() < this.seperationPerceptionRad) {
+//                 diff.normalize(); 
+//                 diff.scale(1/diff.length(), diff); // Weight the vector properly based on the distance from the target. 
+//                 this.sumVec.vadd(diff, this.sumVec); 
+//                 count++; // Keep a count of all the agents in the purview of this agent. 
+//             }
+//         }
+//     }); 
+
+//     // Calculate average vector away from the oncoming boid. 
+//     if (count > 0) {
+//         this.sumVec.scale(1/count); 
+
+//         if (this.sumVec.lengthSquared() > 0) {
+//             this.sumVec.normalize(); 
+//             this.sumVec = Utility.clamp(this.sumVec, this.maxSpeed); 
+//             this.sumVec.vsub(this.velocity, this.fSteer); // Calculate desired force. 
+//             this.fSteer = Utility.clamp(this.fSteer, this.maxForce); 
+//             this.fSteer.scale(this.seperationWeight, this.fSteer); // Apply seperation weight. 
+//         }
+//     } else {
+//         this.fSteer.set(0, 0, 0); 
+//     }
+// }
+
+// cohesion(agents) {
+//     let count = 0;
+//     this.target.set(0, 0, 0); 
+
+//     agents.forEach(a => {
+//         if (a.awake) {
+//             let d = this.position.distanceTo(a.position); 
+//             if (d > 0 && d < this.cohesionPerceptionRad) {
+//                 this.target.vadd(a.position, this.target); 
+//                 count++; 
+//             }
+//         }
+//     }); 
+
+//     if (count > 0) {
+//         this.target.scale(1/count, this.target); 
+//         this.seek(this.target); 
+//         this.fSteer.scale(this.cohesionWeight, this.fSteer);
+//     } else {
+//         this.fSteer.set(0, 0, 0); 
+//     }
+// }
+
+// // Calculate average velocity by looking at its neighbours. 
+// align(agents) {
+//     let count = 0; 
+//     agents.forEach(a => {
+//         if (a.awake) {
+//             let d = this.position.distanceTo(a.position) 
+//             if (d > 0 && d < this.alignmentPerceptionRad) {
+//                 this.fSteer.vadd(a.velocity, this.fSteer); 
+//                 count++; 
+//             }
+//         }
+//     });
+
+//     if (count > 0) {
+//         // Calculate average. 
+//         this.fSteer.scale(1/count, this.fSteer); 
+//         this.fSteer.normalize(); 
+//         this.fSteer.scale(this.maxSpeed, this.fSteer); 
+//         this.fSteer.vsub(this.velocity, this.fSteer); 
+//         this.fSteer = Utility.clamp(this.fSteer, this.maxForce); 
+//         this.fSteer.scale(this.cohesionWeight, this.fSteer); 
+//     } else {
+//         this.fSteer.set(0, 0, 0); 
+//     }
+// }
+
+    // // Uses the agent's current position and current velocity (heading) to calculate a 
+    // // new target position. Extremely critical that agent's current position and current 
+    // // velocity are set correctly, else the calculated target will be somewhere unexpected. 
+    // // We can force the agent to calculate a new target. 
+    // calcTarget(forceRecal = false) {
+    //     // Have I reached the target or am I forcing a recalculation of the target? 
+    //     let d = this.target.vsub(this.position).lengthSquared(); 
+    //     if (d < this.arriveTolerance || forceRecal) {
+    //         let wanderD = 0.20; // Max wander distance
+    //         let wanderR = 0.05;
+    //         let thetaChange = 5; 
+    //         let wanderTheta = Utility.random(-thetaChange, thetaChange); 
+    
+    //         this.target.set(this.velocity.x, this.velocity.y, this.velocity.z); 
+    //         this.target.normalize(); // Get the heading of the agent. 
+    //         this.target.scale(wanderD, this.target); // Scale it.
+    //         this.target.vadd(this.position, this.target); // Make it relative to current position.
+    
+    //         let azimuth = Utility.azimuth(this.target); 
+    //         let inclination = Utility.inclination(this.target); // [TODO] Use this to tilt the head of the Agent
+    
+    //         // Calculate New Target. 
+    //         let xPos = wanderR * Math.cos(azimuth + wanderTheta);
+    //         let yPos = wanderR * Math.sin(azimuth + wanderTheta);
+    //         let zPos = wanderR * Math.cos(inclination + wanderTheta); 
+    //         let pOffset = new CANNON.Vec3(xPos, yPos, zPos); 
+    //         this.target.vadd(pOffset, this.target); // With respect to current position 
+
+    //         // Check if the target is over-extending our bounds. 
+    //         // Trim the target (for debugging turn on the sync object below to see where the next target is)
+    //         //this.trimTarget(); 
+
+    //         // Sync the target scene object to the target. 
+    //         Utility.syncSceneObject(this.targetObject, this.target); 
+    //     } else {
+    //         // Still trying to get to the target. 
+    //     }
+    // }  
