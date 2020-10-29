@@ -1,11 +1,7 @@
 import React from 'react'
 import Radium from 'radium'
 import { fontSize, padding, fontFamily, color } from './CommonStyles';
-import { ReactComponent as RoundLogo } from './roundlogo.svg'
-import { ReactComponent as FlatLogo } from './flatlogo.svg'
 import About from './About.js'
-import Menu from './Menu.js'
-import Contact from './Contact.js'
 
 const styles = {
   container: {
@@ -137,16 +133,8 @@ class App extends React.Component {
     return (
       <div style={styles.container}>
         <div style={styles.title}>
-          <div style={styles.topLogoContainer}>
-            <RoundLogo style={styles.topLogo} />
-          </div>
           <About />
-          <Menu />
-          <Contact />
-          <div style={styles.bottomLogoContainer}>
-            <FlatLogo style={styles.bottomLogo} />
-          </div>
-          <div style={styles.footer}>{"2020 © Matt Pontarelli, Developed by "}<span><a style={styles.link}  target='_blank' rel="noopener noreferrer" href="https://amaykataria.com">Amay Kataria</a></span></div>
+          <div style={styles.footer}>{"2020 © Amay Kataria | Phil Mulliken"}</div>
         </div>
       </div>
     );
