@@ -47,9 +47,6 @@ class About extends React.Component {
     return (
       <div style={styles.container}>
         <Title>Boids of Paradise</Title>
-        <div style={styles.body}>
-            {body.toUpperCase()}
-        </div>
       </div>
     );
   }
