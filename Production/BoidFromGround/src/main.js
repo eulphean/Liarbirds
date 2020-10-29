@@ -12,7 +12,6 @@ const Patches = require('Patches');
 import * as Utility from './Utility.js'; 
 import Agent from './Agent.js'; 
 import Octree from './Octree.js';
-import { Vector3 } from 'math-ds';
 
 // All agents in the world. 
 var agents = []; 
@@ -29,6 +28,7 @@ var activateInteraction = false;
 
 // Octree handler
 var octree; 
+var boundary = 0.1; 
 
 // Use a wild card (*) to read the entire tree. 
 // Array Hierarchy = Scene Viewer Hierarchy
@@ -70,8 +70,9 @@ Promise.all([
             'lastTargetY' : camTarget.transform.y,
             'lastTargetZ' : camTarget.transform.z
         }, (elapsedTime, snapshot) => { // Bind local scope. 
-        octree = new Octree(snapshot); 
-
+        
+        // Recreate a new tree with every iteration (much faster than updating an existing one)
+        octree = new Octree(snapshot, boundary); 
         agents.forEach(a => {
             if (a.awake) {
                 let p = a.position; 
@@ -83,13 +84,15 @@ Promise.all([
             if (a.awake) {
                 // Get agents within a radius. 
                 let neighbours = octree.scanForPoints(a.position, 0.05); 
-                let nAgents = []; 
+                
                 // Extract agent data from the return object. 
+                let nAgents = []; 
                 neighbours.forEach(n => {
                     let a = n['data']; 
                     nAgents.push(a); 
                 }); 
-                // Update agents 
+                
+                // Send neighboring agent. 
                 a.update(nAgents, snapshot); 
             }
         });

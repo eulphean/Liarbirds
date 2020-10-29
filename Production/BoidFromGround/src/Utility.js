@@ -2,8 +2,8 @@
 // Helper module to do calculations, sceneObjects syncs and other updates. 
 
 const Reactive = require('Reactive'); 
-// const CANNON = require('cannon');
-import * as CANNON from 'cannon-es'; 
+// import * as CANNON from 'cannon-es'; 
+import { Vector3 } from 'math-ds'; 
 
 
 const getLastPosition = (sceneObject) => {
@@ -11,7 +11,7 @@ const getLastPosition = (sceneObject) => {
     let posX = sceneObject.transform.x.pinLastValue(); 
     let posY = sceneObject.transform.y.pinLastValue(); 
     let posZ = sceneObject.transform.z.pinLastValue(); 
-    return new CANNON.Vec3(posX, posY, posZ);
+    return new Vector3(posX, posY, posZ);
 }
 
 const syncSceneObject = (sceneObject, targetVector) => {
@@ -59,7 +59,7 @@ const axisRotation = (axis_x, axis_y, axis_z, angle_radians) => {
 const clamp = (vector, maxMag) => {
     let length = vector.length(); 
     let m = length > maxMag ? maxMag/length : 1.0; 
-    vector = vector.scale(m); 
+    vector.multiplyScalar(m); 
     return vector; 
 }
 
