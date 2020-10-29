@@ -2,6 +2,8 @@ import React from 'react'
 import Radium from 'radium'
 import * as THREE from 'three'
 import oc from 'three-orbit-controls'
+import Agent from './Agent.js'
+
 const OrbitControls = oc(THREE)
 
 const styles = {
@@ -17,22 +19,23 @@ class World extends React.Component {
 
     };
 
-    this.mount = React.createRef(); 
+    this.ref = React.createRef(); 
     this.scene = new THREE.Scene(); 
    
-    // // There are different types of camera in ThreeJs
     // // (FOV, AspectRatio, Near Clipping, Far Clipping)
-    this.camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 1000 );
+    this.camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 2000);
     
     // Renders the scene as a canvas element. 
     this.renderer = new THREE.WebGLRenderer(); 
+
+    this.agents = []; 
   }
 
   componentDidMount() {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
     // Mount the canvas at the current div. 
-    this.mount.current.appendChild(this.renderer.domElement); 
+    this.ref.current.appendChild(this.renderer.domElement); 
 
     var col = new THREE.Color("rgba(188, 141, 190, 1)"); 
 
@@ -41,23 +44,24 @@ class World extends React.Component {
     this.scene.add(light);
 
     // ---------- Geometry -----------------
-    var geometry = new THREE.ConeGeometry(5, 10, 10);
-    var material = new THREE.MeshLambertMaterial({color: col.getHex(), wireframe: true}); // Needs a light in the scene to show. 
+
 
     for (let i = 0; i < 100; i++) {
-        let xPos = Math.floor(Math.random() * 500);
-        let zPos = Math.floor(Math.random() * 500); 
-        console.log(xPos + ',' + zPos);
-        let c = new THREE.Mesh(geometry, material); 
-        c.position.set(xPos, 0, zPos); 
-        this.scene.add(c); 
+        let a = new Agent(); 
+        this.agents.push(a); 
+        this.scene.add(a.mesh); 
     }
+
+    console.log(this.agents.length);
 
     // ---------- Camera -------------------
     this.camera.position.set(200, 200, 200); 
-    // Orbital controls. 
     var controls = new OrbitControls(this.camera); 
     controls.enablePan = true;
+    controls.autoRotate = true; 
+    controls.autoRotateSpeed = 0.25;
+    controls.enabled = true; 
+    controls.enableKeys = true;
 
     // Render loop. 
     var render = () => {
@@ -71,7 +75,7 @@ class World extends React.Component {
 
   render() {
     return (
-        <div ref={this.mount} />
+        <div ref={this.ref} />
     );
   }
 }
