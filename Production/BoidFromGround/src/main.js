@@ -12,12 +12,13 @@ const Patches = require('Patches');
 import * as Utility from './Utility.js'; 
 import Agent from './Agent.js'; 
 import Octree from './Octree.js';
+import { Vector3 } from 'math-ds';
 
 // All agents in the world. 
 var agents = []; 
 var curAgentIdx = 0; 
 var staggerTime = 2000; // Delay between the release of each agent. Sync it with the animation from Phil. 
-var maxAgentsToSpawn = 4; // Debug parameter to control number of agents. 
+var maxAgentsToSpawn = 5; // Debug parameter to control number of agents. 
 
 // Boolean that helps us from retracking the plane on multiple taps. 
 var hasTracked = false; 
@@ -36,8 +37,6 @@ Promise.all([
     Scene.root.findFirst('placer'),
     Scene.root.findByPath('planeTracker/placer/agents/*'),
     Scene.root.findByPath('planeTracker/placer/targets/*'),
-    Scene.root.findByPath('planeTracker/placer/camBoundary/*'),
-    Scene.root.findByPath('Device/Camera/Focal Distance/focalBoundary/*'),
     Scene.root.findByPath('planeTracker/placer/spawner/*'),
     Scene.root.findFirst('camTarget'),
     Scene.root.findFirst('focalTarget')
@@ -47,10 +46,6 @@ Promise.all([
     // REACTIVE bind the focal target object to the cam target object in plane tracker. 
     let camTarget = sceneObjects['camTarget']; let focalTarget = sceneObjects['focalTarget']; 
     bindFocalTarget(focalTarget, camTarget); 
-
-    // REACTIVE bind the focal octree boundary to the cam octree boundary. 
-    let camBoundary = sceneObjects['camBoundary']; let focalBoundary = sceneObjects['focalBoundary']; 
-    bindOctreeBoundary(focalBoundary, camBoundary); 
 
     // Setup spawner. 
     let spawner = sceneObjects['spawner'];
@@ -73,26 +68,29 @@ Promise.all([
     Time.setIntervalWithSnapshot({
             'lastTargetX' : camTarget.transform.x,
             'lastTargetY' : camTarget.transform.y,
-            'lastTargetZ' : camTarget.transform.z,
-            'lastLowerBoundX' : camBoundary[0].transform.x, // Lower Bound Z
-            'lastLowerBoundY' : camBoundary[0].transform.y, // Lower Bound Y
-            'lastLowerBoundZ' : camBoundary[0].transform.z, // Lower Bound Z
-            'lastUpperBoundX' : camBoundary[1].transform.x, // Upper Bound X
-            'lastUpperBoundY' : camBoundary[1].transform.y, // Upper Bound Y
-            'lastUpperBoundZ' : camBoundary[1].transform.z  // Upper Bound Z
+            'lastTargetZ' : camTarget.transform.z
         }, (elapsedTime, snapshot) => { // Bind local scope. 
         octree = new Octree(snapshot); 
-        // If agent's position is within the bounds of the octree, then insert it in the octree
+
+        agents.forEach(a => {
+            if (a.awake) {
+                let p = a.position; 
+                octree.insertPoint(p, a); 
+            }
+        }); 
 
         agents.forEach(a => { // Bind local scope. 
             if (a.awake) {
-                // If quad tree has something? 
-                // Find all agents within the range of the current agent's position
-                // Send those agents into the update loop to apply forces
-                // Simplify the forces. 
-
-                // Send the new agents into the loop. 
-                a.update(agents, snapshot); 
+                // Get agents within a radius. 
+                let neighbours = octree.scanForPoints(a.position, 0.05); 
+                let nAgents = []; 
+                // Extract agent data from the return object. 
+                neighbours.forEach(n => {
+                    let a = n['data']; 
+                    nAgents.push(a); 
+                }); 
+                // Update agents 
+                a.update(nAgents, snapshot); 
             }
         });
     }, timeInterval);
@@ -101,13 +99,6 @@ Promise.all([
 function bindFocalTarget(focalTarget, camTarget) {
     let t = focalTarget.worldTransform; 
     camTarget.worldTransform.position = t.position; 
-}
-
-function bindOctreeBoundary(focalBoundary, camBoundary) {
-    for (let i = 0; i < focalBoundary.length; i++) {
-        camBoundary[i].worldTransform.position = focalBoundary[i].worldTransform.position; 
-        camBoundary[i].worldTransform.rotation = focalBoundary[i].worldTransform.rotation; 
-    }
 }
 
 function prepareAgent(sceneAgent, sceneTarget) {
@@ -124,11 +115,9 @@ function prepareObjects(objects) {
         'placer' : objects[1],
         'agents' : objects[2],
         'targets' : objects[3],
-        'camBoundary' : objects[4],
-        'focalBoundary' : objects[5],
-        'spawner' : objects[6],
-        'camTarget': objects[7],
-        'focalTarget' : objects[8]
+        'spawner' : objects[4],
+        'camTarget': objects[5],
+        'focalTarget' : objects[6]
     }
     return a; 
 }
