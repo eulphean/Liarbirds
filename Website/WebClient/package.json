@@ -1,8 +1,8 @@
 {
-  "name": "LittleBridgeBread",
+  "name": "HPACAR",
   "version": "0.1.0",
   "private": false,
-  "homepage": "https://littlebridgebread.com",
+  "homepage": "",
   "dependencies": {
     "gh-pages": "^2.1.1",
     "radium": "^0.26.0",
