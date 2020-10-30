@@ -46,14 +46,15 @@ const radians_to_degrees = (radians) => {
     return radians * (180/Math.PI);
 }
 
-const axisRotation = (axis_x, axis_y, axis_z, angle_radians) => {
+const axisRotation = (axis_x, axis_y, axis_z, angle_radians, q) => {
     var norm = Math.sqrt(axis_x * axis_x + axis_y * axis_y + axis_z * axis_z);
     axis_x /= norm;
     axis_y /= norm;
     axis_z /= norm;
     var cos = Math.cos(angle_radians / 2);
     var sin = Math.sin(angle_radians / 2);
-    return Reactive.quaternion(cos, axis_x * sin, axis_y * sin, axis_z * sin);
+    q.set(axis_x * sin, axis_y * sin, axis_z * sin, cos); 
+    //return Reactive.quaternion(cos, axis_x * sin, axis_y * sin, axis_z * sin);
 }
 
 const clamp = (vector, maxMag) => {

@@ -4,7 +4,7 @@ const Reactive = require('Reactive');
 const Diagnostics = require('Diagnostics');
 
 import * as Utility from './Utility.js';
-import { Vector3 } from 'math-ds'
+import { Euler, Matrix4, Quaternion, Vector3 } from 'math-ds'
 
 export default class Agent {
     constructor(obj) {
@@ -17,7 +17,10 @@ export default class Agent {
         this.position = Utility.getLastPosition(this.sceneObject); // don't need this but let it be here. 
         this.velocity = new Vector3(0, 0, 0); 
         this.acceleration = new Vector3(0, 0, 0); 
-        this.rotation = Reactive.quaternionFromAngleAxis(0, Reactive.vector(0, 1, 0));
+        this.rotationA = new Quaternion(0, 0, 0, 0); 
+        this.rotationB = new Quaternion(0, 0, 0, 0); 
+        this.euler = new Euler(0, 0, 0); 
+        this.mat = new Matrix4(); 
         this.target = Utility.getLastPosition(this.targetObject); 
         this.initialTargetPosition = Utility.getLastPosition(this.targetObject); // Save this to be reused during spawning. 
         this.fSteer = new Vector3(0, 0, 0); 
@@ -158,16 +161,34 @@ export default class Agent {
     }
 
     // [CAUTION] Do not modify this function. 
+    // syncRotation() {
+    //     let azimuth = Utility.azimuth(this.velocity); 
+    //     let inclination = Utility.inclination(this.velocity);
+
+    //     // Yaw / Roll (rotate around Z-axis)
+    //     let r = Utility.axisRotation(0, 0, 1, azimuth - Math.PI/2); 
+
+    //     // Pitch (rotate by Elevation around X-axis)
+    //     r = r.mul(Utility.axisRotation(1, 0, 0, Math.PI/2 - inclination)); // Accumulate rotation using Quaternions. 
+    //     this.sceneObject.transform.rotation = r;  // Assign rotation.
+    // }
+
     syncRotation() {
         let azimuth = Utility.azimuth(this.velocity); 
         let inclination = Utility.inclination(this.velocity);
 
-        // Yaw / Roll (rotate around Z-axis)
-        let r = Utility.axisRotation(0, 0, 1, azimuth - Math.PI/2); 
+        Utility.axisRotation(0, 0, 1, azimuth - Math.PI/2, this.rotationA); 
+        Utility.axisRotation(1, 0, 0, Math.PI/2 - inclination, this.rotationB); 
 
-        // Pitch (rotate by Elevation around X-axis)
-        r = r.mul(Utility.axisRotation(1, 0, 0, Math.PI/2 - inclination)); // Accumulate rotation using Quaternions. 
-        this.sceneObject.transform.rotation = r;  // Assign rotation.
+        // NOTE: A conversion from Quaternion to Euler is necessary to avoid creating a
+        // new Reactive signal on every update. 
+        this.rotationA.multiply(this.rotationB); 
+        this.mat.makeRotationFromQuaternion(this.rotationA);
+        this.euler.setFromRotationMatrix(this.mat, 'ZYX'); // OVERRIDE the rotation order because this is what Spark suppports. 
+
+        this.sceneObject.transform.rotationX = this.euler.x; 
+        this.sceneObject.transform.rotationY = this.euler.y; 
+        this.sceneObject.transform.rotationZ = this.euler.z; 
     }
 
     spawn(spawnLocation) {
