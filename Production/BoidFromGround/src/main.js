@@ -17,7 +17,7 @@ import Octree from './Octree.js';
 var agents = []; 
 var curAgentIdx = 0; 
 var staggerTime = 2000; // Delay between the release of each agent. Sync it with the animation from Phil. 
-var maxAgentsToSpawn = 5; // Debug parameter to control number of agents. 
+var maxAgentsToSpawn = 9; // Debug parameter to control number of agents. 
 
 // Boolean that helps us from retracking the plane on multiple taps. 
 var hasTracked = false; 
