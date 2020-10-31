@@ -1,23 +1,23 @@
 {
   "files": {
-    "main.css": "/HPACAR/static/css/main.eef8c97f.chunk.css",
-    "main.js": "/HPACAR/static/js/main.c1dca090.chunk.js",
-    "main.js.map": "/HPACAR/static/js/main.c1dca090.chunk.js.map",
-    "runtime-main.js": "/HPACAR/static/js/runtime-main.ed028dad.js",
-    "runtime-main.js.map": "/HPACAR/static/js/runtime-main.ed028dad.js.map",
-    "static/js/2.c491c8ea.chunk.js": "/HPACAR/static/js/2.c491c8ea.chunk.js",
-    "static/js/2.c491c8ea.chunk.js.map": "/HPACAR/static/js/2.c491c8ea.chunk.js.map",
-    "index.html": "/HPACAR/index.html",
-    "precache-manifest.9ca081a435dcc5e00af51886179a4179.js": "/HPACAR/precache-manifest.9ca081a435dcc5e00af51886179a4179.js",
-    "service-worker.js": "/HPACAR/service-worker.js",
-    "static/css/main.eef8c97f.chunk.css.map": "/HPACAR/static/css/main.eef8c97f.chunk.css.map",
-    "static/js/2.c491c8ea.chunk.js.LICENSE.txt": "/HPACAR/static/js/2.c491c8ea.chunk.js.LICENSE.txt",
-    "static/media/stylesheet.css": "/HPACAR/static/media/opensans-regular-webfont.d407a585.woff2"
+    "main.css": "/liarbirds/static/css/main.543d26ea.chunk.css",
+    "main.js": "/liarbirds/static/js/main.c1dca090.chunk.js",
+    "main.js.map": "/liarbirds/static/js/main.c1dca090.chunk.js.map",
+    "runtime-main.js": "/liarbirds/static/js/runtime-main.d7010cc8.js",
+    "runtime-main.js.map": "/liarbirds/static/js/runtime-main.d7010cc8.js.map",
+    "static/js/2.c491c8ea.chunk.js": "/liarbirds/static/js/2.c491c8ea.chunk.js",
+    "static/js/2.c491c8ea.chunk.js.map": "/liarbirds/static/js/2.c491c8ea.chunk.js.map",
+    "index.html": "/liarbirds/index.html",
+    "precache-manifest.9d3eef79b7ee5feedfaaed81c6b6e04d.js": "/liarbirds/precache-manifest.9d3eef79b7ee5feedfaaed81c6b6e04d.js",
+    "service-worker.js": "/liarbirds/service-worker.js",
+    "static/css/main.543d26ea.chunk.css.map": "/liarbirds/static/css/main.543d26ea.chunk.css.map",
+    "static/js/2.c491c8ea.chunk.js.LICENSE.txt": "/liarbirds/static/js/2.c491c8ea.chunk.js.LICENSE.txt",
+    "static/media/stylesheet.css": "/liarbirds/static/media/opensans-regular-webfont.d407a585.woff2"
   },
   "entrypoints": [
-    "static/js/runtime-main.ed028dad.js",
+    "static/js/runtime-main.d7010cc8.js",
     "static/js/2.c491c8ea.chunk.js",
-    "static/css/main.eef8c97f.chunk.css",
+    "static/css/main.543d26ea.chunk.css",
     "static/js/main.c1dca090.chunk.js"
   ]
 }
