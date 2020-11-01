@@ -1,10 +1,9 @@
 // Utility.js 
-// Helper module to do calculations, sceneObjects syncs and other updates. 
+// Helper module to do calculations, sceneObjects syncs and other updates.
 
 const Reactive = require('Reactive'); 
-// import * as CANNON from 'cannon-es'; 
 import { Vector3 } from 'math-ds'; 
-
+const Patches = require('Patches'); 
 
 const getLastPosition = (sceneObject) => {
     // Acquire current agent position. 
@@ -64,6 +63,10 @@ const clamp = (vector, maxMag) => {
     return vector; 
 }
 
+const setBakedAnimation = (string, num) => {
+    Patches.inputs.setScalarValue(string, num); 
+}
+
 export {
     clamp,
     axisRotation,
@@ -73,5 +76,6 @@ export {
     random,
     map_range,
     syncSceneObject, 
-    getLastPosition
+    getLastPosition,
+    setBakedAnimation
 }

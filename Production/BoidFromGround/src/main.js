@@ -6,8 +6,7 @@ const Time = require('Time')
 const Diagnostics = require('Diagnostics');
 const TouchGestures = require('TouchGestures'); 
 const Animation = require('Animation'); 
-const Patches = require('Patches'); 
-const Reactive = require('Reactive');
+
 
 // Internal helpers
 import * as Utility from './Utility.js'; 
@@ -46,6 +45,7 @@ Promise.all([
     
     // Pan using script. 
     handlePan(sceneObjects['planeTracker']); 
+    handleLongPress(sceneObjects['placeTracker']); 
 
     // REACTIVE bind the focal target object to the cam target object in plane tracker. 
     let camTarget = sceneObjects['camTarget']; let focalTarget = sceneObjects['focalTarget']; 
@@ -129,6 +129,12 @@ function prepareObjects(objects) {
     return a; 
 }
 
+function handleLongPress(planeTracker) {
+    TouchGestures.onLongPress(planeTracker).subscribe(gesture => {
+        releaseNextAgent(); 
+    });
+}
+
 function handleTap(planeTracker, spawnPoint) {
     // Event subscription. 
     TouchGestures.onTap().subscribe((gesture) => { // Note: Using ES6 closure to pass in the reference of the function, so this can access planeTracker variable.
@@ -152,24 +158,26 @@ function handleTap(planeTracker, spawnPoint) {
         // }
 
         // if (hasTracked)
-        // releaseNextAgent(spawnPoint);
+        //releaseNextAgent(spawnPoint);
 
-        if (activateInteraction) {
-            // Pick a random agent
-            // Do something to it. 
-            let idx = Utility.random(0, agents.length);
+
+
+        // if (activateInteraction) {
+        //     // Pick a random agent
+        //     // Do something to it. 
+        //     let idx = Utility.random(0, agents.length);
             
-            // [HOOK] Into the patch editor to do something with this agent. 
-            // Use this to trigger something in the patch editor. 
-            Patches.inputs.setScalarValue('agentNum', idx); 
-            Patches.inputs.setScalarValue('animationNum', idx+1); 
-        } else {
-            // Enables agent interaction after agentInteractionTime
-            Time.setTimeout(() => {
-                activateInteraction = true; 
-                Diagnostics.log('Agent Interaction is now enabled'); 
-            }, agentInteractionTime); 
-        }
+        //     // [HOOK] Into the patch editor to do something with this agent. 
+        //     // Use this to trigger something in the patch editor. 
+        //     Patches.inputs.setScalarValue('agentNum', idx); 
+        //     Patches.inputs.setScalarValue('animationNum', idx+1); 
+        // } else {
+        //     // Enables agent interaction after agentInteractionTime
+        //     Time.setTimeout(() => {
+        //         activateInteraction = true; 
+        //         Diagnostics.log('Agent Interaction is now enabled'); 
+        //     }, agentInteractionTime); 
+        // }
     });
 }
 
@@ -181,9 +189,9 @@ function releaseNextAgent(spawnPoint) {
         curAgentIdx++; 
 
         // Recursively invoke itself until we are done releasing all the agents. 
-        Time.setTimeout(() => {
-            releaseNextAgent(spawnPoint); 
-        }, staggerTime); 
+        // Time.setTimeout(() => {
+        //     releaseNextAgent(spawnPoint); 
+        // }, staggerTime); 
     }
 }
 

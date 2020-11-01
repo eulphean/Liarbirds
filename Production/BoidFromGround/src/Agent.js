@@ -6,6 +6,14 @@ const Diagnostics = require('Diagnostics');
 import * as Utility from './Utility.js';
 import { Euler, Matrix4, Quaternion, Vector3 } from 'math-ds'
 
+// Store baked animation. 
+const BakedAnimation = {
+    CURL : 0,
+    UNCURL : 1,
+    SWIM_SLOW : 2,
+    SWIM_FAST : 3
+}; 
+
 export default class Agent {
     constructor(obj) {
         // Scene object. 
@@ -15,7 +23,7 @@ export default class Agent {
         // Core Vec3 to determine agent's whereabouts. These should be reused aggressively to avoid the need
         // to create new Vec3s on the fly. That's expensive. 
         this.position = Utility.getLastPosition(this.sceneObject); // don't need this but let it be here. 
-        this.velocity = new Vector3(0, 0, 0); 
+        this.velocity = new Vector3(-0.001, 0, 0); 
         this.acceleration = new Vector3(0, 0, 0); 
         this.rotationA = new Quaternion(0, 0, 0, 0); 
         this.rotationB = new Quaternion(0, 0, 0, 0); 
@@ -27,12 +35,15 @@ export default class Agent {
         this.sumVec = new Vector3(0, 0, 0); // Helper sum keeper  for vector calculation. 
         this.diffVec = new Vector3(0, 0, 0); // Helper subtractor for vector calculation. 
 
+        // Track current baked animation. 
+        this.currentAnimation = BakedAnimation.CURL; 
+
         // [Critical] Constants to determine how the agent moves. 
         // maxForce determines the maximum acceleration
         // maxSpeed determines the maximum velocity
-        this.maxSpeed = 0.002; 
+        this.maxSpeed = 0.0005; 
         this.maxSlowDownSpeed = 0; 
-        this.maxForce = 0.005;
+        this.maxForce = 0.0005;
         
         // [Critical] Constants to determine the agent's arrival behavior.
         // Note this distance*distance
@@ -47,7 +58,7 @@ export default class Agent {
 
         // Lerp factor that we use to smooth rotations. 
         // Higher number indicates a faster rotation, whereas lower is smoother. 
-        this.smoothFactor = 0.02; 
+        this.smoothFactor = 0.01; 
 
         // Flocking behavior weights. 
 
@@ -197,8 +208,9 @@ export default class Agent {
             this.hardReset(); 
         }
 
+
         // Update position to spawn point. 
-        this.position.copy(spawnLocation); 
+        // this.position.copy(spawnLocation); 
 
         // Make the agent visible and awake. 
         this.sceneObject.hidden = false; 
