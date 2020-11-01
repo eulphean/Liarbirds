@@ -7,6 +7,7 @@ const Diagnostics = require('Diagnostics');
 const TouchGestures = require('TouchGestures'); 
 const Animation = require('Animation'); 
 const Patches = require('Patches'); 
+const Reactive = require('Reactive');
 
 // Internal helpers
 import * as Utility from './Utility.js'; 
@@ -42,6 +43,9 @@ Promise.all([
     Scene.root.findFirst('focalTarget')
 ]).then(function (objects) {
     let sceneObjects = prepareObjects(objects); 
+    
+    // Pan using script. 
+    handlePan(sceneObjects['planeTracker']); 
 
     // REACTIVE bind the focal target object to the cam target object in plane tracker. 
     let camTarget = sceneObjects['camTarget']; let focalTarget = sceneObjects['focalTarget']; 
@@ -131,19 +135,24 @@ function handleTap(planeTracker, spawnPoint) {
         // Do something on tap.
         let pointOnScreen = gesture.location; 
 
-        if (!hasTracked) {
-            // Location is a Point3D. 
-            planeTracker.performHitTest(pointOnScreen).then(location => {
-                if (location === null) {
-                    Diagnostics.log('Nothing found');
-                } else {
-                    // Don't retrack if the plane has already been tracked. 
-                    planeTracker.trackPoint(pointOnScreen); 
-                    hasTracked = true; // Plane is tracked. Stick with it. 
-                    releaseNextAgent(spawnPoint);
-                }
-            }); 
-        }
+        // if (!hasTracked) {
+        //     // Location is a Point3D. 
+        //     planeTracker.performHitTest(pointOnScreen).then(location => {
+        //         if (location === null) {
+        //             Diagnostics.log('Nothing found');
+        //         } else {
+        //             // Don't retrack if the plane has already been tracked. 
+        //             planeTracker.trackPoint(pointOnScreen); 
+        //             hasTracked = true; // Plane is tracked. Stick with it. 
+        //             //releaseNextAgent(spawnPoint);
+        //             // Make objects visible
+        //             // Then I should be able to scale things. 
+        //         }
+        //     }); 
+        // }
+
+        // if (hasTracked)
+        // releaseNextAgent(spawnPoint);
 
         if (activateInteraction) {
             // Pick a random agent
@@ -176,4 +185,13 @@ function releaseNextAgent(spawnPoint) {
             releaseNextAgent(spawnPoint); 
         }, staggerTime); 
     }
+}
+
+
+function handlePan(planeTracker) {
+    // Subcribe to planning. 
+    TouchGestures.onPan(planeTracker).subscribe((gesture) => {
+        // Move the plane. 
+        planeTracker.trackPoint(gesture.location, gesture.state); 
+    }); 
 }
