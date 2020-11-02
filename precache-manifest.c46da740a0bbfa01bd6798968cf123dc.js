@@ -1,10 +1,10 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "279eed71c9bb4b8a90d9972c94eea5d9",
+    "revision": "ae20d52b85c91cd10a8fd25f03a5b69d",
     "url": "/liarbirds/index.html"
   },
   {
-    "revision": "cbf56c6487b5b484c915",
+    "revision": "bb52a1f7c5d606b5baec",
     "url": "/liarbirds/static/css/main.543d26ea.chunk.css"
   },
   {
@@ -16,8 +16,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/liarbirds/static/js/2.c491c8ea.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "cbf56c6487b5b484c915",
-    "url": "/liarbirds/static/js/main.c1dca090.chunk.js"
+    "revision": "bb52a1f7c5d606b5baec",
+    "url": "/liarbirds/static/js/main.e0bc4879.chunk.js"
   },
   {
     "revision": "0af266380ccb5ac01dad",
