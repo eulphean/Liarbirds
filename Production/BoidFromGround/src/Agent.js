@@ -7,14 +7,19 @@ import * as Utility from './Utility.js';
 import { Euler, Matrix4, Quaternion, Vector3 } from 'math-ds'
 
 // Store baked animation. 
-const BakedAnimation = {
+export const BakedAnimation = {
     CURL : 0,
-    UNCURL : 1,
-    SWIM_SLOW : 2,
-    SWIM_FAST : 3
+    SWIM_SLOW : 1,
+    SWIM_FAST : 2
 }; 
 
-export default class Agent {
+// State to keep track of what the agent is currently doing. 
+const SeekState = {
+    WORLD_TARGET: 0, 
+    PHONE_TARGET: 1
+}
+
+export class Agent {
     constructor(obj) {
         // Scene object. 
         this.sceneObject = obj['agent']; 
@@ -37,24 +42,27 @@ export default class Agent {
 
         // Track current baked animation. 
         this.currentAnimation = BakedAnimation.CURL; 
+        this.animationString = 'animationNum' + obj['idx'].toString(); 
+        this.setAnimation(this.currentAnimation); 
+
+        // Target tracking state. 
+        this.seekState = SeekState.WORLD_TARGET; // Always start the world target. 
 
         // [Critical] Constants to determine how the agent moves. 
         // maxForce determines the maximum acceleration
         // maxSpeed determines the maximum velocity
-        this.maxSpeed = 0.0005; 
-        this.maxSlowDownSpeed = 0; 
-        this.maxForce = 0.0005;
+        this.maxSpeed = 0.001; 
+        this.maxSlowDownSpeed = 0.001; 
+        this.maxForce = 0.001;
         
         // [Critical] Constants to determine the agent's arrival behavior.
         // Note this distance*distance
         this.arriveTolerance = 0.02 * 0.02; 
-        this.slowDownTolerance = 0.15 * 0.15; 
+        this.slowDownTolerance = 0.10 * 0.10; 
 
         // When agent is awake, then it's visible, 
         // else it's sleeping and invisible by default. 
         this.awake = false; 
-
-        this.hasReachedInitialTarget = false; 
 
         // Lerp factor that we use to smooth rotations. 
         // Higher number indicates a faster rotation, whereas lower is smoother. 
@@ -63,13 +71,13 @@ export default class Agent {
         // Flocking behavior weights. 
 
         // Seperation
-        this.seperationWeight = 0.5; // Keep this weight high / Higher than maxForce 
+        this.seperationWeight = 1.0; // Keep this weight high / Higher than maxForce 
 
         // Cohesion
-        this.cohesionWeight = 0.3; // Keep this weight high / Higher than maxForce 
+        this.cohesionWeight = 0.5; // Keep this weight high / Higher than maxForce 
 
         // Alignment
-        this.alignmentWeight = 0.5; // Keep this weight high / Higher than maxForce 
+        this.alignmentWeight = 0.8; // Keep this weight high / Higher than maxForce 
     }
 
     // Function declaration. 
@@ -97,7 +105,7 @@ export default class Agent {
     }
 
     flock(nAgents) {
-        if (this.hasReachedInitialTarget) {
+        if (this.seekState === SeekState.PHONE_TARGET) {
             // SEPERATION
             this.seperation(nAgents); 
             this.applyForce(); 
@@ -114,10 +122,12 @@ export default class Agent {
 
     seekCameraTarget(targetSnapshot) {
         // Update target as soon as we know that we have reached the initial target. 
-        if (!this.hasReachedInitialTarget) {
+        if (this.seekState === SeekState.WORLD_TARGET) {
             let d = this.diffVec.subVectors(this.target, this.position).lengthSquared(); 
             if (d < this.arriveTolerance) {
-                this.hasReachedInitialTarget = true; 
+                this.seekState = SeekState.PHONE_TARGET; 
+                this.maxForce = 0.001; 
+                this.maxSpeed = 0.001; 
             }
         } else {
             this.target.set(targetSnapshot['lastTargetX'], targetSnapshot['lastTargetY'], targetSnapshot['lastTargetZ']);
@@ -171,19 +181,6 @@ export default class Agent {
         Utility.syncSceneObject(this.sceneObject, this.position); 
     }
 
-    // [CAUTION] Do not modify this function. 
-    // syncRotation() {
-    //     let azimuth = Utility.azimuth(this.velocity); 
-    //     let inclination = Utility.inclination(this.velocity);
-
-    //     // Yaw / Roll (rotate around Z-axis)
-    //     let r = Utility.axisRotation(0, 0, 1, azimuth - Math.PI/2); 
-
-    //     // Pitch (rotate by Elevation around X-axis)
-    //     r = r.mul(Utility.axisRotation(1, 0, 0, Math.PI/2 - inclination)); // Accumulate rotation using Quaternions. 
-    //     this.sceneObject.transform.rotation = r;  // Assign rotation.
-    // }
-
     syncRotation() {
         let azimuth = Utility.azimuth(this.velocity); 
         let inclination = Utility.inclination(this.velocity);
@@ -208,9 +205,10 @@ export default class Agent {
             this.hardReset(); 
         }
 
-
         // Update position to spawn point. 
+        // We do need to spawn some at the spawn point. 
         // this.position.copy(spawnLocation); 
+        this.setAnimation(BakedAnimation.SWIM_SLOW); 
 
         // Make the agent visible and awake. 
         this.sceneObject.hidden = false; 
@@ -281,5 +279,41 @@ export default class Agent {
             Utility.clamp(this.fSteer, this.maxForce); 
             this.fSteer.multiplyScalar(this.alignmentWeight); // Apply alignment weight. 
         }
+    }
+
+    calcNewTarget(snapshot) {
+        // Have I reached the target or am I forcing a recalculation of the target? 
+        let wanderD = 0.3; // Max wander distance
+        let wanderR = 0.05;
+        let thetaChange = 10; 
+        let wanderTheta = Utility.random(-thetaChange, thetaChange); 
+
+        this.target.set(-this.velocity.x, -this.velocity.y, -this.velocity.z); 
+        this.target.normalize(); // Get the heading of the agent. 
+        this.target.multiplyScalar(wanderD); // Scale it.
+        this.target.add(this.position); // Make it relative to current position.
+
+        let azimuth = Utility.azimuth(this.target); 
+        let inclination = Utility.inclination(this.target); // [TODO] Use this to tilt the head of the Agent
+
+        // Calculate New Target. 
+        let xPos = wanderR * Math.cos(azimuth + wanderTheta);
+        let yPos = wanderR * Math.sin(azimuth + wanderTheta);
+        let zPos = wanderR * Math.cos(inclination + wanderTheta); 
+        let pOffset = new Vector3(xPos, yPos, zPos); 
+        this.target.add(pOffset); // With respect to current position 
+
+        // Go seek a world target now. 
+        this.seekState = SeekState.WORLD_TARGET; 
+
+        // Sync the target scene object to the target. 
+        Utility.syncSceneObject(this.targetObject, this.target); 
+
+        Diagnostics.log('Calculate new target');
+    }  
+
+    setAnimation(ani) {
+        Utility.setBakedAnimation(this.animationString, ani);
+        this.currentAnimation = ani; 
     }
 }

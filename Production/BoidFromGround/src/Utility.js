@@ -4,6 +4,7 @@
 const Reactive = require('Reactive'); 
 import { Vector3 } from 'math-ds'; 
 const Patches = require('Patches'); 
+const Diagnostics = require('Diagnostics');
 
 const getLastPosition = (sceneObject) => {
     // Acquire current agent position. 
@@ -64,7 +65,7 @@ const clamp = (vector, maxMag) => {
 }
 
 const setBakedAnimation = (string, num) => {
-    Patches.inputs.setScalarValue(string, num); 
+    Patches.inputs.setScalar(string, num); 
 }
 
 export {

@@ -6,25 +6,21 @@ const Time = require('Time')
 const Diagnostics = require('Diagnostics');
 const TouchGestures = require('TouchGestures'); 
 const Animation = require('Animation'); 
-
+import { Vector3 } from 'math-ds'; 
 
 // Internal helpers
 import * as Utility from './Utility.js'; 
-import Agent from './Agent.js'; 
+import { Agent, BakedAnimation } from './Agent.js'; 
 import Octree from './Octree.js';
 
 // All agents in the world. 
 var agents = []; 
 var curAgentIdx = 0; 
 var staggerTime = 2000; // Delay between the release of each agent. Sync it with the animation from Phil. 
-var maxAgentsToSpawn = 9; // Debug parameter to control number of agents. 
+var maxAgentsToSpawn = 4; // Debug parameter to control number of agents. 
 
 // Boolean that helps us from retracking the plane on multiple taps. 
 var hasTracked = false; 
-
-// After interactionTime, we can start interacting with the agents. 
-var agentInteractionTime = 10000;  // 10 seconds
-var activateInteraction = false; 
 
 // Octree handler
 var octree; 
@@ -44,8 +40,8 @@ Promise.all([
     let sceneObjects = prepareObjects(objects); 
     
     // Pan using script. 
-    handlePan(sceneObjects['planeTracker']); 
-    handleLongPress(sceneObjects['placeTracker']); 
+    handlePan(sceneObjects['planeTracker'], sceneObjects['camTarget']); 
+    handleLongPress(sceneObjects['planeTracker']); 
 
     // REACTIVE bind the focal target object to the cam target object in plane tracker. 
     let camTarget = sceneObjects['camTarget']; let focalTarget = sceneObjects['focalTarget']; 
@@ -54,13 +50,13 @@ Promise.all([
     // Setup spawner. 
     let spawner = sceneObjects['spawner'];
     let spawnPoint = Utility.getLastPosition(spawner[0]);
-    handleTap(sceneObjects['planeTracker'], spawnPoint); 
+    handleTap(sceneObjects['camTarget']); 
     
     // Setup agents. 
     let sceneAgents = sceneObjects['agents']; 
     let sceneTargets = sceneObjects['targets']; 
-    for (let i = 0; i < sceneAgents.length; i++) {
-        let agent = prepareAgent(sceneAgents[i], sceneTargets[i]);
+    for (let i = 0; i < maxAgentsToSpawn; i++) {
+        let agent = prepareAgent(sceneAgents[i], sceneTargets[i], i);
         agents.push(agent); 
     }
     
@@ -108,10 +104,11 @@ function bindFocalTarget(focalTarget, camTarget) {
     camTarget.worldTransform.position = t.position; 
 }
 
-function prepareAgent(sceneAgent, sceneTarget) {
+function prepareAgent(sceneAgent, sceneTarget, i) {
     let o = {
         'agent' : sceneAgent, 
-        'target' : sceneTarget
+        'target' : sceneTarget,
+        'idx' : i
     }; 
     return new Agent(o); 
 }
@@ -135,54 +132,34 @@ function handleLongPress(planeTracker) {
     });
 }
 
-function handleTap(planeTracker, spawnPoint) {
-    // Event subscription. 
-    TouchGestures.onTap().subscribe((gesture) => { // Note: Using ES6 closure to pass in the reference of the function, so this can access planeTracker variable.
+function handleTap(camTarget) {
+    //Event subscription. 
+    TouchGestures.onTap().subscribeWithSnapshot({
+        'lastX' : camTarget.transform.x,
+        'lastY' : camTarget.transform.y,
+        'lastZ' : camTarget.transform.z
+    }, (gesture, snapshot) => { // Note: Using ES6 closure to pass in the reference of the function, so this can access planeTracker variable.
         // Do something on tap.
-        let pointOnScreen = gesture.location; 
-
-        // if (!hasTracked) {
-        //     // Location is a Point3D. 
-        //     planeTracker.performHitTest(pointOnScreen).then(location => {
-        //         if (location === null) {
-        //             Diagnostics.log('Nothing found');
-        //         } else {
-        //             // Don't retrack if the plane has already been tracked. 
-        //             planeTracker.trackPoint(pointOnScreen); 
-        //             hasTracked = true; // Plane is tracked. Stick with it. 
-        //             //releaseNextAgent(spawnPoint);
-        //             // Make objects visible
-        //             // Then I should be able to scale things. 
-        //         }
-        //     }); 
-        // }
-
-        // if (hasTracked)
-        //releaseNextAgent(spawnPoint);
-
-
-
-        // if (activateInteraction) {
-        //     // Pick a random agent
-        //     // Do something to it. 
-        //     let idx = Utility.random(0, agents.length);
-            
-        //     // [HOOK] Into the patch editor to do something with this agent. 
-        //     // Use this to trigger something in the patch editor. 
-        //     Patches.inputs.setScalarValue('agentNum', idx); 
-        //     Patches.inputs.setScalarValue('animationNum', idx+1); 
-        // } else {
-        //     // Enables agent interaction after agentInteractionTime
-        //     Time.setTimeout(() => {
-        //         activateInteraction = true; 
-        //         Diagnostics.log('Agent Interaction is now enabled'); 
-        //     }, agentInteractionTime); 
-        // }
+        let focalTarget = new Vector3(snapshot['lastX'], snapshot['lastY'], snapshot['lastZ']); 
+        let points = octree.scanForPoints(focalTarget, boundary); 
+        if (points.length > 0) {
+            Diagnostics.log('Found Something');        
+            points.forEach(n => {
+                let a = n['data']; 
+                a.setAnimation(BakedAnimation.SWIM_FAST); 
+                // TODO: Calculate a dispersion target aware from the current position. 
+                a.calcNewTarget(snapshot); 
+                a.maxForce = 0.005; 
+                a.maxSpeed = 0.005;
+            }); 
+        } else {
+            Diagnostics.log('Found nothing');
+        }
     });
 }
 
 function releaseNextAgent(spawnPoint) {
-    if (curAgentIdx < maxAgentsToSpawn) {
+    if (curAgentIdx < agents.length) {
         // Recursively call itself till it's done staggering all the agents. 
         let a = agents[curAgentIdx];
         a.spawn(spawnPoint);
@@ -196,10 +173,28 @@ function releaseNextAgent(spawnPoint) {
 }
 
 
-function handlePan(planeTracker) {
+function handlePan(planeTracker, camTarget) {
+    // Use this to create a 3D point on the screen. But
+    // we are also changing the plane's location based on panning. 
+    // TouchGestures.onPan(camTarget).subscribe(gesture => {
+    //     let t = Scene.unprojectToFocalPlane(gesture.location); 
+    //     camTarget.transform.x = t.x;
+    //     camTarget.transform.y = t.y; 
+    //     camTarget.transform.z = t.z; 
+    // }); 
+
+
     // Subcribe to planning. 
     TouchGestures.onPan(planeTracker).subscribe((gesture) => {
+        Diagnostics.log('Plane tracker'); 
         // Move the plane. 
         planeTracker.trackPoint(gesture.location, gesture.state); 
     }); 
 }
+
+// Add rotations.
+// Improve calc target to disperse the agents. 
+// Add more agents. 
+// Add dying state.
+// Improve starting flow a little. 
+// Add instructions. 
