@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "ae20d52b85c91cd10a8fd25f03a5b69d",
+    "revision": "6c6984c1c17ca186228930b3296dd8d8",
     "url": "/liarbirds/index.html"
   },
   {
