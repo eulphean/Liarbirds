@@ -64,9 +64,10 @@ const clamp = (vector, maxMag) => {
     return vector; 
 }
 
-const setBakedAnimation = (string, num) => {
+const setPatchVariable = (string, num) => {
     Patches.inputs.setScalar(string, num); 
 }
+
 
 export {
     clamp,
@@ -78,5 +79,5 @@ export {
     map_range,
     syncSceneObject, 
     getLastPosition,
-    setBakedAnimation
+    setPatchVariable
 }

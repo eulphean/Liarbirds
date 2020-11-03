@@ -43,6 +43,8 @@ export class Agent {
         // Track current baked animation. 
         this.currentAnimation = BakedAnimation.CURL; 
         this.animationString = 'animationNum' + obj['idx'].toString(); 
+        this.rotationString = 'rotSpeed' + obj['idx'].toString();
+        this.setRotationSpeed(0); 
         this.setAnimation(this.currentAnimation); 
 
         // Target tracking state. 
@@ -209,6 +211,7 @@ export class Agent {
         // We do need to spawn some at the spawn point. 
         // this.position.copy(spawnLocation); 
         this.setAnimation(BakedAnimation.SWIM_SLOW); 
+        this.setRotationSpeed(3); 
 
         // Make the agent visible and awake. 
         this.sceneObject.hidden = false; 
@@ -313,7 +316,11 @@ export class Agent {
     }  
 
     setAnimation(ani) {
-        Utility.setBakedAnimation(this.animationString, ani);
+        Utility.setPatchVariable(this.animationString, ani);
         this.currentAnimation = ani; 
+    }
+
+    setRotationSpeed(rotSpeed) {
+        Utility.setPatchVariable(this.rotationString, rotSpeed); 
     }
 }

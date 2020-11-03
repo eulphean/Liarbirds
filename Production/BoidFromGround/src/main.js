@@ -147,6 +147,7 @@ function handleTap(camTarget) {
             points.forEach(n => {
                 let a = n['data']; 
                 a.setAnimation(BakedAnimation.SWIM_FAST); 
+                a.setRotationSpeed(1);
                 // TODO: Calculate a dispersion target aware from the current position. 
                 a.calcNewTarget(snapshot); 
                 a.maxForce = 0.005; 
