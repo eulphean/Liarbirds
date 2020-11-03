@@ -13,6 +13,32 @@ export const BakedAnimation = {
     SWIM_FAST : 2
 }; 
 
+// Enum to set different agent agility speeds. 
+// [Critical] Constants to determine how the agent moves in the space.  
+// Sets this.maxForce, this.maxSpeed, this.maxSlowDownSpeed, and agent's rotationSpeed. 
+const Agility = {
+    LOW: {
+        FORCE: 0.002,
+        SPEED: 0.002,
+        SLOWSPEED: 0.001,
+        ROTSPEED: 5
+    }, 
+
+    MEDIUM: {
+        FORCE: 0.005,
+        SPEED: 0.003,
+        SLOWSPEED: 0.001,
+        ROTSPEED: 3
+    },
+
+    HIGH: {
+        FORCE: 0.01,
+        SPEED: 0.005,
+        SLOWSPEED: 0.001,
+        ROTSPEED: 0.5
+    }
+}
+
 // State to keep track of what the agent is currently doing. 
 const SeekState = {
     WORLD_TARGET: 0, 
@@ -28,7 +54,7 @@ export class Agent {
         // Core Vec3 to determine agent's whereabouts. These should be reused aggressively to avoid the need
         // to create new Vec3s on the fly. That's expensive. 
         this.position = Utility.getLastPosition(this.sceneObject); // don't need this but let it be here. 
-        this.velocity = new Vector3(-0.001, 0, 0); 
+        this.velocity = obj['velocity']; 
         this.acceleration = new Vector3(0, 0, 0); 
         this.rotationA = new Quaternion(0, 0, 0, 0); 
         this.rotationB = new Quaternion(0, 0, 0, 0); 
@@ -37,26 +63,18 @@ export class Agent {
         this.target = Utility.getLastPosition(this.targetObject); 
         this.initialTargetPosition = Utility.getLastPosition(this.targetObject); // Save this to be reused during spawning. 
         this.fSteer = new Vector3(0, 0, 0); 
-        this.sumVec = new Vector3(0, 0, 0); // Helper sum keeper  for vector calculation. 
+        this.sumVec = new Vector3(0, 0, 0); // Helper sum keeper for vector calculation. 
         this.diffVec = new Vector3(0, 0, 0); // Helper subtractor for vector calculation. 
 
-        // Track current baked animation. 
+        // Script to patch bridge variables. 
         this.currentAnimation = BakedAnimation.CURL; 
         this.animationString = 'animationNum' + obj['idx'].toString(); 
         this.rotationString = 'rotSpeed' + obj['idx'].toString();
-        this.setRotationSpeed(0); 
         this.setAnimation(this.currentAnimation); 
 
         // Target tracking state. 
         this.seekState = SeekState.WORLD_TARGET; // Always start the world target. 
 
-        // [Critical] Constants to determine how the agent moves. 
-        // maxForce determines the maximum acceleration
-        // maxSpeed determines the maximum velocity
-        this.maxSpeed = 0.001; 
-        this.maxSlowDownSpeed = 0.001; 
-        this.maxForce = 0.001;
-        
         // [Critical] Constants to determine the agent's arrival behavior.
         // Note this distance*distance
         this.arriveTolerance = 0.02 * 0.02; 
@@ -128,8 +146,8 @@ export class Agent {
             let d = this.diffVec.subVectors(this.target, this.position).lengthSquared(); 
             if (d < this.arriveTolerance) {
                 this.seekState = SeekState.PHONE_TARGET; 
-                this.maxForce = 0.001; 
-                this.maxSpeed = 0.001; 
+                this.setAgentAgility(Agility.LOW);
+                this.setAnimation(BakedAnimation.SWIM_SLOW); 
             }
         } else {
             this.target.set(targetSnapshot['lastTargetX'], targetSnapshot['lastTargetY'], targetSnapshot['lastTargetZ']);
@@ -201,28 +219,44 @@ export class Agent {
         this.sceneObject.transform.rotationZ = this.euler.z; 
     }
 
-    spawn(spawnLocation) {
-        if (this.awake) {
-            // Reset first. 
-            this.hardReset(); 
-        }
-
-        // Update position to spawn point. 
-        // We do need to spawn some at the spawn point. 
-        // this.position.copy(spawnLocation); 
+    spawn() {
         this.setAnimation(BakedAnimation.SWIM_SLOW); 
-        this.setRotationSpeed(3); 
+        this.setAgentAgility(Agility.LOW);
 
         // Make the agent visible and awake. 
         this.sceneObject.hidden = false; 
         this.awake = true; 
     }
 
-    hardReset() {
-        // Reset all the parameters to original parameters. 
-        this.velocity.set(0, 0, 0); 
-        this.acceleration.set(0, 0, 0); 
-        this.target.copy(this.initialTargetPosition); 
+    setAgentAgility(agility) {
+        this.maxForce = agility.FORCE; 
+        this.maxSpeed = agility.SPEED;
+        this.maxSlowDownSpeed = agility.SLOWSPEED;
+        this.setRotationSpeed(agility.ROTSPEED);  
+    }   
+
+    setAnimation(ani) {
+        Utility.setPatchVariable(this.animationString, ani);
+        this.currentAnimation = ani; 
+    }
+
+    setAnimation(ani) {
+        Utility.setPatchVariable(this.animationString, ani);
+        this.currentAnimation = ani; 
+    }
+
+    setRotationSpeed(rotSpeed) {
+        Utility.setPatchVariable(this.rotationString, rotSpeed); 
+    }
+
+    // Called when agent is within the 
+    setTapUpdates() {          
+        this.setAnimation(BakedAnimation.SWIM_FAST); 
+        this.setAgentAgility(Agility.MEDIUM); 
+        this.calcNewTarget(); 
+
+        // Seek a target out in the world that's what the agent needs to do right now, 
+        this.seekState = SeekState.WORLD_TARGET; 
     }
 
     // Receives neighboring agents using Octree calculations. 
@@ -284,20 +318,20 @@ export class Agent {
         }
     }
 
-    calcNewTarget(snapshot) {
+    calcNewTarget() {
         // Have I reached the target or am I forcing a recalculation of the target? 
-        let wanderD = 0.3; // Max wander distance
+        let wanderD = 0.2; // Max wander distance
         let wanderR = 0.05;
         let thetaChange = 10; 
         let wanderTheta = Utility.random(-thetaChange, thetaChange); 
 
-        this.target.set(-this.velocity.x, -this.velocity.y, -this.velocity.z); 
-        this.target.normalize(); // Get the heading of the agent. 
-        this.target.multiplyScalar(wanderD); // Scale it.
-        this.target.add(this.position); // Make it relative to current position.
+        this.target.set(this.initialTargetPosition.x, this.initialTargetPosition.y, this.initialTargetPosition.z); 
+        // this.target.normalize(); // Get the heading of the agent. 
+        // this.target.multiplyScalar(wanderD); // Scale it.
+        // this.target.add(this.initialTargetPosition); // Make it relative to the original target position. 
 
         let azimuth = Utility.azimuth(this.target); 
-        let inclination = Utility.inclination(this.target); // [TODO] Use this to tilt the head of the Agent
+        let inclination = Utility.inclination(this.target);
 
         // Calculate New Target. 
         let xPos = wanderR * Math.cos(azimuth + wanderTheta);
@@ -306,21 +340,7 @@ export class Agent {
         let pOffset = new Vector3(xPos, yPos, zPos); 
         this.target.add(pOffset); // With respect to current position 
 
-        // Go seek a world target now. 
-        this.seekState = SeekState.WORLD_TARGET; 
-
         // Sync the target scene object to the target. 
         Utility.syncSceneObject(this.targetObject, this.target); 
-
-        Diagnostics.log('Calculate new target');
     }  
-
-    setAnimation(ani) {
-        Utility.setPatchVariable(this.animationString, ani);
-        this.currentAnimation = ani; 
-    }
-
-    setRotationSpeed(rotSpeed) {
-        Utility.setPatchVariable(this.rotationString, rotSpeed); 
-    }
 }

@@ -17,7 +17,7 @@ import Octree from './Octree.js';
 var agents = []; 
 var curAgentIdx = 0; 
 var staggerTime = 2000; // Delay between the release of each agent. Sync it with the animation from Phil. 
-var maxAgentsToSpawn = 4; // Debug parameter to control number of agents. 
+var maxAgentsToSpawn = 5; // Debug parameter to control number of agents. 
 
 // Boolean that helps us from retracking the plane on multiple taps. 
 var hasTracked = false; 
@@ -55,8 +55,9 @@ Promise.all([
     // Setup agents. 
     let sceneAgents = sceneObjects['agents']; 
     let sceneTargets = sceneObjects['targets']; 
+    let initialVelocities = prepareAgentVelocities();
     for (let i = 0; i < maxAgentsToSpawn; i++) {
-        let agent = prepareAgent(sceneAgents[i], sceneTargets[i], i);
+        let agent = prepareAgent(sceneAgents[i], sceneTargets[i], i, initialVelocities[i]);
         agents.push(agent); 
     }
     
@@ -104,11 +105,12 @@ function bindFocalTarget(focalTarget, camTarget) {
     camTarget.worldTransform.position = t.position; 
 }
 
-function prepareAgent(sceneAgent, sceneTarget, i) {
+function prepareAgent(sceneAgent, sceneTarget, i, v) {
     let o = {
         'agent' : sceneAgent, 
         'target' : sceneTarget,
-        'idx' : i
+        'idx' : i, 
+        'velocity' : v
     }; 
     return new Agent(o); 
 }
@@ -143,18 +145,13 @@ function handleTap(camTarget) {
         let focalTarget = new Vector3(snapshot['lastX'], snapshot['lastY'], snapshot['lastZ']); 
         let points = octree.scanForPoints(focalTarget, boundary); 
         if (points.length > 0) {
-            Diagnostics.log('Found Something');        
+            // Diagnostics.log('Found Something');        
             points.forEach(n => {
                 let a = n['data']; 
-                a.setAnimation(BakedAnimation.SWIM_FAST); 
-                a.setRotationSpeed(1);
-                // TODO: Calculate a dispersion target aware from the current position. 
-                a.calcNewTarget(snapshot); 
-                a.maxForce = 0.005; 
-                a.maxSpeed = 0.005;
+                a.setTapUpdates(); 
             }); 
         } else {
-            Diagnostics.log('Found nothing');
+            // Diagnostics.log('Found nothing');
         }
     });
 }
@@ -175,16 +172,6 @@ function releaseNextAgent(spawnPoint) {
 
 
 function handlePan(planeTracker, camTarget) {
-    // Use this to create a 3D point on the screen. But
-    // we are also changing the plane's location based on panning. 
-    // TouchGestures.onPan(camTarget).subscribe(gesture => {
-    //     let t = Scene.unprojectToFocalPlane(gesture.location); 
-    //     camTarget.transform.x = t.x;
-    //     camTarget.transform.y = t.y; 
-    //     camTarget.transform.z = t.z; 
-    // }); 
-
-
     // Subcribe to planning. 
     TouchGestures.onPan(planeTracker).subscribe((gesture) => {
         Diagnostics.log('Plane tracker'); 
@@ -193,9 +180,14 @@ function handlePan(planeTracker, camTarget) {
     }); 
 }
 
-// Add rotations.
-// Improve calc target to disperse the agents. 
-// Add more agents. 
-// Add dying state.
-// Improve starting flow a little. 
-// Add instructions. 
+function prepareAgentVelocities() {
+    // Set initial velocities of agents here. 
+    return [
+        new Vector3(-0.001, 0, 0), // Agent0
+        new Vector3(-0.001, 0, 0), // Agent1 
+        new Vector3(-0.001, 0, 0), // Agent2
+        new Vector3(-0.001, 0, 0), // Agent3
+        new Vector3(0, 0.001, 0) // Agent4
+    ]; 
+}
+
