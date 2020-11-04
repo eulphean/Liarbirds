@@ -28,7 +28,7 @@ const Agility = {
         FORCE: 0.005,
         SPEED: 0.003,
         SLOWSPEED: 0.001,
-        ROTSPEED: 3
+        ROTSPEED: 2
     },
 
     HIGH: {
@@ -91,13 +91,17 @@ export class Agent {
         // Flocking behavior weights. 
 
         // Seperation
-        this.seperationWeight = 1.0; // Keep this weight high / Higher than maxForce 
+        this.seperationWeight = 1.5; // Keep this weight high / Higher than maxForce 
 
         // Cohesion
-        this.cohesionWeight = 0.5; // Keep this weight high / Higher than maxForce 
+        this.cohesionWeight = 1.0; // Keep this weight high / Higher than maxForce 
 
         // Alignment
-        this.alignmentWeight = 0.8; // Keep this weight high / Higher than maxForce 
+        this.alignmentWeight = 0.2; // Keep this weight high / Higher than maxForce 
+
+        // Randomly set this on agent creation. 
+        // When it's 0, agent is not awake anymore. 
+        this.deathCounter = Utility.random(2, 5);
     }
 
     // Function declaration. 
@@ -254,9 +258,23 @@ export class Agent {
         this.setAnimation(BakedAnimation.SWIM_FAST); 
         this.setAgentAgility(Agility.MEDIUM); 
         this.calcNewTarget(); 
+        this.updateDeathCounter(); 
 
-        // Seek a target out in the world that's what the agent needs to do right now, 
+        // Scare the agent and seek the world target close to to the spawn point. 
         this.seekState = SeekState.WORLD_TARGET; 
+    }
+
+    updateDeathCounter() {
+        if (this.deathCounter > 0) {
+            this.deathCounter--; 
+            Diagnostics.log(this.deathCounter); 
+        }
+
+        if (this.deathCounter === 0) {
+            this.setAnimation(BakedAnimation.CURL); 
+            this.awake = false; 
+            Diagnostics.log('Disable the agent'); 
+        }
     }
 
     // Receives neighboring agents using Octree calculations. 

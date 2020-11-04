@@ -174,7 +174,6 @@ function releaseNextAgent(spawnPoint) {
 function handlePan(planeTracker, camTarget) {
     // Subcribe to planning. 
     TouchGestures.onPan(planeTracker).subscribe((gesture) => {
-        Diagnostics.log('Plane tracker'); 
         // Move the plane. 
         planeTracker.trackPoint(gesture.location, gesture.state); 
     }); 
