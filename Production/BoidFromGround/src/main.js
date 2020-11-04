@@ -6,6 +6,9 @@ const Time = require('Time')
 const Diagnostics = require('Diagnostics');
 const TouchGestures = require('TouchGestures'); 
 const Animation = require('Animation'); 
+const Instruction = require('Instruction'); 
+const Patches = require('Patches');
+
 import { Vector3 } from 'math-ds'; 
 
 // Internal helpers
@@ -26,6 +29,16 @@ var hasTracked = false;
 var octree; 
 var boundary = 0.1; 
 
+// Instruction states. 
+let InstructionState = {
+    PLACE: 'tap_to_place',
+    ZOOM: 'pinch_to_zoom', 
+    HOLD: 'touch_hold',
+    CHANGE: 'tap_to_change',
+    NONE: 'none'
+}; 
+var curInstructionState = InstructionState.PLACE; 
+
 // Use a wild card (*) to read the entire tree. 
 // Array Hierarchy = Scene Viewer Hierarchy
 Promise.all([
@@ -37,8 +50,9 @@ Promise.all([
     Scene.root.findFirst('camTarget'),
     Scene.root.findFirst('focalTarget')
 ]).then(function (objects) {
+    setInstructions(); 
     let sceneObjects = prepareObjects(objects); 
-    
+
     // Pan using script. 
     handlePan(sceneObjects['planeTracker'], sceneObjects['camTarget']); 
     handleLongPress(sceneObjects['planeTracker']); 
@@ -71,7 +85,6 @@ Promise.all([
             'lastTargetY' : camTarget.transform.y,
             'lastTargetZ' : camTarget.transform.z
         }, (elapsedTime, snapshot) => { // Bind local scope. 
-        
         // Recreate a new tree with every iteration (much faster than updating an existing one)
         octree = new Octree(snapshot, boundary); 
         agents.forEach(a => {
@@ -176,6 +189,11 @@ function handlePan(planeTracker, camTarget) {
     TouchGestures.onPan(planeTracker).subscribe((gesture) => {
         // Move the plane. 
         planeTracker.trackPoint(gesture.location, gesture.state); 
+
+        if (curInstructionState === InstructionState.PLACE) {
+            curInstructionState = InstructionState.ZOOM; 
+            setInstructions();
+        }
     }); 
 }
 
@@ -190,3 +208,36 @@ function prepareAgentVelocities() {
     ]; 
 }
 
+function setInstructions() {
+    switch (curInstructionState) {
+        case InstructionState.PLACE: {
+            Instruction.bind(true, InstructionState.PLACE);
+            break;
+        }
+
+        case InstructionState.ZOOM: {
+            Instruction.bind(true, InstructionState.ZOOM); 
+            break;
+        }
+
+        case InstructionState.HOLD: {
+            Instruction.bind(true, InstructionState.HOLD); 
+            break; 
+        }
+
+        case InstructionState.CHANGE: {
+            Instruction.bind(true, InstructionState.CHANGE);
+            break;
+        }
+
+        case InstructionState.NONE: {
+            Instruction.bind(false, InstructionState.PLACE); 
+            break; 
+        }
+
+        default : {
+            Instruction.bind(false, InstructionState.PLACE); 
+            break; 
+        }
+    }
+}

@@ -267,13 +267,11 @@ export class Agent {
     updateDeathCounter() {
         if (this.deathCounter > 0) {
             this.deathCounter--; 
-            Diagnostics.log(this.deathCounter); 
         }
 
         if (this.deathCounter === 0) {
             this.setAnimation(BakedAnimation.CURL); 
             this.awake = false; 
-            Diagnostics.log('Disable the agent'); 
         }
     }
 
