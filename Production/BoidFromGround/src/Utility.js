@@ -68,7 +68,6 @@ const setPatchVariable = (string, num) => {
     Patches.inputs.setScalar(string, num); 
 }
 
-
 export {
     clamp,
     axisRotation,
