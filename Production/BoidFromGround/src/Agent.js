@@ -44,13 +44,15 @@ export class Agent extends BaseAgent {
     } 
 
     // Called when agent is within the 
-    // TODO: These 
+    // TODO: These should lerp. 
+    // Use Patch editor to lerp values. 
     enableRotations() {          
         this.setAnimation(ANIMATION_STATE.SWIM_FAST); 
         this.setRotationSpeed(ROTATION_SPEED.FAST);
         this.updateDeathCounter(); 
 
         // TODO: Set a timer to disable Rotations. 
+        // Disable rotations after a certain time. 
     }
 
     updateDeathCounter() {
