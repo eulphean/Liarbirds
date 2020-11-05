@@ -4,46 +4,7 @@ const Diagnostics = require('Diagnostics');
 import * as SparkUtility from './SparkUtility.js'
 import * as MathUtility from './MathUtility.js';
 import { Euler, Matrix4, Quaternion, Vector3 } from 'math-ds'
-
-export const ANIMATION_STATE = {
-    CURL : 0,
-    SWIM_SLOW : 1,
-    SWIM_FAST : 2
-}; 
-
-export const ROTATION_SPEED = {
-    NONE: 0, 
-    FAST: 1,
-    SLOW: 3, 
-    VERYSLOW: 5
-}
-
-export const FLOCKING_WEIGHTS = {
-    SEPERATION: 3.5,
-    COHESION: 2.0,
-    ALIGNMENT: 2.0
-}
-
-// Sets this.maxForce, this.maxSpeed, this.maxSlowDownSpeed, and agent's rotationSpeed. 
-export const AGENT_SPEED = {
-    LOW: {
-        FORCE: 0.002,
-        SPEED: 0.002,
-        SLOWSPEED: 0.001
-    }, 
-
-    MEDIUM: {
-        FORCE: 0.005,
-        SPEED: 0.003,
-        SLOWSPEED: 0.001
-    },
-
-    HIGH: {
-        FORCE: 0.01,
-        SPEED: 0.005,
-        SLOWSPEED: 0.001
-    }
-}
+import { FLOCKING_WEIGHTS } from './AgentUtility.js'
 
 export class BaseAgent {
     constructor(obj) {
