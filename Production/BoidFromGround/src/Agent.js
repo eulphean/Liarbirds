@@ -3,62 +3,50 @@
 const Reactive = require('Reactive'); 
 const Diagnostics = require('Diagnostics');
 
-import { BaseAgent } from './BaseAgent.js'
-import * as Utility from './Utility.js';
+import { ANIMATION_STATE, ROTATION_SPEED, AGENT_SPEED, BaseAgent,  } from './BaseAgent.js'
+import * as SparkUtility from './SparkUtility.js';
 
 export class Agent extends BaseAgent {
     constructor(obj) {
         super(obj); 
-         
-         // Script to patch bridge variables. 
-         this.currentAnimation = BakedAnimation.CURL; 
-         this.animationString = 'animationNum' + obj['idx'].toString(); 
-         this.rotationString = 'rotSpeed' + obj['idx'].toString();
-         this.setAnimation(this.currentAnimation); 
- 
-         // Target tracking state. 
-         this.seekState = SeekState.WORLD_TARGET; // Always start the world target. 
+
+        this.hasReachedInitialTarget = false; 
+
+        // Script to patch bridge variables. 
+        this.animationString = 'animationNum' + obj['idx'].toString(); 
+        this.rotationString = 'rotSpeed' + obj['idx'].toString();
+        this.setAnimation(ANIMATION_STATE.CURL); 
     }
 
     spawn() {
-        this.setAnimation(BakedAnimation.SWIM_SLOW); 
-        this.setAgentAgility(Agility.LOW);
+        this.setAnimation(ANIMATION_STATE.SWIM_SLOW); 
+        this.setAgentSpeed(AGENT_SPEED.LOW);
+        this.setRotationSpeed(ROTATION_SPEED.SLOW);
 
-        // Make the agent visible and awake. 
-        this.sceneObject.hidden = false; 
+        // Show the agent if it's hidden. 
+        this.sceneObject.hidden = false;
         this.awake = true; 
     }
 
-    setAgentAgility(agility) {
-        this.maxForce = agility.FORCE; 
-        this.maxSpeed = agility.SPEED;
-        this.maxSlowDownSpeed = agility.SLOWSPEED;
-        this.setRotationSpeed(agility.ROTSPEED);  
-    }   
-
-    setAnimation(ani) {
-        Utility.setPatchVariable(this.animationString, ani);
-        this.currentAnimation = ani; 
-    }
-
-    setAnimation(ani) {
-        Utility.setPatchVariable(this.animationString, ani);
-        this.currentAnimation = ani; 
-    }
-
-    setRotationSpeed(rotSpeed) {
-        Utility.setPatchVariable(this.rotationString, rotSpeed); 
-    }
+    // NOTE: Contentious method. Be careful. 
+    // TODO: Very tricky function. Clean it up with. 
+    evaluateSeekTarget(targetSnapshot) {
+        if (!this.hasReachedInitialTarget) {
+            // Update target as soon as we know that we have reached the initial target. 
+            let d = this.diffVec.subVectors(this.target, this.position).lengthSquared(); 
+            if (d < this.arriveTolerance) { // Have I reached? 
+                this.hasReachedInitialTarget = true; 
+            }
+        } else {
+            this.target.set(targetSnapshot['lastTargetX'], targetSnapshot['lastTargetY'], targetSnapshot['lastTargetZ']);
+        }
+    } 
 
     // Called when agent is within the 
     setTapUpdates() {          
-        this.setAnimation(BakedAnimation.SWIM_FAST); 
-        this.setAgentAgility(Agility.MEDIUM); 
-        this.calcNewTarget(); 
+        this.setAnimation(ANIMATION_STATE.SWIM_FAST); 
+        this.setRotationSpeed(ROTATION_SPEED.FAST);
         this.updateDeathCounter(); 
-
-        // Scare the agent and seek the world target close to to the spawn point. 
-        this.seekState = SeekState.WORLD_TARGET; 
     }
 
     updateDeathCounter() {
@@ -70,5 +58,20 @@ export class Agent extends BaseAgent {
             this.setAnimation(BakedAnimation.CURL); 
             this.awake = false; 
         }
+    }
+
+    setAgentSpeed(aSpeed) {
+        this.maxForce = aSpeed.FORCE; 
+        this.maxSpeed = aSpeed.SPEED;
+        this.maxSlowDownSpeed = aSpeed.SLOWSPEED;  
+    }  
+
+    setAnimation(ani) {
+        SparkUtility.setPatchVariable(this.animationString, ani);
+    }
+
+    setRotationSpeed(rotSpeed) {
+        // TODO: Lerp this variable. 
+        SparkUtility.setPatchVariable(this.rotationString, rotSpeed); 
     }
 }

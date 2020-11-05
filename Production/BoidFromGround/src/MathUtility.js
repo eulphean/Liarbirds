@@ -6,20 +6,6 @@ import { Vector3 } from 'math-ds';
 const Patches = require('Patches'); 
 const Diagnostics = require('Diagnostics');
 
-const getLastPosition = (sceneObject) => {
-    // Acquire current agent position. 
-    let posX = sceneObject.transform.x.pinLastValue(); 
-    let posY = sceneObject.transform.y.pinLastValue(); 
-    let posZ = sceneObject.transform.z.pinLastValue(); 
-    return new Vector3(posX, posY, posZ);
-}
-
-const syncSceneObject = (sceneObject, targetVector) => {
-    sceneObject.transform.x = targetVector.x; 
-    sceneObject.transform.y = targetVector.y;
-    sceneObject.transform.z = targetVector.z; 
-}
-
 const map_range = (value, low1, high1, low2, high2) => {
     return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
@@ -64,10 +50,6 @@ const clamp = (vector, maxMag) => {
     return vector; 
 }
 
-const setPatchVariable = (string, num) => {
-    Patches.inputs.setScalar(string, num); 
-}
-
 export {
     clamp,
     axisRotation,
@@ -75,8 +57,5 @@ export {
     inclination,
     azimuth,
     random,
-    map_range,
-    syncSceneObject, 
-    getLastPosition,
-    setPatchVariable
+    map_range
 }

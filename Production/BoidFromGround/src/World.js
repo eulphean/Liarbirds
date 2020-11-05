@@ -5,7 +5,7 @@ import { Vector3 } from 'math-ds';
 import Octree from './Octree.js';
 import * as AgentUtility from './AgentUtility.js'
 
-const WORLD_STATES = {
+export const WORLD_STATE = {
     SPAWN: 0, 
     TARGET_PHONE: 1, 
     TARGET_FLOCK: 2,
@@ -26,7 +26,7 @@ export class World {
         this.phoneOctree = {};
 
         // World state
-        this.curWorldState = WORLD_STATES.SPAWN; 
+        this.curWorldState = WORLD_STATE.SPAWN; 
     }
 
     setupAgents(sceneObjects) {
@@ -67,9 +67,14 @@ export class World {
                     let a = n['data']; 
                     nAgents.push(a); 
                 }); 
+
+
+                // Based on the state I'm in, call the required function. 
+                // Have I reached? 
+                a.evaluateSeekTarget(snapshot); 
                 
                 // Send neighboring agent. 
-                a.update(nAgents, snapshot); 
+                a.update(nAgents); 
             }
         });
     }
@@ -79,7 +84,6 @@ export class World {
     releaseAgents() {
         // In spawn state, stagger the agents one by one to come off the floor. 
         if (this.curSpawnIdx < this.agents.length) {
-            // Recursively call itself till it's done staggering all the agents. 
             let a = this.agents[this.curSpawnIdx];
             a.spawn();
             this.curSpawnIdx++; 
@@ -104,24 +108,24 @@ export class World {
 
     handleLongPress() {
         switch (this.curWorldState) {
-            case WORLD_STATES.SPAWN: {
+            case WORLD_STATE.SPAWN: {
                 this.releaseAgents(); 
                 break;
             }
 
-            case WORLD_STATES.TARGET_FLOCK: {
+            case WORLD_STATE.TARGET_FLOCK: {
                 break;
             }
 
-            case WORLD_STATES.TARGET_PATTERN: {
+            case WORLD_STATE.TARGET_PATTERN: {
                 break;
             }
 
-            case WORLD_STATES.TARGET_PHONE: {
+            case WORLD_STATE.TARGET_PHONE: {
                 break;
             }
 
-            case WORLD_STATES.TARGET_REST: {
+            case WORLD_STATE.TARGET_REST: {
                 break;
             }
 
