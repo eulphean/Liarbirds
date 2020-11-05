@@ -19,9 +19,9 @@ export const ROTATION_SPEED = {
 }
 
 export const FLOCKING_WEIGHTS = {
-    SEPERATION: 1.5,
-    COHESION: 1.0,
-    ALIGNMENT: 0.2
+    SEPERATION: 3.5,
+    COHESION: 2.0,
+    ALIGNMENT: 2.0
 }
 
 // Sets this.maxForce, this.maxSpeed, this.maxSlowDownSpeed, and agent's rotationSpeed. 

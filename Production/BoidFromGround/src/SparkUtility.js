@@ -1,3 +1,6 @@
+import { Vector3 } from 'math-ds'
+const Patches = require('Patches');
+
 const getLastPosition = (sceneObject) => {
     // Acquire current agent position. 
     let posX = sceneObject.transform.x.pinLastValue(); 

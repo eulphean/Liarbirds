@@ -1,6 +1,6 @@
 // World.js
 // Should maintain the agents, objects, etc. 
-
+const Diagnostics = require('Diagnostics');
 import { Vector3 } from 'math-ds'; 
 import Octree from './Octree.js';
 import * as AgentUtility from './AgentUtility.js'
@@ -94,7 +94,7 @@ export class World {
     // Applies some updates on them. 
     handleTap(snapshot) {
         let focalTarget = new Vector3(snapshot['lastX'], snapshot['lastY'], snapshot['lastZ']); 
-        let points = this.phoneOctree.scanForPoints(focalTarget, boundary); 
+        let points = this.phoneOctree.scanForPoints(focalTarget, this.octreeBoundary); 
         if (points.length > 0) {   
             Diagnostics.log('Agents found near the phone.'); 
             points.forEach(n => {

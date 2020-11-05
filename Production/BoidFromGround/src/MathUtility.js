@@ -2,7 +2,6 @@
 // Helper module to do calculations, sceneObjects syncs and other updates.
 
 const Reactive = require('Reactive'); 
-import { Vector3 } from 'math-ds'; 
 const Patches = require('Patches'); 
 const Diagnostics = require('Diagnostics');
 
