@@ -10,6 +10,7 @@ export class Agent extends BaseAgent {
     constructor(obj) {
         super(obj); 
 
+        // SPAWN / PHONE_TARGET State variable. g
         this.hasReachedInitialTarget = false; 
 
         // Script to patch bridge variables. 
@@ -43,10 +44,13 @@ export class Agent extends BaseAgent {
     } 
 
     // Called when agent is within the 
-    setTapUpdates() {          
+    // TODO: These 
+    enableRotations() {          
         this.setAnimation(ANIMATION_STATE.SWIM_FAST); 
         this.setRotationSpeed(ROTATION_SPEED.FAST);
         this.updateDeathCounter(); 
+
+        // TODO: Set a timer to disable Rotations. 
     }
 
     updateDeathCounter() {

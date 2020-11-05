@@ -99,7 +99,7 @@ export class World {
             Diagnostics.log('Agents found near the phone.'); 
             points.forEach(n => {
                 let a = n['data']; 
-                a.setTapUpdates(); 
+                a.enableRotations(); 
             }); 
         } else {
             Diagnostics.log('Agents not found near the phone.')
