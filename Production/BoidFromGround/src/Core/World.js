@@ -63,8 +63,9 @@ export class World {
                     nAgents = this.octreeManager.getNeighbours(true, a.position);
                 }
 
-                // Get neighbors from the hoodOctree
-                if (this.curWorldState === WORLD_STATE.FLOCK_HOOD) {
+                // Get neighbors from the hoodOctree 
+                if (this.curWorldState === WORLD_STATE.FLOCK_HOOD ||
+                        this.curWorldState === WORLD_STATE.PATTERN_HOOD) {
                     nAgents = this.octreeManager.getNeighbours(false, a.position); 
                 }
      
@@ -74,6 +75,10 @@ export class World {
                 }
 
                 if (this.curWorldState === WORLD_STATE.FLOCK_HOOD) {
+                    a.setHoodTarget(this.hoodManager.flockTargetVec); 
+                }
+
+                if (this.curWorldState === WORLD_STATE.PATTERN_HOOD) {
                     a.setHoodTarget(this.hoodManager.flockTargetVec); 
                 }
                 
@@ -115,26 +120,31 @@ export class World {
             case WORLD_STATE.SPAWN: {
                 this.releaseAgents(); 
                 this.curWorldState = WORLD_STATE.FLOCK_PHONE; 
+                Diagnostics.log('New State: FLOCK_PHONE'); 
                 break;
             }
 
             case WORLD_STATE.FLOCK_PHONE: {
                 this.curWorldState = WORLD_STATE.FLOCK_HOOD; 
+                Diagnostics.log('New State: FLOCK_HOOD'); 
                 break;
             }
 
             case WORLD_STATE.FLOCK_HOOD: {
-                this.curWorldState = WORLD_STATE.PATTERN_HOOD; 
+                this.curWorldState = WORLD_STATE.PATTERN_HOOD;
+                Diagnostics.log('New State: PATTERN_HOOD');  
                 break;
             }
 
             case WORLD_STATE.PATTERN_HOOD: {
                 this.curWorldState = WORLD_STATE.REST_HOOD; 
+                Diagnostics.log('New State: REST_HOOD'); 
                 break;
             }
 
             case WORLD_STATE.REST_HOOD: {
                 this.curWorldState = WORLD_STATE.FLOCK_PHONE; 
+                Diagnostics.log('New State: FLOCK_PHONE'); 
                 break;
             }
 

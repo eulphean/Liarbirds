@@ -19,8 +19,9 @@ export class OctreeManager {
         // No matter what, always setup the phone octree.   
         this.setupPhoneOctree(phoneTarget, agents); 
 
-        // Create hoodOctree only when we need to flock in the hood. 
-        if (curWorldState === WORLD_STATE.FLOCK_HOOD) {
+        // Create hoodOctree when I'm doing these things. 
+        if (curWorldState === WORLD_STATE.FLOCK_HOOD ||
+                curWorldState === WORLD_STATE.PATTERN_HOOD) {
             this.setupHoodOctree(hoodFlockTargetVec, agents); 
         }
     }
