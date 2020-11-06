@@ -4,8 +4,8 @@ const Reactive = require('Reactive');
 const Diagnostics = require('Diagnostics');
 
 import { BaseAgent } from './BaseAgent.js'
-import { ANIMATION_STATE, ROTATION_SPEED, AGENT_SPEED } from './AgentUtility.js'
-import * as SparkUtility from './SparkUtility.js';
+import { ANIMATION_STATE, ROTATION_SPEED, AGENT_SPEED } from '../Utilities/AgentUtility.js'
+import * as SparkUtility from '../Utilities/SparkUtility.js';
 
 export class Agent extends BaseAgent {
     constructor(obj) {

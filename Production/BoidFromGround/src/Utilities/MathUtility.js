@@ -31,6 +31,10 @@ const radians_to_degrees = (radians) => {
     return radians * (180/Math.PI);
 }
 
+const degrees_to_radians = (degrees) => {
+    return degrees * (Math.PI/180);
+}
+
 const axisRotation = (axis_x, axis_y, axis_z, angle_radians, q) => {
     var norm = Math.sqrt(axis_x * axis_x + axis_y * axis_y + axis_z * axis_z);
     axis_x /= norm;
@@ -53,6 +57,7 @@ export {
     clamp,
     axisRotation,
     radians_to_degrees,
+    degrees_to_radians,
     inclination,
     azimuth,
     random,

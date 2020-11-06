@@ -1,10 +1,10 @@
 const Reactive = require('Reactive'); 
 const Diagnostics = require('Diagnostics');
 
-import * as SparkUtility from './SparkUtility.js'
-import * as MathUtility from './MathUtility.js';
+import * as SparkUtility from '../Utilities/SparkUtility.js'
+import * as MathUtility from '../Utilities/MathUtility.js';
 import { Euler, Matrix4, Quaternion, Vector3 } from 'math-ds'
-import { FLOCKING_WEIGHTS } from './AgentUtility.js'
+import { FLOCKING_WEIGHTS } from '../Utilities/AgentUtility.js'
 
 export class BaseAgent {
     constructor(obj) {

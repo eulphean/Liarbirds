@@ -3,7 +3,9 @@
 const Diagnostics = require('Diagnostics');
 import { Vector3 } from 'math-ds'; 
 import Octree from './Octree.js';
-import * as AgentUtility from './AgentUtility.js'
+import { HoodManager } from '../Managers/HoodManager.js'
+
+import * as AgentUtility from '../Utilities/AgentUtility.js'
 
 export const WORLD_STATE = {
     SPAWN: 0, 
@@ -24,6 +26,10 @@ export class World {
         this.octreeBoundary = 0.1; 
         // Maintains the octree around the phone. 
         this.phoneOctree = {};
+        // TODO: Create an octree around the flockTarget origin as well to get 
+        // the agents to flock there. 
+
+        this.hoodManager = new HoodManager(sceneObjects);  
 
         // World state
         this.curWorldState = WORLD_STATE.SPAWN; 
@@ -50,7 +56,11 @@ export class World {
         }); 
     }
 
-    update(snapshot) {
+    update(snapshot) {  
+        // Only do this when I'm in the right state. 
+        // Now let's do some state management. 
+        this.hoodManager.update(); 
+        // this.updateFlockTarget(); 
         this.setupPhoneOctree(snapshot); 
         this.updateAgents(snapshot); 
     }

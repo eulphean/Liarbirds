@@ -15,6 +15,12 @@ const syncSceneObject = (sceneObject, targetVector) => {
     sceneObject.transform.z = targetVector.z; 
 }
 
+const syncSceneObjectWorld = (sceneObject, targetVector) => {
+    sceneObject.worldTransform.x = targetVector.x;
+    sceneObject.worldTransform.y = targetVector.y;
+    sceneObject.worldTransform.z = targetVector.z;  
+}
+
 const setPatchVariable = (string, num) => {
     Patches.inputs.setScalar(string, num); 
 }
@@ -22,6 +28,9 @@ const setPatchVariable = (string, num) => {
 
 export {
     getLastPosition,
+    // getLastWorldPosition,
+    // getParentLastPosition,
     syncSceneObject,
+    syncSceneObjectWorld,
     setPatchVariable
 }

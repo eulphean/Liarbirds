@@ -4,7 +4,7 @@ const Scene = require('Scene');
 const Diagnostics = require('Diagnostics');
 const TouchGestures = require('TouchGestures'); 
 const Time = require('Time'); 
-import { World } from './World.js'
+import { World } from './Core/World.js'
 
 var world; 
 // Use a wild card (*) to read the entire tree. 
@@ -15,6 +15,7 @@ Promise.all([
     Scene.root.findByPath('planeTracker/placer/agents/*'),
     Scene.root.findByPath('planeTracker/placer/targets/*'),
     Scene.root.findByPath('planeTracker/placer/spawner/*'),
+    Scene.root.findByPath('planeTracker/placer/hood/*'),
     Scene.root.findFirst('camTarget'),
     Scene.root.findFirst('focalTarget')
 ]).then(function (objects) {
@@ -38,7 +39,7 @@ Promise.all([
     Time.setIntervalWithSnapshot({
         'lastTargetX' : sceneObjects['camTarget'].transform.x,
         'lastTargetY' : sceneObjects['camTarget'].transform.y,
-        'lastTargetZ' : sceneObjects['camTarget'].transform.z
+        'lastTargetZ' : sceneObjects['camTarget'].transform.z,
     }, (elapsedTime, snapshot) => {
         world.update(snapshot); 
     }, timeInterval);
@@ -57,8 +58,9 @@ function prepareSceneObjects(objects) {
         'agents' : objects[2],
         'targets' : objects[3],
         'spawner' : objects[4],
-        'camTarget': objects[5],
-        'focalTarget' : objects[6]
+        'bushes' : objects[5],
+        'camTarget': objects[6],
+        'focalTarget' : objects[7]
     }
     return a; 
 }

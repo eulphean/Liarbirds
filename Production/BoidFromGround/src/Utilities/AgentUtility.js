@@ -1,4 +1,4 @@
-import { Agent } from './Agent.js'
+import { Agent } from '../Core/Agent.js'
 import { Vector3 } from 'math-ds'
 
 const ANIMATION_STATE = {
