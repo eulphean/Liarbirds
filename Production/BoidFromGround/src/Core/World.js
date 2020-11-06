@@ -8,6 +8,7 @@ import { HoodManager } from '../Managers/HoodManager.js'
 import { OctreeManager } from '../Managers/OctreeManager.js'
 
 import * as AgentUtility from '../Utilities/AgentUtility.js'
+import * as SparkUtility from '../Utilities/SparkUtility.js'
 
 export const WORLD_STATE = {
     SPAWN: 0, 
@@ -54,9 +55,10 @@ export class World {
     }
 
     updateAgents() {
+        let idx = 0; 
         this.agents.forEach(a => { // Bind local scope. 
             if (a.awake) {
-                let nAgents;
+                let nAgents = [];
 
                 // Get neighbors from the phoneOctree
                 if (this.curWorldState === WORLD_STATE.FLOCK_PHONE) {
@@ -64,8 +66,7 @@ export class World {
                 }
 
                 // Get neighbors from the hoodOctree 
-                if (this.curWorldState === WORLD_STATE.FLOCK_HOOD ||
-                        this.curWorldState === WORLD_STATE.PATTERN_HOOD) {
+                if (this.curWorldState === WORLD_STATE.FLOCK_HOOD) {
                     nAgents = this.octreeManager.getNeighbours(false, a.position); 
                 }
      
@@ -75,15 +76,22 @@ export class World {
                 }
 
                 if (this.curWorldState === WORLD_STATE.FLOCK_HOOD) {
-                    a.setHoodTarget(this.hoodManager.flockTargetVec); 
+                    let fTarget = this.hoodManager.getFlockTarget(); 
+                    a.setHoodTarget(fTarget); 
                 }
 
                 if (this.curWorldState === WORLD_STATE.PATTERN_HOOD) {
-                    a.setHoodTarget(this.hoodManager.flockTargetVec); 
+                    let aTarget = this.hoodManager.getAgentTarget(idx); 
+                    a.setHoodTarget(aTarget); 
+                    
+                    // Sync the agent's target to see it's new target. 
+                    SparkUtility.syncSceneObject(a.targetObject, aTarget); 
                 }
                 
                 // Send neighbors to update. 
                 a.update(nAgents); 
+
+                idx++; 
             }
         });
     }

@@ -20,8 +20,7 @@ export class OctreeManager {
         this.setupPhoneOctree(phoneTarget, agents); 
 
         // Create hoodOctree when I'm doing these things. 
-        if (curWorldState === WORLD_STATE.FLOCK_HOOD ||
-                curWorldState === WORLD_STATE.PATTERN_HOOD) {
+        if (curWorldState === WORLD_STATE.FLOCK_HOOD) {
             this.setupHoodOctree(hoodFlockTargetVec, agents); 
         }
     }
