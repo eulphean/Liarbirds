@@ -45,9 +45,9 @@ export class BaseAgent {
     }
 
     // Function declaration. 
-    update(nAgents, targetSnapshot) {
+    update(nAgents) {
         // Calculate and apply forces for agent behaviors. 
-        this.applyBehaviors(nAgents, targetSnapshot);  
+        this.applyBehaviors(nAgents);  
 
         // Update local position based on current velocity and acceleration. 
         this.updatePosition(); 

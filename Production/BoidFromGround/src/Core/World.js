@@ -1,20 +1,23 @@
 // World.js
 // Should maintain the agents, objects, etc. 
 const Diagnostics = require('Diagnostics');
+const Time = require('Time'); 
+
 import { Vector3 } from 'math-ds'; 
-import Octree from './Octree.js';
 import { HoodManager } from '../Managers/HoodManager.js'
+import { OctreeManager } from '../Managers/OctreeManager.js'
 
 import * as AgentUtility from '../Utilities/AgentUtility.js'
 
 export const WORLD_STATE = {
     SPAWN: 0, 
-    TARGET_PHONE: 1, 
-    TARGET_FLOCK: 2,
-    TARGET_PATTERN: 3, 
-    TARGET_REST: 4
+    FLOCK_PHONE: 1, 
+    FLOCK_HOOD: 2,
+    PATTERN_HOOD: 3, 
+    REST_HOOD: 4
 }; 
 
+const STAGGER_TIME = 1000; // 1 second. 
 export class World {
     constructor(sceneObjects) {
         // Agents. 
@@ -22,17 +25,15 @@ export class World {
         this.curSpawnIdx = 0; 
         this.setupAgents(sceneObjects); 
 
-        // Octrees. 
-        this.octreeBoundary = 0.1; 
-        // Maintains the octree around the phone. 
-        this.phoneOctree = {};
-        // TODO: Create an octree around the flockTarget origin as well to get 
-        // the agents to flock there. 
-
+        // Manages all the logic for the hood and octrees. 
         this.hoodManager = new HoodManager(sceneObjects);  
+        this.octreeManager = new OctreeManager(); 
 
-        // World state
+        // Current world state. 
         this.curWorldState = WORLD_STATE.SPAWN; 
+
+        // Phone target
+        this.phoneTarget = new Vector3(0, 0, 0); 
     }
 
     setupAgents(sceneObjects) {
@@ -44,98 +45,96 @@ export class World {
             this.agents.push(agent); 
         }
     }
-
-    setupPhoneOctree(snapshot) {
-        // Recreate a new tree with every iteration (much faster than updating an existing one)
-        this.phoneOctree = new Octree(snapshot, this.octreeBoundary); 
-        this.agents.forEach(a => {
-            if (a.awake) {
-                let p = a.position; 
-                this.phoneOctree.insertPoint(p, a); 
-            }
-        }); 
-    }
-
     update(snapshot) {  
-        // Only do this when I'm in the right state. 
-        // Now let's do some state management. 
-        this.hoodManager.update(); 
-        // this.updateFlockTarget(); 
-        this.setupPhoneOctree(snapshot); 
-        this.updateAgents(snapshot); 
+        // Update phone target. 
+        this.phoneTarget.set(snapshot['lastTargetX'], snapshot['lastTargetY'], snapshot['lastTargetZ']);
+        this.hoodManager.update(this.curWorldState); 
+        this.octreeManager.update(this.curWorldState, this.agents, this.phoneTarget, this.hoodManager.flockTargetVec); 
+        this.updateAgents(); 
     }
 
-    updateAgents(snapshot) {
+    updateAgents() {
         this.agents.forEach(a => { // Bind local scope. 
             if (a.awake) {
-                // Get agents within a radius. 
-                let neighbours = this.phoneOctree.scanForPoints(a.position, 0.05); 
-                
-                // Extract agent data from the return object. 
-                let nAgents = []; 
-                neighbours.forEach(n => {
-                    let a = n['data']; 
-                    nAgents.push(a); 
-                }); 
+                let nAgents;
 
+                // Get neighbors from the phoneOctree
+                if (this.curWorldState === WORLD_STATE.FLOCK_PHONE) {
+                    nAgents = this.octreeManager.getNeighbours(true, a.position);
+                }
 
-                // Based on the state I'm in, call the required function. 
-                // Have I reached? 
-                a.evaluateSeekTarget(snapshot); 
+                // Get neighbors from the hoodOctree
+                if (this.curWorldState === WORLD_STATE.FLOCK_HOOD) {
+                    nAgents = this.octreeManager.getNeighbours(false, a.position); 
+                }
+     
+                if (this.curWorldState === WORLD_STATE.SPAWN 
+                    || this.curWorldState === WORLD_STATE.FLOCK_PHONE) {
+                    a.evaluateSeekTarget(this.phoneTarget); 
+                }
+
+                if (this.curWorldState === WORLD_STATE.FLOCK_HOOD) {
+                    a.setHoodTarget(this.hoodManager.flockTargetVec); 
+                }
                 
-                // Send neighboring agent. 
+                // Send neighbors to update. 
                 a.update(nAgents); 
             }
         });
     }
 
-    // TODO: Sync with portal animation. 
-    // Make this really smart. 
     releaseAgents() {
         // In spawn state, stagger the agents one by one to come off the floor. 
         if (this.curSpawnIdx < this.agents.length) {
             let a = this.agents[this.curSpawnIdx];
             a.spawn();
             this.curSpawnIdx++; 
+
+            Time.setTimeout(() => {
+                this.releaseAgents();
+            }, STAGGER_TIME); 
         }
     }
 
     // Checks if there are agents in phoneOctree.
     // Applies some updates on them. 
     handleTap(snapshot) {
-        let focalTarget = new Vector3(snapshot['lastX'], snapshot['lastY'], snapshot['lastZ']); 
-        let points = this.phoneOctree.scanForPoints(focalTarget, this.octreeBoundary); 
-        if (points.length > 0) {   
-            Diagnostics.log('Agents found near the phone.'); 
-            points.forEach(n => {
-                let a = n['data']; 
-                a.enableRotations(); 
-            }); 
+        // let focalTarget = new Vector3(snapshot['lastX'], snapshot['lastY'], snapshot['lastZ']); 
+        let agents = this.octreeManager.getAgentsNearPhone(this.phoneTarget); 
+        if (agents.length > 0) {
+            Diagnostics.log('Agents found near the phone.');
+            agents.forEach(a => a.enableRotations()); 
         } else {
-            Diagnostics.log('Agents not found near the phone.')
+            Diagnostics.log('Agents not found near the phone.'); 
         }
     }
 
+    // Handles state overrides for the agents. 
     handleLongPress() {
         switch (this.curWorldState) {
             case WORLD_STATE.SPAWN: {
                 this.releaseAgents(); 
+                this.curWorldState = WORLD_STATE.FLOCK_PHONE; 
                 break;
             }
 
-            case WORLD_STATE.TARGET_FLOCK: {
+            case WORLD_STATE.FLOCK_PHONE: {
+                this.curWorldState = WORLD_STATE.FLOCK_HOOD; 
                 break;
             }
 
-            case WORLD_STATE.TARGET_PATTERN: {
+            case WORLD_STATE.FLOCK_HOOD: {
+                this.curWorldState = WORLD_STATE.PATTERN_HOOD; 
                 break;
             }
 
-            case WORLD_STATE.TARGET_PHONE: {
+            case WORLD_STATE.PATTERN_HOOD: {
+                this.curWorldState = WORLD_STATE.REST_HOOD; 
                 break;
             }
 
-            case WORLD_STATE.TARGET_REST: {
+            case WORLD_STATE.REST_HOOD: {
+                this.curWorldState = WORLD_STATE.FLOCK_PHONE; 
                 break;
             }
 
@@ -145,8 +144,3 @@ export class World {
         }
     }
 }
-
-// Recursively invoke itself until we are done releasing all the agents. 
-// Time.setTimeout(() => {
-//     releaseNextAgent(spawnPoint); 
-// }, staggerTime); 

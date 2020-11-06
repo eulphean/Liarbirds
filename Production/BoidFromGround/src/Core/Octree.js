@@ -5,22 +5,22 @@ const Diagnostics = require('Diagnostics');
 import { Vector3 } from 'math-ds';
 import { PointOctree } from 'sparse-octree'; 
 
-export default class Octree {
-    constructor(snapshot, boundary) {
-        this.min = new Vector3(0, 0, 0);
-        this.max = new Vector3(0, 0, 0);
+const BIAS = 0.0; // No loose octree. 
+const MAX_POINTS = 2.0; // Maximum points before the tree splits. 
+export class Octree {
+    constructor(origin, boundary) {
+        let min = new Vector3(0, 0, 0);
+        let max = new Vector3(0, 0, 0);
 
-        this.min.x = snapshot['lastTargetX'] - boundary; 
-        this.min.y = snapshot['lastTargetY'] - boundary; 
-        this.min.z = snapshot['lastTargetZ'] - boundary; 
+        min.x = origin.x - boundary; 
+        min.y = origin.y - boundary; 
+        min.z = origin.z - boundary; 
 
-        this.max.x = snapshot['lastTargetX'] + boundary; 
-        this.max.y = snapshot['lastTargetY'] + boundary; 
-        this.max.z = snapshot['lastTargetZ'] + boundary;
+        max.x = origin.x + boundary; 
+        max.y = origin.y + boundary; 
+        max.z = origin.z + boundary;
 
-        this.bias = 0.0; // No loose octree. 
-        this.maxPoints = 2; // Maximum points before the tree splits. 
-        this.tree = new PointOctree(this.min, this.max, this.bias, this.maxPoints); 
+        this.tree = new PointOctree(min, max, BIAS, MAX_POINTS); 
     }
 
     // Insert a point into the octree along with the data that should be retried. 

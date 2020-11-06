@@ -32,7 +32,7 @@ export class Agent extends BaseAgent {
 
     // NOTE: Contentious method. Be careful. 
     // TODO: Very tricky function. Clean it up with. 
-    evaluateSeekTarget(targetSnapshot) {
+    evaluateSeekTarget(phoneTarget) {
         if (!this.hasReachedInitialTarget) {
             // Update target as soon as we know that we have reached the initial target. 
             let d = this.diffVec.subVectors(this.target, this.position).lengthSquared(); 
@@ -40,9 +40,13 @@ export class Agent extends BaseAgent {
                 this.hasReachedInitialTarget = true; 
             }
         } else {
-            this.target.set(targetSnapshot['lastTargetX'], targetSnapshot['lastTargetY'], targetSnapshot['lastTargetZ']);
+            this.target.copy(phoneTarget); 
         }
     } 
+
+    setHoodTarget(targetVector) {
+        this.target.copy(targetVector); 
+    }
 
     // Called when agent is within the 
     // TODO: These should lerp. 

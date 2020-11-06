@@ -58,7 +58,7 @@ function prepareSceneObjects(objects) {
         'agents' : objects[2],
         'targets' : objects[3],
         'spawner' : objects[4],
-        'bushes' : objects[5],
+        'hood' : objects[5],
         'camTarget': objects[6],
         'focalTarget' : objects[7]
     }
