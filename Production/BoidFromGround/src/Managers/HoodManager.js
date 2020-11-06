@@ -35,6 +35,7 @@ export class HoodManager {
 
         if (curWorldState === WORLD_STATE.PATTERN_HOOD) {
             this.roseCurvePattern(0.2, 4); 
+            // this.customPattern(0.1); 
             // Only for debug purposes when I need to see where is the target position. 
             SparkUtility.syncSceneObject(this.flockTargetObj, this.flockTargetVec);
         }
@@ -48,12 +49,12 @@ export class HoodManager {
     // k is odd = k petals.
     // Set yPos to give it variation in height. 
     roseCurvePattern(radius, k) {
-        let r = radius; 
         let theta_rad = MathUtility.degrees_to_radians(this.theta); 
-        
+        let cartesianRadius = radius * Math.cos(k * theta_rad); 
+
         // Rose-Curve: Cartesian coordinates. 
-        let xPos = this.flockTargetOrigin.x + r * Math.cos(k * theta_rad) * Math.cos(theta_rad); // Defines polar curve.
-        let zPos = this.flockTargetOrigin.z + r * Math.cos(k * theta_rad) * Math.sin(theta_rad); // Defines polar curve.
+        let xPos = this.flockTargetOrigin.x + cartesianRadius * Math.cos(theta_rad); // Defines polar curve.
+        let zPos = this.flockTargetOrigin.z + cartesianRadius * Math.sin(theta_rad); // Defines polar curve.
         let yPos = this.flockTargetOrigin.y + 0.05 * Math.sin(theta_rad); // Defines height. 
         this.flockTargetVec.set(xPos, yPos, zPos); 
         this.theta = this.theta - MOVE_FACTOR_ROSE; 
@@ -69,5 +70,17 @@ export class HoodManager {
         let yPos = this.flockTargetOrigin.y + 0.05 * Math.sin(theta_rad); // Defines height. 
         this.flockTargetVec.set(xPos, yPos, zPos); 
         this.theta = this.theta - MOVE_FACTOR_ELLIPSE; 
+    }
+
+    customPattern(radius) {
+        let theta_rad = MathUtility.degrees_to_radians(this.theta); 
+        let cartesianRadius = radius - Math.cos(theta_rad) * Math.sin(3*theta_rad); 
+        
+        // Rose-Curve: Cartesian coordinates. 
+        let xPos = this.flockTargetOrigin.x + cartesianRadius * Math.cos(theta_rad); // Defines polar curve.
+        let zPos = this.flockTargetOrigin.z + cartesianRadius * Math.sin(theta_rad); // Defines polar curve.
+        let yPos = this.flockTargetOrigin.y + 0.05 * Math.sin(theta_rad); // Defines height. 
+        this.flockTargetVec.set(xPos, yPos, zPos); 
+        this.theta = this.theta - MOVE_FACTOR_ROSE; 
     }
 }
