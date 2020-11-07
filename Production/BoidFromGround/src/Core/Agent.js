@@ -6,6 +6,7 @@ const Diagnostics = require('Diagnostics');
 import { BaseAgent } from './BaseAgent.js'
 import { ANIMATION_STATE, ROTATION_SPEED, AGENT_SPEED } from '../Utilities/AgentUtility.js'
 import * as SparkUtility from '../Utilities/SparkUtility.js';
+import { Vector3 } from 'math-ds';
 
 export class Agent extends BaseAgent {
     constructor(obj) {
@@ -18,6 +19,8 @@ export class Agent extends BaseAgent {
         this.animationString = 'animationNum' + obj['idx'].toString(); 
         this.rotationString = 'rotSpeed' + obj['idx'].toString();
         this.setAnimation(ANIMATION_STATE.CURL); 
+
+        this.faceVelocity = new Vector3(0, 0.005, 0); 
     }
 
     spawn() {
@@ -47,12 +50,8 @@ export class Agent extends BaseAgent {
     evaluateRestTarget() {
         let d = this.diffVec.subVectors(this.target, this.position).lengthSquared(); 
         if (d < this.arriveTolerance) { // Have I reached? 
-            // Reached the target. 
-            // Time to sleep, no updates to the agent except the animation 
-            // and rotations through spark. 
-            this.awake = false; 
-            // Once last update after this. 
-            Diagnostics.log('Reached - going to sleep'); 
+            this.skipPosition = true; 
+            this.velocity = this.velocity.lerp(this.faceVelocity, 0.006); 
         }
     }
 

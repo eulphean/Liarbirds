@@ -135,7 +135,7 @@ export class World {
         switch (this.curWorldState) {
             case WORLD_STATE.SPAWN: {
                 this.releaseAgents(); 
-                this.curWorldState = WORLD_STATE.FLOCK_PHONE; 
+                this.curWorldState = WORLD_STATE.REST_HOOD; 
                 Diagnostics.log('New State: FLOCK_PHONE'); 
                 break;
             }

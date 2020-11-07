@@ -41,7 +41,9 @@ export class BaseAgent {
          this.deathCounter = MathUtility.random(2, 5);
 
          // Not active. 
-         this.awake = false; 
+         this.awake = false;
+         
+         this.skipPosition = false; 
     }
 
     // Function declaration. 
@@ -116,8 +118,10 @@ export class BaseAgent {
         this.velocity = this.velocity.lerp(this.sumVec, this.smoothFactor); 
         this.velocity = MathUtility.clamp(this.velocity, this.maxSpeed); 
 
-        // Calculate position. 
-        this.position.add(this.velocity); 
+        if (!this.skipPosition) {
+            // Calculate position. 
+            this.position.add(this.velocity); 
+        }
 
         // Reset acceleration. 
         this.acceleration.multiplyScalar(0); // Reset acceleration.
