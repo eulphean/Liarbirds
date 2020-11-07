@@ -2,12 +2,14 @@
 // Core class that represents the agent. 
 const Reactive = require('Reactive'); 
 const Diagnostics = require('Diagnostics');
+const Time = require('Time'); 
 
 import { BaseAgent } from './BaseAgent.js'
 import { ANIMATION_STATE, ROTATION_SPEED, AGENT_SPEED } from '../Utilities/AgentUtility.js'
 import * as SparkUtility from '../Utilities/SparkUtility.js';
 import { Vector3 } from 'math-ds';
 
+const EXCITATION_TIME = 4000; 
 export class Agent extends BaseAgent {
     constructor(obj) {
         super(obj); 
@@ -16,8 +18,8 @@ export class Agent extends BaseAgent {
         this.hasReachedInitialTarget = false; 
 
         // Script to patch bridge variables. 
-        this.animationString = 'animationNum' + obj['idx'].toString(); 
-        this.rotationString = 'rotSpeed' + obj['idx'].toString();
+        this.animationString = 'animationNum' + this.agentIdx.toString(); 
+        this.rotationString = 'rotSpeed' + this.agentIdx.toString();
         this.setAnimation(ANIMATION_STATE.CURL); 
 
         this.faceVelocity = new Vector3(0, 0.005, 0); 
@@ -55,32 +57,40 @@ export class Agent extends BaseAgent {
         }
     }
 
+    evaluateDeath() {
+        if (this.deathCounter === 0) {
+            // Override target
+
+        }
+    }
+
+    // TODO: Lerp rotation value. 
+    enableExcitation(deathManager) {   
+        this.deathCounter--; 
+
+        // Am I not dead yet? 
+        if (this.deathCounter > 0) {
+            Diagnostics.log('Agent Excited'); 
+            this.setAnimation(ANIMATION_STATE.SWIM_FAST); 
+            this.setRotationSpeed(ROTATION_SPEED.FAST);
+            Time.setTimeout(() => {
+                this.setAnimation(ANIMATION_STATE.SWIM_SLOW); 
+                this.setRotationSpeed(ROTATION_SPEED.SLOW); 
+            }, EXCITATION_TIME); 
+        }
+        else {
+            Diagnostics.log('Beginning death sequence'); 
+            this.setAgentSpeed(AGENT_SPEED.DEATH);
+            this.setAnimation(ANIMATION_STATE.CURL); 
+            this.setRotationSpeed(ROTATION_SPEED.NONE);
+            // Calculates the death target and shows the bed there. 
+            deathManager.calcDeathTarget(this.agentIdx, this.position);
+            // this.target.copy(deathTarget); 
+        }
+    }
+
     setHoodTarget(targetVector) {
         this.target.copy(targetVector); 
-    }
-
-    // Called when agent is within the 
-    // TODO: These should lerp. 
-    // Use Patch editor to lerp values. 
-    enableRotations() {   
-        // Should the agent be awake for this?        
-        this.setAnimation(ANIMATION_STATE.SWIM_FAST); 
-        this.setRotationSpeed(ROTATION_SPEED.FAST);
-        this.updateDeathCounter(); 
-
-        // TODO: Set a timer to disable Rotations. 
-        // Disable rotations after a certain time. 
-    }
-
-    updateDeathCounter() {
-        if (this.deathCounter > 0) {
-            this.deathCounter--; 
-        }
-
-        if (this.deathCounter === 0) {
-            this.setAnimation(BakedAnimation.CURL); 
-            this.awake = false; 
-        }
     }
 
     setAgentSpeed(aSpeed) {

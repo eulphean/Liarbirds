@@ -17,6 +17,7 @@ Promise.all([
     Scene.root.findByPath('planeTracker/placer/spawner/*'),
     Scene.root.findByPath('planeTracker/placer/hood/*'),
     Scene.root.findByPath('planeTracker/placer/hood/restTargets/*'),
+    Scene.root.findByPath('planeTracker/placer/deathBeds/*'),
     Scene.root.findFirst('camTarget'),
     Scene.root.findFirst('focalTarget')
 ]).then(function (objects) {
@@ -61,8 +62,9 @@ function prepareSceneObjects(objects) {
         'spawner' : objects[4],
         'hood' : objects[5],
         'restTargets' : objects[6],
-        'camTarget': objects[7],
-        'focalTarget' : objects[8]
+        'deathBeds' : objects[7],
+        'camTarget': objects[8],
+        'focalTarget' : objects[9]
     }
     return a; 
 }

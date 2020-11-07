@@ -6,6 +6,7 @@ const Time = require('Time');
 import { Vector3 } from 'math-ds'; 
 import { HoodManager } from '../Managers/HoodManager.js'
 import { OctreeManager } from '../Managers/OctreeManager.js'
+import { DeathManager } from '../Managers/DeathManager.js'
 
 import * as AgentUtility from '../Utilities/AgentUtility.js'
 import * as SparkUtility from '../Utilities/SparkUtility.js'
@@ -29,6 +30,7 @@ export class World {
         // Manages all the logic for the hood and octrees. 
         this.hoodManager = new HoodManager(sceneObjects);  
         this.octreeManager = new OctreeManager(); 
+        this.deathManager = new DeathManager(sceneObjects); 
 
         // Current world state. 
         this.curWorldState = WORLD_STATE.SPAWN; 
@@ -59,47 +61,52 @@ export class World {
         this.agents.forEach(a => { // Bind local scope. 
             if (a.awake) {
                 let nAgents = [];
+                // Agent is interactable and moving in the world. 
+                if (a.deathCounter > 0) {
+                    // Get neighbors from the phoneOctree
+                    if (this.curWorldState === WORLD_STATE.FLOCK_PHONE) {
+                        nAgents = this.octreeManager.getNeighbours(true, a.position);
+                    }
 
-                // Get neighbors from the phoneOctree
-                if (this.curWorldState === WORLD_STATE.FLOCK_PHONE) {
-                    nAgents = this.octreeManager.getNeighbours(true, a.position);
-                }
+                    // Get neighbors from the hoodOctree 
+                    if (this.curWorldState === WORLD_STATE.FLOCK_HOOD) {
+                        nAgents = this.octreeManager.getNeighbours(false, a.position); 
+                    }
+        
+                    if (this.curWorldState === WORLD_STATE.SPAWN 
+                        || this.curWorldState === WORLD_STATE.FLOCK_PHONE) {
+                        a.evaluateInitialSpawnTarget(this.phoneTarget); 
+                    }
 
-                // Get neighbors from the hoodOctree 
-                if (this.curWorldState === WORLD_STATE.FLOCK_HOOD) {
-                    nAgents = this.octreeManager.getNeighbours(false, a.position); 
-                }
-     
-                if (this.curWorldState === WORLD_STATE.SPAWN 
-                    || this.curWorldState === WORLD_STATE.FLOCK_PHONE) {
-                    a.evaluateInitialSpawnTarget(this.phoneTarget); 
-                }
+                    if (this.curWorldState === WORLD_STATE.FLOCK_HOOD) {
+                        let fTarget = this.hoodManager.getFlockTarget(); 
+                        a.setHoodTarget(fTarget); 
+                    }
 
-                if (this.curWorldState === WORLD_STATE.FLOCK_HOOD) {
-                    let fTarget = this.hoodManager.getFlockTarget(); 
-                    a.setHoodTarget(fTarget); 
-                }
+                    if (this.curWorldState === WORLD_STATE.PATTERN_HOOD) {
+                        let aTarget = this.hoodManager.getAgentPatternTarget(idx); 
+                        a.setHoodTarget(aTarget); 
+                        
+                        // Sync the agent's target to see it's new target. 
+                        SparkUtility.syncSceneObject(a.targetObject, aTarget); 
+                    }
 
-                if (this.curWorldState === WORLD_STATE.PATTERN_HOOD) {
-                    let aTarget = this.hoodManager.getAgentPatternTarget(idx); 
-                    a.setHoodTarget(aTarget); 
-                    
-                    // Sync the agent's target to see it's new target. 
-                    SparkUtility.syncSceneObject(a.targetObject, aTarget); 
-                }
+                    if (this.curWorldState === WORLD_STATE.REST_HOOD) {
+                        let aTarget = this.hoodManager.getAgentRestTarget(idx); 
+                        a.setHoodTarget(aTarget); 
+                        a.evaluateRestTarget(); 
 
-                if (this.curWorldState === WORLD_STATE.REST_HOOD) {
-                    let aTarget = this.hoodManager.getAgentRestTarget(idx); 
-                    a.setHoodTarget(aTarget); 
-                    a.evaluateRestTarget(); 
-
-                    SparkUtility.syncSceneObject(a.targetObject, aTarget); 
+                        SparkUtility.syncSceneObject(a.targetObject, aTarget); 
+                    }
+                } else {
+                    let dTarget = this.deathManager.getDeathTarget(idx); 
+                    a.setHoodTarget(dTarget); 
                 }
                 
                 // Send neighbors to update. 
                 a.update(nAgents); 
             }
-
+            
             idx++; 
         });
     }
@@ -124,7 +131,7 @@ export class World {
         let agents = this.octreeManager.getAgentsNearPhone(this.phoneTarget); 
         if (agents.length > 0) {
             Diagnostics.log('Agents found near the phone.');
-            agents.forEach(a => a.enableRotations()); 
+            agents.forEach(a => a.enableExcitation(this.deathManager)); 
         } else {
             Diagnostics.log('Agents not found near the phone.'); 
         }
@@ -135,7 +142,7 @@ export class World {
         switch (this.curWorldState) {
             case WORLD_STATE.SPAWN: {
                 this.releaseAgents(); 
-                this.curWorldState = WORLD_STATE.REST_HOOD; 
+                this.curWorldState = WORLD_STATE.FLOCK_PHONE; 
                 Diagnostics.log('New State: FLOCK_PHONE'); 
                 break;
             }

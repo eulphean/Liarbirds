@@ -22,6 +22,12 @@ const FLOCKING_WEIGHTS = {
 
 // Sets this.maxForce, this.maxSpeed, this.maxSlowDownSpeed, and agent's rotationSpeed. 
 const AGENT_SPEED = {
+    DEATH: {
+        FORCE: 0.002,
+        SPEED: 0.001,
+        SLOWSPEED: 0
+    },
+
     LOW: {
         FORCE: 0.002,
         SPEED: 0.002,

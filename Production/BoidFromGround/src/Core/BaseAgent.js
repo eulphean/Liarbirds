@@ -11,6 +11,7 @@ export class BaseAgent {
          // Scene object. 
          this.sceneObject = obj['agent']; 
          this.targetObject = obj['target']; 
+         this.agentIdx = obj['idx']; 
  
          // Core Vec3 to determine agent's whereabouts. These should be reused aggressively to avoid the need
          // to create new Vec3s on the fly. That's expensive. 
@@ -37,7 +38,7 @@ export class BaseAgent {
          this.smoothFactor = 0.01; 
 
          // Randomly set this on agent creation. 
-         // When it's 0, agent is not awake anymore. 
+         // When it's 0, agent performs death sequence. 
          this.deathCounter = MathUtility.random(2, 5);
 
          // Not active. 
@@ -61,7 +62,6 @@ export class BaseAgent {
         this.syncPosition(); 
     }
 
-    // TODO: Use curWorldState to determine the seek state of the agent. 
     applyBehaviors(nAgents) {
         this.seek(); // Calculates new fSteer for current target. 
         this.applyForce(); // Applies fSteer to the acceleration. 
