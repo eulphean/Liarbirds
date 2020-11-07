@@ -1,4 +1,4 @@
-import { Agent } from '../Core/Agent.js'
+import { Agent } from '../Core/Agent'
 import { Vector3 } from 'math-ds'
 
 const ANIMATION_STATE = {
@@ -15,8 +15,8 @@ const ROTATION_SPEED = {
 }
 
 const FLOCKING_WEIGHTS = {
-    SEPERATION: 3.5,
-    COHESION: 2.0,
+    SEPERATION: 3.0,
+    COHESION: 1.0,
     ALIGNMENT: 2.0
 }
 
@@ -35,9 +35,9 @@ const AGENT_SPEED = {
     }, 
 
     MEDIUM: {
-        FORCE: 0.005,
-        SPEED: 0.003,
-        SLOWSPEED: 0.001
+        FORCE: 0.004,
+        SPEED: 0.004,
+        SLOWSPEED: 0.0001
     },
 
     HIGH: {

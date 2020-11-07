@@ -5,156 +5,82 @@
 // 3: Creating interesting patterns for agents by manipulating targets. 
 
 const Diagnostics = require('Diagnostics'); 
-import { Vector3 } from 'math-ds'
-import * as SparkUtility from '../Utilities/SparkUtility.js'
-import * as MathUtility from '../Utilities/MathUtility.js'
-import { WORLD_STATE } from '../Core/World.js'
 
-const MOVE_FACTOR_ROSE = 0.05;
-const MOVE_FACTOR_ELLIPSE = 0.05; 
+import { EllipsePattern, RosePattern, ellipseConstructor, roseConstructor} from './PatternManager'
+import * as SparkUtility from '../Utilities/SparkUtility'
+import * as MathUtility from '../Utilities/MathUtility'
+import { WORLD_STATE } from '../Core/World'
+import { RestManager } from './RestManager'
 
-const PATTERNS = ['circle', 'ellipse', 'rose', 'custom']; 
 export class HoodManager {
-    constructor(sceneObjects) {
-        // Get flock target object and use that to calculate origin of the polar world. 
-        this.flockTargetObj = sceneObjects['hood'][0];
+    constructor(sceneObjects, agents) {
+        // FLOCKING in the HOOD.
+        let flockOriginObj = sceneObjects['hood'][0]; 
+        let flockOriginPos = SparkUtility.getLastPosition(flockOriginObj); 
+        let moveFactor = MathUtility.degrees_to_radians(0.3); 
+        // (Origin Object, Origin Vector, RadiusX, RadiusZ, Amplitude, isClockwise, MoveFactor)
+        let patternObj = ellipseConstructor(flockOriginObj, flockOriginPos, 0.2, 0.1, 0.08, true, moveFactor);
+        this.flockPattern = new EllipsePattern(patternObj); 
 
-        // Origin point around which actions happens.  
-        this.flockTargetOrigin = SparkUtility.getLastPosition(this.flockTargetObj); 
-
-        // Target vector, which is manipulated. 
-        this.flockTargetVec = new Vector3(0, 0, 0); 
-
-        // Setup pattern targets for each agent. 
-        this.patternTargets = []; 
-        sceneObjects['agents'].forEach(a => {
-            let rIdx = MathUtility.random(0, PATTERNS.length-1); 
-            let t = {
-                vec: new Vector3 (0, 0, 0),
-                pat: PATTERNS[rIdx], // TODO: Pick randomly or something.  // Improve this a little bit
-                // Use only a single pattern I presume. 
-                rad: MathUtility.random(1, 3, true)/10, 
-                height: MathUtility.random(1, 5, true)/100
-            }
-
-            this.patternTargets.push(t); 
+        // // PATTERNS in the HOOD. 
+        let patternOrigins = sceneObjects['patternOrigins']; 
+        this.patterns = []; 
+        let phase = [0, 0, 3, 3, 5, 5];
+        agents.forEach(a => {
+            // Setup pattern variables. 
+            let obj = patternOrigins[a.agentIdx]; // Debug object in Scene Viewer
+            let pos = SparkUtility.getLastPosition(obj); // Target position
+            let d = a.agentIdx % 2 === 0 ? true : false; // Direction
+            let isSin = d; 
+            let rad = 0.06; // Radius
+            let moveFactor = MathUtility.degrees_to_radians(0.2); // How fast to move
+            let ph = phase[a.agentIdx]; 
+            let petals = 5; 
+            let amp = 0.02; 
+            let patternObj = roseConstructor(obj, pos, rad, ph, petals, amp, isSin, d, moveFactor); 
+            let p = new RosePattern(patternObj);
+            this.patterns.push(p);  
         }); 
 
-        // Polar coordinates (r, theta) 
-        this.theta = 0;
-
-        // Gather all the rest objects
-        let targets = sceneObjects['restTargets']; // Hood -> flockTarget, restTargets
-
-        // Extract vector positions of all targets.  
-        this.restTargets = []; 
-        targets.forEach(t => {
-            let p = SparkUtility.getLastPosition(t);
-            this.restTargets.push(p); 
-        }); 
-    }
-
-    getFlockTarget() {
-        return this.flockTargetVec; 
-    }
-
-    getAgentPatternTarget(idx) {
-        return this.patternTargets[idx].vec; 
-    }
-
-    getAgentRestTarget(idx) {
-        return this.restTargets[idx]; 
+        // RESTING in the HOOD. 
+        this.restManager = new RestManager(sceneObjects); 
     }
 
     update(curWorldState) {
         if (curWorldState === WORLD_STATE.FLOCK_HOOD) {
-            this.ellipsePattern(this.flockTargetVec, 0.2, 0.05, 0.05); 
-            // Only for debug purposes when I need to see where is the target position. 
-            SparkUtility.syncSceneObject(this.flockTargetObj, this.flockTargetVec);
+            this.flockPattern.update(); 
+            this.flockPattern.syncPatternObj(); 
         }
 
         if (curWorldState === WORLD_STATE.PATTERN_HOOD) {
-            this.patternTargets.forEach(t => {
-                let pattern = t.pat; 
-                switch (pattern) {
-                    case 'circle': {
-                        this.circlePattern(t.vec, t.rad, t.height); 
-                        break;
-                    }
-
-                    case 'ellipse': {
-                        // TODO: Figure out radius situation. 
-                        this.ellipsePattern(t.vec, t.rad, t.rad, t.height); 
-                        break; 
-                    }
-
-                    case 'rose': {
-                        this.roseCurvePattern(t.vec, t.rad, t.height, 3); 
-                        break; 
-                    }
-
-                    case 'custom': {
-                        this.customPattern(t.vec, t.rad, t.height); 
-                        break; 
-                    }
-
-                    default: {
-                        this.circlePattern(t.vec, t.rad, t.height); 
-                        break; 
-                    }
-                }
-            }); 
+            this.patterns.forEach(p => {
+                p.update(); 
+                p.syncPatternObj();
+            });
         }
     }
 
-    circlePattern(targetVector, radius, heightOffset) {
-        this.ellipsePattern(targetVector, radius, radius, heightOffset); 
+    getFlockTarget() {
+        return this.flockPattern.getTargetPos(); 
     }
 
-    // k is even = 2K petals. 
-    // k is odd = k petals.
-    // Set yPos to give it variation in height. 
-    roseCurvePattern(targetVector, radius, height, k) {
-        let theta_rad = MathUtility.degrees_to_radians(this.theta); 
-        let cartesianRadius = radius * Math.cos(k * theta_rad); 
-
-        // Rose-Curve: Cartesian coordinates. 
-        let xPos = this.flockTargetOrigin.x + cartesianRadius * Math.cos(theta_rad); // Defines polar curve.
-        let zPos = this.flockTargetOrigin.z + cartesianRadius * Math.sin(theta_rad); // Defines polar curve.
-        let yPos = this.flockTargetOrigin.y + height * Math.sin(theta_rad); // Defines height. 
-        targetVector.set(xPos, yPos, zPos); 
-        this.theta = this.theta - MOVE_FACTOR_ROSE; 
+    getAgentPatternTarget(idx) {
+        return this.patterns[idx].getTargetPos(); 
     }
 
-    // Use this functions to create a custom animation curve for the agents. 
-    ellipsePattern(targetVector, radiusX, radiusZ, height) {
-        let theta_rad = MathUtility.degrees_to_radians(this.theta); 
-        
-        // Ellipse: Cartesian coordinates. 
-        let xPos = this.flockTargetOrigin.x + radiusX * Math.cos(theta_rad); // Defines polar curve. 
-        let zPos = this.flockTargetOrigin.z + radiusZ * Math.sin(theta_rad); // Define polar curve. 
-        let yPos = this.flockTargetOrigin.y + height * Math.sin(theta_rad); // Defines height. 
-        targetVector.set(xPos, yPos, zPos); 
-        this.theta = this.theta - MOVE_FACTOR_ELLIPSE; 
-    }
-
-    // NOTE: Create a custom polar pattern on desmos.com
-    customPattern(targetVector, radius, height) {
-        let theta_rad = MathUtility.degrees_to_radians(this.theta); 
-        let cartesianRadius = radius - Math.cos(theta_rad) * Math.sin(3*theta_rad); 
-        
-        // Rose-Curve: Cartesian coordinates. 
-        let xPos = this.flockTargetOrigin.x + cartesianRadius * Math.cos(theta_rad); // Defines polar curve.
-        let zPos = this.flockTargetOrigin.z + cartesianRadius * Math.sin(theta_rad); // Defines polar curve.
-        let yPos = this.flockTargetOrigin.y + height * Math.sin(theta_rad); // Defines height. 
-        targetVector.set(xPos, yPos, zPos); 
-        this.theta = this.theta - MOVE_FACTOR_ROSE; 
+    getAgentRestTarget(idx) {
+        return this.restManager.getRestTargetPosition(idx); 
     }
 }
+    //  Ellipse pattern variables. 
+    //  // Setup pattern variables. 
+    //  let obj = patternOrigins[a.agentIdx]; // Debug object in Scene Viewer
+    //  let pos = SparkUtility.getLastPosition(obj); // Target position
+    //  let d = a.agentIdx % 2 === 0 ? true : false; // Direction
+    //  let rad = MathUtility.random(0.05, 0.1, true); // Radius
+    //  let moveFactor = MathUtility.degrees_to_radians(0.4); // How fast to move
+     
 
-// if (curWorldState === WORLD_STATE.PATTERN_HOOD) {
-//     //this.roseCurvePattern(0.2, 4); 
-//     // this.customPattern(0.1); 
-//     // Only for debug purposes when I need to see where is the target position. 
-//     SparkUtility.syncSceneObject(this.flockTargetObj, this.flockTargetVec);
-// }
+    //  let patternObj = ellipseConstructor(obj, pos, rad, rad, 0.01, d, moveFactor); 
+    //  let p = new EllipsePattern(patternObj);
+    //  this.patterns.push(p);  

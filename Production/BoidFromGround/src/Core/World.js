@@ -4,12 +4,14 @@ const Diagnostics = require('Diagnostics');
 const Time = require('Time'); 
 
 import { Vector3 } from 'math-ds'; 
-import { HoodManager } from '../Managers/HoodManager.js'
-import { OctreeManager } from '../Managers/OctreeManager.js'
-import { DeathManager } from '../Managers/DeathManager.js'
+import { HoodManager } from '../Managers/HoodManager'
+import { OctreeManager } from '../Managers/OctreeManager'
+import { DeathManager } from '../Managers/DeathManager'
 
-import * as AgentUtility from '../Utilities/AgentUtility.js'
-import * as SparkUtility from '../Utilities/SparkUtility.js'
+import * as AgentUtility from '../Utilities/AgentUtility'
+import * as SparkUtility from '../Utilities/SparkUtility'
+
+import { AGENT_SPEED } from '../Utilities/AgentUtility'
 
 export const WORLD_STATE = {
     SPAWN: 0, 
@@ -28,7 +30,7 @@ export class World {
         this.setupAgents(sceneObjects); 
 
         // Manages all the logic for the hood and octrees. 
-        this.hoodManager = new HoodManager(sceneObjects);  
+        this.hoodManager = new HoodManager(sceneObjects, this.agents);  
         this.octreeManager = new OctreeManager(); 
         this.deathManager = new DeathManager(sceneObjects); 
 
@@ -52,7 +54,7 @@ export class World {
         // Update phone target. 
         this.phoneTarget.set(snapshot['lastTargetX'], snapshot['lastTargetY'], snapshot['lastTargetZ']);
         this.hoodManager.update(this.curWorldState); 
-        this.octreeManager.update(this.curWorldState, this.agents, this.phoneTarget, this.hoodManager.flockTargetVec); 
+        this.octreeManager.update(this.curWorldState, this.agents, this.phoneTarget, this.hoodManager.getFlockTarget()); 
         this.updateAgents(); 
     }
 
@@ -86,9 +88,7 @@ export class World {
                     if (this.curWorldState === WORLD_STATE.PATTERN_HOOD) {
                         let aTarget = this.hoodManager.getAgentPatternTarget(idx); 
                         a.setHoodTarget(aTarget); 
-                        
-                        // Sync the agent's target to see it's new target. 
-                        SparkUtility.syncSceneObject(a.targetObject, aTarget); 
+                        a.setAgentSpeed(AGENT_SPEED.MEDIUM);
                     }
 
                     if (this.curWorldState === WORLD_STATE.REST_HOOD) {
@@ -106,7 +106,7 @@ export class World {
                 // Send neighbors to update. 
                 a.update(nAgents); 
             }
-            
+
             idx++; 
         });
     }

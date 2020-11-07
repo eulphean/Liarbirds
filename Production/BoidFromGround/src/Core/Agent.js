@@ -22,7 +22,7 @@ export class Agent extends BaseAgent {
         this.rotationString = 'rotSpeed' + this.agentIdx.toString();
         this.setAnimation(ANIMATION_STATE.CURL); 
 
-        this.faceVelocity = new Vector3(0, 0.005, 0); 
+        this.faceVelocity = new Vector3(0, 0.1, 0); 
     }
 
     spawn() {
@@ -52,8 +52,7 @@ export class Agent extends BaseAgent {
     evaluateRestTarget() {
         let d = this.diffVec.subVectors(this.target, this.position).lengthSquared(); 
         if (d < this.arriveTolerance) { // Have I reached? 
-            this.skipPosition = true; 
-            this.velocity = this.velocity.lerp(this.faceVelocity, 0.006); 
+            this.velocity = this.velocity.lerp(this.faceVelocity, 0.02); 
         }
     }
 

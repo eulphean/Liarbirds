@@ -10,14 +10,14 @@ const map_range = (value, low1, high1, low2, high2) => {
 }
 
 const random = (min, max, isDecimal = false) => {
-    min = Math.ceil(min);
-    max = Math.floor(max);
     if (isDecimal) {
         return (Math.random() * (max - min) + min).toFixed(3);
     } else {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 }
+
+(Math.random() * (0.120 - 0.0200) + 0.0200).toFixed(4)
 
 const azimuth = (v) => {
     return Math.atan2(v.y, v.x);
