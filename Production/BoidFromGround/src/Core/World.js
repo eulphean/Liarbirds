@@ -72,7 +72,7 @@ export class World {
      
                 if (this.curWorldState === WORLD_STATE.SPAWN 
                     || this.curWorldState === WORLD_STATE.FLOCK_PHONE) {
-                    a.evaluateSeekTarget(this.phoneTarget); 
+                    a.evaluateInitialSpawnTarget(this.phoneTarget); 
                 }
 
                 if (this.curWorldState === WORLD_STATE.FLOCK_HOOD) {
@@ -81,18 +81,26 @@ export class World {
                 }
 
                 if (this.curWorldState === WORLD_STATE.PATTERN_HOOD) {
-                    let aTarget = this.hoodManager.getAgentTarget(idx); 
+                    let aTarget = this.hoodManager.getAgentPatternTarget(idx); 
                     a.setHoodTarget(aTarget); 
                     
                     // Sync the agent's target to see it's new target. 
                     SparkUtility.syncSceneObject(a.targetObject, aTarget); 
                 }
+
+                if (this.curWorldState === WORLD_STATE.REST_HOOD) {
+                    let aTarget = this.hoodManager.getAgentRestTarget(idx); 
+                    a.setHoodTarget(aTarget); 
+                    a.evaluateRestTarget(); 
+
+                    SparkUtility.syncSceneObject(a.targetObject, aTarget); 
+                }
                 
                 // Send neighbors to update. 
                 a.update(nAgents); 
-
-                idx++; 
             }
+
+            idx++; 
         });
     }
 

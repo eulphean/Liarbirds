@@ -32,7 +32,7 @@ export class Agent extends BaseAgent {
 
     // NOTE: Contentious method. Be careful. 
     // TODO: Very tricky function. Clean it up with. 
-    evaluateSeekTarget(phoneTarget) {
+    evaluateInitialSpawnTarget(phoneTarget) {
         if (!this.hasReachedInitialTarget) {
             // Update target as soon as we know that we have reached the initial target. 
             let d = this.diffVec.subVectors(this.target, this.position).lengthSquared(); 
@@ -44,6 +44,18 @@ export class Agent extends BaseAgent {
         }
     } 
 
+    evaluateRestTarget() {
+        let d = this.diffVec.subVectors(this.target, this.position).lengthSquared(); 
+        if (d < this.arriveTolerance) { // Have I reached? 
+            // Reached the target. 
+            // Time to sleep, no updates to the agent except the animation 
+            // and rotations through spark. 
+            this.awake = false; 
+            // Once last update after this. 
+            Diagnostics.log('Reached - going to sleep'); 
+        }
+    }
+
     setHoodTarget(targetVector) {
         this.target.copy(targetVector); 
     }
@@ -51,7 +63,8 @@ export class Agent extends BaseAgent {
     // Called when agent is within the 
     // TODO: These should lerp. 
     // Use Patch editor to lerp values. 
-    enableRotations() {          
+    enableRotations() {   
+        // Should the agent be awake for this?        
         this.setAnimation(ANIMATION_STATE.SWIM_FAST); 
         this.setRotationSpeed(ROTATION_SPEED.FAST);
         this.updateDeathCounter(); 

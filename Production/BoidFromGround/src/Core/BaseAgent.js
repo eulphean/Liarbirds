@@ -28,8 +28,8 @@ export class BaseAgent {
  
          // [Critical] Constants to determine the agent's arrival behavior.
          // Note this distance*distance
-         this.arriveTolerance = 0.02 * 0.02; 
-         this.slowDownTolerance = 0.10 * 0.10; 
+         this.arriveTolerance = 0.01 * 0.01; 
+         this.slowDownTolerance = 0.2 * 0.2; 
 
 
          // Lerp factor that we use to smooth rotations. 
@@ -86,7 +86,6 @@ export class BaseAgent {
 
     // SteerForce = VDesired - VActual
     seek() {
-        // If target hasn't changed, we don't seek. 
         this.fSteer.subVectors(this.target, this.position); 
         let d = this.fSteer.lengthSquared();
         this.fSteer.normalize();

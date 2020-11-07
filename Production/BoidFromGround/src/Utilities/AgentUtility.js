@@ -25,7 +25,7 @@ const AGENT_SPEED = {
     LOW: {
         FORCE: 0.002,
         SPEED: 0.002,
-        SLOWSPEED: 0.001
+        SLOWSPEED: 0.0001
     }, 
 
     MEDIUM: {

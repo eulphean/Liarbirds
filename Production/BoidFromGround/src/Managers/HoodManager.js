@@ -42,14 +42,28 @@ export class HoodManager {
 
         // Polar coordinates (r, theta) 
         this.theta = 0;
+
+        // Gather all the rest objects
+        let targets = sceneObjects['restTargets']; // Hood -> flockTarget, restTargets
+
+        // Extract vector positions of all targets.  
+        this.restTargets = []; 
+        targets.forEach(t => {
+            let p = SparkUtility.getLastPosition(t);
+            this.restTargets.push(p); 
+        }); 
     }
 
     getFlockTarget() {
         return this.flockTargetVec; 
     }
 
-    getAgentTarget(idx) {
+    getAgentPatternTarget(idx) {
         return this.patternTargets[idx].vec; 
+    }
+
+    getAgentRestTarget(idx) {
+        return this.restTargets[idx]; 
     }
 
     update(curWorldState) {
