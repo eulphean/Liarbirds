@@ -1,5 +1,6 @@
 import { Vector3 } from 'math-ds'
 const Patches = require('Patches');
+const Reactive = require('Reactive'); 
 
 const getLastPosition = (sceneObject) => {
     // Acquire current agent position. 
@@ -25,12 +26,14 @@ const setPatchVariable = (string, num) => {
     Patches.inputs.setScalar(string, num); 
 }
 
+const setPatchPulse = (string) => {
+    Patches.inputs.setPulse(string, Reactive.once()); 
+}
 
 export {
     getLastPosition,
-    // getLastWorldPosition,
-    // getParentLastPosition,
     syncSceneObject,
     syncSceneObjectWorld,
-    setPatchVariable
+    setPatchVariable,
+    setPatchPulse
 }

@@ -22,7 +22,8 @@ export const WORLD_STATE = {
     REST_HOOD: 4
 }; 
 
-const STAGGER_TIME = 1000; // 1 second. 
+const STAGGER_TIME = 2000; // 1 second.
+const PORTAL_ANIMATION_TIME = 3000;  
 export class World {
     constructor(sceneObjects) {
         // Agents. 
@@ -41,14 +42,17 @@ export class World {
 
         // Phone target
         this.phoneTarget = new Vector3(0, 0, 0); 
+
+        // Portal animation string.
+        this.portalAnim = 'firePortalAnim'; 
     }
 
     setupAgents(sceneObjects) {
         let sceneAgents = sceneObjects['agents']; 
         let sceneTargets = sceneObjects['targets']; 
-        let initialVelocities = AgentUtility.prepareInitialAgentVelocities(); 
+        let spawnStates = AgentUtility.prepareSpawnStates(); 
         for (let i = 0; i < sceneAgents.length; i++) {
-            let agent = AgentUtility.prepareAgent(sceneAgents[i], sceneTargets[i], i, initialVelocities[i]); 
+            let agent = AgentUtility.prepareAgent(sceneAgents[i], sceneTargets[i], i, spawnStates[i]); 
             this.agents.push(agent); 
         }
     }
@@ -117,13 +121,26 @@ export class World {
         // In spawn state, stagger the agents one by one to come off the floor. 
         if (this.curSpawnIdx < this.agents.length) {
             let a = this.agents[this.curSpawnIdx];
-            a.spawn();
-            this.curSpawnIdx++; 
-
-            Time.setTimeout(() => {
-                this.releaseAgents();
-            }, STAGGER_TIME); 
+            if (a.needsPortal) {
+                // Enable animation. 
+                SparkUtility.setPatchPulse(this.portalAnim);
+                // Release the agent. 
+                Time.setTimeout(() => {
+                    a.spawn(); 
+                    this.scheduleNextAgent(); 
+                }, PORTAL_ANIMATION_TIME); 
+            } else {
+                a.spawn();
+                this.scheduleNextAgent(); 
+            }
         }
+    }
+
+    scheduleNextAgent() {
+        this.curSpawnIdx++;
+        Time.setTimeout(() => {
+            this.releaseAgents();           
+        }, STAGGER_TIME); 
     }
 
     // Checks if there are agents in phoneOctree.

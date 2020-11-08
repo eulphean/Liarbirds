@@ -16,7 +16,8 @@ export class BaseAgent {
          // Core Vec3 to determine agent's whereabouts. These should be reused aggressively to avoid the need
          // to create new Vec3s on the fly. That's expensive. 
          this.position = SparkUtility.getLastPosition(this.sceneObject); // don't need this but let it be here. 
-         this.velocity = obj['velocity']; 
+         this.velocity = obj['spawnState'].v; 
+         this.needsPortal = obj['spawnState'].p; 
          this.acceleration = new Vector3(0, 0, 0); 
          this.rotationA = new Quaternion(0, 0, 0, 0); 
          this.rotationB = new Quaternion(0, 0, 0, 0); 

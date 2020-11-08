@@ -1,5 +1,7 @@
 // AudioManager.js
 const Audio = require('Audio'); 
+const Diagnostics = require('Diagnostics'); 
+const Animation = require('Animation');
 
 export class AudioManager {
     constructor() {

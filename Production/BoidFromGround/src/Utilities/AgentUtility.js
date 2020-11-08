@@ -47,23 +47,42 @@ const AGENT_SPEED = {
     }
 }
 
-const prepareAgent = (sceneAgent, sceneTarget, idx, velocity) => {
+const prepareAgent = (sceneAgent, sceneTarget, idx, spawnState) => {
     let o = {
         'agent' : sceneAgent, 
         'target' : sceneTarget,
         'idx' : idx, 
-        'velocity' : velocity
+        'spawnState' : spawnState
     }; 
     return new Agent(o); 
 }
 
-const prepareInitialAgentVelocities = () => {
+// Every object has initial velocity and a flag
+// that indicates if it uses the portal or not. 
+// We use this to sync the agents to the portal 
+// animation. 
+const prepareSpawnStates = () => {
     return [
-        new Vector3(-0.001, 0, 0), // Agent0
-        new Vector3(-0.001, 0, 0), // Agent1 
-        new Vector3(-0.001, 0, 0), // Agent2
-        new Vector3(-0.001, 0, 0), // Agent3
-        new Vector3(0, 0.001, 0) // Agent4
+        {
+            v: new Vector3(0, 0.001, 0), // Agent0
+            p: true
+        },
+        {
+            v: new Vector3(-0.001, 0, 0), // Agent1 
+            p: false
+        },
+        {
+            v: new Vector3(-0.001, 0, 0), // Agent2
+            p: false
+        },
+        {
+            v: new Vector3(-0.001, 0, 0), // Agent3
+            p: false
+        },
+        {
+            v: new Vector3(0, 0.001, 0), // Agent4
+            p: true
+        }
     ]; 
 }
 
@@ -73,5 +92,5 @@ export {
     FLOCKING_WEIGHTS,
     AGENT_SPEED,
     prepareAgent,
-    prepareInitialAgentVelocities
+    prepareSpawnStates
 }
