@@ -4,9 +4,10 @@ const Scene = require('Scene');
 const Diagnostics = require('Diagnostics');
 const TouchGestures = require('TouchGestures'); 
 const Time = require('Time'); 
-import { World } from './Core/World.js'
 
-var world; 
+import { World } from './Core/World'
+
+var world;
 // Use a wild card (*) to read the entire tree. 
 // Array Hierarchy = Scene Viewer Hierarchy
 Promise.all([

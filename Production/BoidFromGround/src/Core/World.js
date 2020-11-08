@@ -7,6 +7,7 @@ import { Vector3 } from 'math-ds';
 import { HoodManager } from '../Managers/HoodManager'
 import { OctreeManager } from '../Managers/OctreeManager'
 import { DeathManager } from '../Managers/DeathManager'
+import { AudioManager } from '../Managers/AudioManager'
 
 import * as AgentUtility from '../Utilities/AgentUtility'
 import * as SparkUtility from '../Utilities/SparkUtility'
@@ -33,6 +34,7 @@ export class World {
         this.hoodManager = new HoodManager(sceneObjects, this.agents);  
         this.octreeManager = new OctreeManager(); 
         this.deathManager = new DeathManager(sceneObjects); 
+        this.audioManager = new AudioManager(); 
 
         // Current world state. 
         this.curWorldState = WORLD_STATE.SPAWN; 
@@ -131,6 +133,7 @@ export class World {
         let agents = this.octreeManager.getAgentsNearPhone(this.phoneTarget); 
         if (agents.length > 0) {
             Diagnostics.log('Agents found near the phone.');
+            this.audioManager.playInteractSound(); 
             agents.forEach(a => a.enableExcitation(this.deathManager)); 
         } else {
             Diagnostics.log('Agents not found near the phone.'); 
@@ -139,6 +142,9 @@ export class World {
 
     // Handles state overrides for the agents. 
     handleLongPress() {
+        // Play background sound. 
+        this.audioManager.playBgSound();
+
         switch (this.curWorldState) {
             case WORLD_STATE.SPAWN: {
                 this.releaseAgents(); 
