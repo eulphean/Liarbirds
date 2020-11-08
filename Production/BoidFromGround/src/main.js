@@ -22,7 +22,7 @@ Promise.all([
     Scene.root.findByPath('planeTracker/placer/deathBeds/*'),
     Scene.root.findFirst('camTarget'),
     Scene.root.findFirst('focalTarget')
-]).then(function (objects) {
+]).then(objects => {
     let sceneObjects = prepareSceneObjects(objects); 
 
     // Handle interactive gestures. 

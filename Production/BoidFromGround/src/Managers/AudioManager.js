@@ -1,34 +1,35 @@
 // AudioManager.js
 const Audio = require('Audio'); 
-const Diagnostics = require('Diagnostics'); 
 
 export class AudioManager {
     constructor() {
-        Audio.getAudioPlaybackController('interactAudio').then(playbackController => {
-            this.interactPlaybackController = playbackController; 
-            this.interactPlaybackController.setLooping(false); 
-            this.interactPlaybackController.setPlaying(false); 
-        });
+        Promise.all([
+            Audio.getAudioPlaybackController('interactAudio'),
+            Audio.getAudioPlaybackController('bgAudio')
+        ]).then(objects => {
+            // Interactive playback controller. 
+            this.interactPC = objects[0]; 
+            this.interactPC.setLooping(false); 
+            this.interactPC.setPlaying(false); 
 
-        Audio.getAudioPlaybackController('bgAudio').then(playbackController => {
-            this.bgPlaybackController = playbackController; 
-            this.bgPlaybackController.setLooping(false);
-            this.bgPlaybackController.setPlaying(false); 
-        })
+            // Background playback controller. 
+            this.bgPC = objects[1]; 
+            this.bgPC.setLooping(false);
+            this.bgPC.setPlaying(false); 
+        });
 
         this.isBgAudioPlaying = false; 
     }
 
     playInteractSound() {
-        this.interactPlaybackController.reset(); 
-        this.interactPlaybackController.setPlaying(true); 
+        this.interactPC.reset(); 
+        this.interactPC.setPlaying(true); 
     }
 
     playBgSound() {
         if (!this.isBgAudioPlaying) {
-            Diagnostics.log('Hello'); 
-            this.bgPlaybackController.setPlaying(true);
-            this.bgPlaybackController.setLooping(true); 
+            this.bgPC.setPlaying(true);
+            this.bgPC.setLooping(true); 
             this.isBgAudioPlaying = true; 
         }
     }
