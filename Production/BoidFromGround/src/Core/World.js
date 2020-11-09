@@ -13,6 +13,7 @@ import * as AgentUtility from '../Utilities/AgentUtility'
 import * as SparkUtility from '../Utilities/SparkUtility'
 
 import { AGENT_SPEED } from '../Utilities/AgentUtility'
+import { InstructionsManager, IState } from '../Managers/InstructionsManager';
 
 export const WORLD_STATE = {
     SPAWN: 0, 
@@ -22,8 +23,9 @@ export const WORLD_STATE = {
     REST_HOOD: 4
 }; 
 
-const STAGGER_TIME = 2000; // 1 second.
-const PORTAL_ANIMATION_TIME = 3000;  
+const STAGGER_TIME = 2000;
+const PORTAL_ANIMATION_TIME = 3000; // Change to sync to portal.
+
 export class World {
     constructor(sceneObjects) {
         // Agents. 
@@ -36,6 +38,7 @@ export class World {
         this.octreeManager = new OctreeManager(); 
         this.deathManager = new DeathManager(sceneObjects); 
         this.audioManager = new AudioManager(); 
+        this.instructionsManager = new InstructionsManager(); 
 
         // Current world state. 
         this.curWorldState = WORLD_STATE.SPAWN; 
@@ -57,10 +60,11 @@ export class World {
         }
     }
     update(snapshot) {  
-        // Update phone target. 
+        // Update phone target.
         this.phoneTarget.set(snapshot['lastTargetX'], snapshot['lastTargetY'], snapshot['lastTargetZ']);
         this.hoodManager.update(this.curWorldState); 
         this.octreeManager.update(this.curWorldState, this.agents, this.phoneTarget, this.hoodManager.getFlockTarget()); 
+        this.instructionsManager.update(this.phoneTarget, this.octreeManager);
         this.updateAgents(); 
     }
 
@@ -145,8 +149,7 @@ export class World {
 
     // Checks if there are agents in phoneOctree.
     // Applies some updates on them. 
-    handleTap(snapshot) {
-        // let focalTarget = new Vector3(snapshot['lastX'], snapshot['lastY'], snapshot['lastZ']); 
+    handleTap() {
         let agents = this.octreeManager.getAgentsNearPhone(this.phoneTarget); 
         if (agents.length > 0) {
             Diagnostics.log('Agents found near the phone.');
@@ -167,12 +170,15 @@ export class World {
                 this.releaseAgents(); 
                 this.curWorldState = WORLD_STATE.FLOCK_PHONE; 
                 Diagnostics.log('New State: FLOCK_PHONE'); 
+                this.instructionsManager.setInstructionWithTimer(IState.SOUND_ON, 
+                    IState.MOVE_CLOSER, 5000);
                 break;
             }
 
             case WORLD_STATE.FLOCK_PHONE: {
                 this.curWorldState = WORLD_STATE.FLOCK_HOOD; 
                 Diagnostics.log('New State: FLOCK_HOOD'); 
+                this.instructionsManager.setInstruction(IState.TAP_HOLD, false); 
                 break;
             }
 
