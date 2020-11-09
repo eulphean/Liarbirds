@@ -118,7 +118,7 @@ export class World {
                 } else {
                     let dTarget = this.deathManager.getDeathTarget(idx); 
                     a.setTarget(dTarget); 
-                    a.evaluateDeathTarget(); 
+                    a.evaluateRestTarget(); 
                 }
                 
                 // Send neighbors to update. 

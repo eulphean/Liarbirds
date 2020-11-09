@@ -56,6 +56,7 @@ export class Agent extends BaseAgent {
         }
     } 
 
+    // Same functions. 
     evaluateRestTarget() {
         let d = this.diffVec.subVectors(this.target, this.position).lengthSquared(); 
         if (d < this.arriveTolerance) { // Have I reached? 
@@ -64,13 +65,14 @@ export class Agent extends BaseAgent {
         }
     }
 
-    evaluateDeathTarget() {
-        let d = this.diffVec.subVectors(this.target, this.position).lengthSquared(); 
-        if (d < this.arriveTolerance) { // Have I reached? 
-           // What to do when the agent has died? 
-           arguments.isActive = false; 
-        }
-    }
+    // Same functions. 
+    // evaluateDeathTarget() {
+    //     let d = this.diffVec.subVectors(this.target, this.position).lengthSquared(); 
+    //     if (d < this.arriveTolerance) { // Have I reached? 
+    //        // What to do when the agent has died? 
+    //        this.isActive = false; 
+    //     }
+    // }
 
     // TODO: Lerp rotation value. 
     enableExcitation(deathManager) {   
