@@ -60,18 +60,23 @@ export class World {
         }
     }
     update(snapshot) {  
-        // Update phone target.
+        // Get new phone target. 
         this.phoneTarget.set(snapshot['lastTargetX'], snapshot['lastTargetY'], snapshot['lastTargetZ']);
+
+        // Critical managers. 
         this.hoodManager.update(this.curWorldState); 
         this.octreeManager.update(this.curWorldState, this.agents, this.phoneTarget, this.hoodManager.getFlockTarget()); 
         this.instructionsManager.update(this.phoneTarget, this.octreeManager);
+
+        // Agents. 
         this.updateAgents(); 
     }
 
     updateAgents() {
         let idx = 0; 
-        this.agents.forEach(a => { // Bind local scope. 
-            if (a.awake) {
+        this.agents.forEach(a => {
+            // No agent updates if it hasn't spawned yet. 
+            if (a.isActive) {
                 let nAgents = [];
                 // Agent is interactable and moving in the world. 
                 if (a.deathCounter > 0) {
@@ -87,36 +92,38 @@ export class World {
         
                     if (this.curWorldState === WORLD_STATE.SPAWN 
                         || this.curWorldState === WORLD_STATE.FLOCK_PHONE) {
-                        a.evaluateInitialSpawnTarget(this.phoneTarget); 
+                        a.evaluateInitialTarget(this.phoneTarget); 
                     }
 
                     if (this.curWorldState === WORLD_STATE.FLOCK_HOOD) {
                         let fTarget = this.hoodManager.getFlockTarget(); 
-                        a.setHoodTarget(fTarget); 
+                        a.setTarget(fTarget); 
+                        a.setAgentSpeed(AGENT_SPEED.LOW); 
                     }
 
                     if (this.curWorldState === WORLD_STATE.PATTERN_HOOD) {
                         let aTarget = this.hoodManager.getAgentPatternTarget(idx); 
-                        a.setHoodTarget(aTarget); 
+                        a.setTarget(aTarget); 
                         a.setAgentSpeed(AGENT_SPEED.MEDIUM);
                     }
 
                     if (this.curWorldState === WORLD_STATE.REST_HOOD) {
                         let aTarget = this.hoodManager.getAgentRestTarget(idx); 
-                        a.setHoodTarget(aTarget); 
+                        a.setAgentSpeed(AGENT_SPEED.REST); 
+                        a.setTarget(aTarget); 
                         a.evaluateRestTarget(); 
 
-                        SparkUtility.syncSceneObject(a.targetObject, aTarget); 
+                        // SparkUtility.syncSceneObject(a.targetObject, aTarget); 
                     }
                 } else {
                     let dTarget = this.deathManager.getDeathTarget(idx); 
-                    a.setHoodTarget(dTarget); 
+                    a.setTarget(dTarget); 
+                    a.evaluateDeathTarget(); 
                 }
                 
                 // Send neighbors to update. 
                 a.update(nAgents); 
             }
-
             idx++; 
         });
     }
@@ -147,12 +154,14 @@ export class World {
         }, STAGGER_TIME); 
     }
 
-    // Checks if there are agents in phoneOctree.
-    // Applies some updates on them. 
     handleTap() {
         let agents = this.octreeManager.getAgentsNearPhone(this.phoneTarget); 
         if (agents.length > 0) {
             Diagnostics.log('Agents found near the phone.');
+            // When we are out of this state, stop tracking the taps. 
+            if (this.curWorldState === WORLD_STATE.FLOCK_PHONE) {
+                this.instructionsManager.incrementTap(this.curWorldState); 
+            }
             this.audioManager.playInteractSound(); 
             agents.forEach(a => a.enableExcitation(this.deathManager)); 
         } else {
@@ -185,18 +194,30 @@ export class World {
             case WORLD_STATE.FLOCK_HOOD: {
                 this.curWorldState = WORLD_STATE.PATTERN_HOOD;
                 Diagnostics.log('New State: PATTERN_HOOD');  
+                this.instructionsManager.setInstruction(IState.TAP_HOLD, false); 
                 break;
             }
 
             case WORLD_STATE.PATTERN_HOOD: {
                 this.curWorldState = WORLD_STATE.REST_HOOD; 
                 Diagnostics.log('New State: REST_HOOD'); 
+                this.instructionsManager.setInstruction(IState.TAP_HOLD, false); 
                 break;
             }
 
             case WORLD_STATE.REST_HOOD: {
                 this.curWorldState = WORLD_STATE.FLOCK_PHONE; 
                 Diagnostics.log('New State: FLOCK_PHONE'); 
+                this.instructionsManager.setInstruction(IState.TAP_HOLD, false); 
+
+                // Activate all the agents that are sleeping. 
+                this.agents.forEach(a => {
+                    // Only resurrect the alive agents. 
+                    if (a.deathCounter > 0 && !a.isActive) {
+                        a.isActive = true; 
+                    }
+                }); 
+
                 break;
             }
 

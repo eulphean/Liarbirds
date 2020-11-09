@@ -28,18 +28,14 @@ export class OctreeManager {
         // Populate the tree with all the agent positions. 
         this.phoneOctree = new Octree(phoneTarget, OCTREE_BOUNDARY); 
         agents.forEach(a => {
-            if (a.awake) {
-                this.phoneOctree.insertPoint(a.position, a); 
-            }
+            this.phoneOctree.insertPoint(a.position, a); 
         }); 
     }
 
     setupHoodOctree(hoodFlockTargetVec, agents) {
         this.hoodOctree = new Octree(hoodFlockTargetVec, OCTREE_BOUNDARY); 
         agents.forEach(a => {
-            if (a.awake) {
-                this.hoodOctree.insertPoint(a.position, a); 
-            }
+            this.hoodOctree.insertPoint(a.position, a); 
         }); 
     }
 

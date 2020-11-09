@@ -12,6 +12,8 @@ export class BaseAgent {
          this.sceneObject = obj['agent']; 
          this.targetObject = obj['target']; 
          this.agentIdx = obj['idx']; 
+
+         Diagnostics.log('Agent: ' + this.agentIdx);
  
          // Core Vec3 to determine agent's whereabouts. These should be reused aggressively to avoid the need
          // to create new Vec3s on the fly. That's expensive. 
@@ -41,11 +43,12 @@ export class BaseAgent {
          // Randomly set this on agent creation. 
          // When it's 0, agent performs death sequence. 
          this.deathCounter = MathUtility.random(2, 5);
-
-         // Not active. 
-         this.awake = false;
          
+         // Need to think about this. 
          this.skipPosition = false; 
+
+         // Controls updates of the agent. 
+         this.isActive = false; 
     }
 
     // Function declaration. 

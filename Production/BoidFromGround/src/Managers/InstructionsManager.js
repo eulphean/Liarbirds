@@ -4,6 +4,7 @@ const Instruction = require('Instruction');
 const Diagnostics = require('Diagnostics'); 
 const Time = require('Time');
 
+
 export const IState = {
     FLIP_CAMERA: 'flip_camera',
     PINCH_ZOOM: 'pinch_to_zoom', 
@@ -14,11 +15,13 @@ export const IState = {
 }
 
 const PINCH_TIME = 3000; 
+const maxTaps = 3; 
 export class InstructionsManager {
     constructor() {
         this.currentState = IState.NONE;
         this.timer = null;
         this.hasInstructedForTap = false; 
+        this.numTaps = 0; 
 
         // Bind the camera instruction. 
         Camera.captureDevicePosition.monitor({ fireOnInitialValue: true}).subscribe(e => {
@@ -40,7 +43,6 @@ export class InstructionsManager {
 
         // Schedule next instruction. 
         Time.setTimeout(() => {
-            Diagnostics.log(nextState); 
             this.setInstruction(nextState, true); 
         }, time); 
     }   
@@ -59,9 +61,19 @@ export class InstructionsManager {
         if (!this.hasInstructedForTap) {
             let agents = octreeManager.getAgentsNearPhone(phoneTarget); 
             if (agents.length > 0) {
-                this.setInstructionWithTimer(IState.TAP_CHANGE, IState.TAP_HOLD, 5000); 
+                this.setInstruction(IState.TAP_CHANGE, true); 
+                this.numTaps++; 
                 this.hasInstructedForTap = true; 
             }
         }
+    }
+
+    incrementTap() {
+        this.numTaps++; 
+
+        if (this.numTaps >= maxTaps) {
+            this.setInstruction(IState.TAP_HOLD, true); 
+            this.numTap = 0; 
+        } 
     }
 }

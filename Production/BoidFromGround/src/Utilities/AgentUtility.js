@@ -8,6 +8,7 @@ const ANIMATION_STATE = {
 }; 
 
 const ROTATION_SPEED = {
+    DEATH: -1, // No smoothing. 
     NONE: 0, 
     FAST: 1,
     SLOW: 3, 
@@ -22,7 +23,7 @@ const FLOCKING_WEIGHTS = {
 
 // Sets this.maxForce, this.maxSpeed, this.maxSlowDownSpeed, and agent's rotationSpeed. 
 const AGENT_SPEED = {
-    DEATH: {
+    REST: {
         FORCE: 0.001,
         SPEED: 0.001,
         SLOWSPEED: 0
@@ -82,6 +83,10 @@ const prepareSpawnStates = () => {
         {
             v: new Vector3(0, 0.001, 0), // Agent4
             p: true
+        },
+        {
+            v: new Vector3(-0.001, 0, 0), // Agent5
+            p: false
         }
     ]; 
 }
