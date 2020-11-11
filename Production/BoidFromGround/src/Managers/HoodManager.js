@@ -17,9 +17,9 @@ export class HoodManager {
         // FLOCKING in the HOOD.
         let flockOriginObj = sceneObjects['hood'][0]; 
         let flockOriginPos = SparkUtility.getLastPosition(flockOriginObj); 
-        let moveFactor = MathUtility.degrees_to_radians(0.3); 
+        let moveFactor = MathUtility.degrees_to_radians(0.20); 
         // (Origin Object, Origin Vector, RadiusX, RadiusZ, Amplitude, isClockwise, MoveFactor)
-        let patternObj = ellipseConstructor(flockOriginObj, flockOriginPos, 0.2, 0.1, 0.08, true, moveFactor);
+        let patternObj = ellipseConstructor(flockOriginObj, flockOriginPos, 0.07, 0.04, 0.04, true, moveFactor);
         this.flockPattern = new EllipsePattern(patternObj); 
 
         // // PATTERNS in the HOOD. 
@@ -32,11 +32,11 @@ export class HoodManager {
             let pos = SparkUtility.getLastPosition(obj); // Target position
             let d = a.agentIdx % 2 === 0 ? true : false; // Direction
             let isSin = d; 
-            let rad = 0.06; // Radius
-            let moveFactor = MathUtility.degrees_to_radians(0.2); // How fast to move
+            let rad = 0.07; // Radius
+            let moveFactor = MathUtility.degrees_to_radians(0.20); // How fast to move
             let ph = phase[a.agentIdx]; 
             let petals = 5; 
-            let amp = 0.02; 
+            let amp = 0.04; 
             let patternObj = roseConstructor(obj, pos, rad, ph, petals, amp, isSin, d, moveFactor); 
             let p = new RosePattern(patternObj);
             this.patterns.push(p);  

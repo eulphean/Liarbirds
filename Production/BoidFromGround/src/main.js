@@ -67,7 +67,9 @@ function prepareSceneObjects(objects) {
         'patternOrigins' : objects[7],
         'deathBeds' : objects[8],
         'camTarget': objects[9],
-        'focalTarget' : objects[10]
+        'focalTarget' : objects[10],
+        'hd' : objects[11],
+        'rTarget' : objects[12]
     }
     return a; 
 }

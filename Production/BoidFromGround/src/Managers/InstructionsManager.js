@@ -14,7 +14,7 @@ export const IState = {
     MOVE_CLOSER: 'move_camera_closer'
 }
 
-const PINCH_TIME = 3000; 
+const PINCH_TIME = 6000; 
 const maxTaps = 3; 
 export class InstructionsManager {
     constructor() {
@@ -39,12 +39,8 @@ export class InstructionsManager {
 
     setInstructionWithTimer(currentState, nextState, time) {
         this.clearTimer(); 
-        this.setInstruction(currentState, true); 
-
-        // Schedule next instruction. 
-        Time.setTimeout(() => {
-            this.setInstruction(nextState, true); 
-        }, time); 
+        this.setInstruction(currentState, true);
+        this.scheduleInstruction(nextState, time); 
     }   
 
     clearTimer() {
@@ -57,23 +53,30 @@ export class InstructionsManager {
 
     // Only executes once. 
     update(phoneTarget, octreeManager) {
-        // Just do this instruction pnce. 
-        if (!this.hasInstructedForTap) {
-            let agents = octreeManager.getAgentsNearPhone(phoneTarget); 
-            if (agents.length > 0) {
-                this.setInstruction(IState.TAP_CHANGE, true); 
-                this.numTaps++; 
-                this.hasInstructedForTap = true; 
-            }
-        }
+        //Just do this instruction pnce. 
+        // if (!this.hasInstructedForTap) {
+        //     let agents = octreeManager.getAgentsNearPhone(phoneTarget); 
+        //     if (agents.length > 0) {
+        //         this.clearTimer(); 
+        //         this.setInstruction(IState.TAP_CHANGE, true); 
+        //         this.numTaps++; 
+        //         this.hasInstructedForTap = true; 
+        //     }
+        // }
     }
 
     incrementTap() {
-        this.numTaps++; 
+        // this.numTaps++; 
 
-        if (this.numTaps >= maxTaps) {
-            this.setInstruction(IState.TAP_HOLD, true); 
-            this.numTap = 0; 
-        } 
+        // if (this.numTaps >= maxTaps) {
+        //     this.setInstruction(IState.TAP_HOLD, true); 
+        // } 
+    }
+
+    scheduleInstruction(nextState, time) {
+        // Schedule next instruction. 
+        Time.setTimeout(() => {
+            this.setInstruction(nextState, true); 
+        }, time); 
     }
 }

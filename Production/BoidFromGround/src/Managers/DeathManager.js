@@ -24,6 +24,9 @@ export class DeathManager {
         
         // Move the death bed to the target. 
         SparkUtility.syncSceneObject(deathBed, this.targets[idx]); 
+
+        // Reset the position slightly for the agents (offset, rock)
+        this.targets[idx].set(position.x + 0.005, 0.0008, position.z); 
     }
     
     getDeathTarget(idx) {

@@ -4,7 +4,6 @@
 
 const Diagnostics = require('Diagnostics'); 
 import { Vector3 } from 'math-ds'
-import * as MathUtility from '../Utilities/MathUtility'; 
 import * as SparkUtility from '../Utilities/SparkUtility'; 
 
 class Pattern {

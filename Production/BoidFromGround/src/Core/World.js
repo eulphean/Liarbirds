@@ -98,13 +98,13 @@ export class World {
                     if (this.curWorldState === WORLD_STATE.FLOCK_HOOD) {
                         let fTarget = this.hoodManager.getFlockTarget(); 
                         a.setTarget(fTarget); 
-                        a.setAgentSpeed(AGENT_SPEED.LOW); 
+                        a.setAgentSpeed(AGENT_SPEED.MEDIUM); 
                     }
 
                     if (this.curWorldState === WORLD_STATE.PATTERN_HOOD) {
                         let aTarget = this.hoodManager.getAgentPatternTarget(idx); 
                         a.setTarget(aTarget); 
-                        a.setAgentSpeed(AGENT_SPEED.MEDIUM);
+                        a.setAgentSpeed(AGENT_SPEED.FAST);
                     }
 
                     if (this.curWorldState === WORLD_STATE.REST_HOOD) {
@@ -157,7 +157,6 @@ export class World {
     handleTap() {
         let agents = this.octreeManager.getAgentsNearPhone(this.phoneTarget); 
         if (agents.length > 0) {
-            Diagnostics.log('Agents found near the phone.');
             // When we are out of this state, stop tracking the taps. 
             if (this.curWorldState === WORLD_STATE.FLOCK_PHONE) {
                 this.instructionsManager.incrementTap(this.curWorldState); 
@@ -165,7 +164,6 @@ export class World {
             this.audioManager.playInteractSound(); 
             agents.forEach(a => a.enableExcitation(this.deathManager)); 
         } else {
-            Diagnostics.log('Agents not found near the phone.'); 
         }
     }
 
@@ -179,8 +177,8 @@ export class World {
                 this.releaseAgents(); 
                 this.curWorldState = WORLD_STATE.FLOCK_PHONE; 
                 Diagnostics.log('New State: FLOCK_PHONE'); 
-                this.instructionsManager.setInstructionWithTimer(IState.SOUND_ON, 
-                    IState.MOVE_CLOSER, 5000);
+                // this.instructionsManager.setInstructionWithTimer(IState.SOUND_ON, 
+                //     IState.MOVE_CLOSER, 3000);
                 break;
             }
 
@@ -194,14 +192,17 @@ export class World {
             case WORLD_STATE.FLOCK_HOOD: {
                 this.curWorldState = WORLD_STATE.PATTERN_HOOD;
                 Diagnostics.log('New State: PATTERN_HOOD');  
+                // Hide instruction
                 this.instructionsManager.setInstruction(IState.TAP_HOLD, false); 
+                this.instructionsManager.scheduleInstruction(IState.TAP_HOLD, 60000); 
                 break;
             }
 
             case WORLD_STATE.PATTERN_HOOD: {
                 this.curWorldState = WORLD_STATE.REST_HOOD; 
-                Diagnostics.log('New State: REST_HOOD'); 
                 this.instructionsManager.setInstruction(IState.TAP_HOLD, false); 
+                this.instructionsManager.scheduleInstruction(IState.TAP_HOLD, 60000);
+                Diagnostics.log('New State: REST_HOOD'); 
                 break;
             }
 
@@ -209,7 +210,7 @@ export class World {
                 this.curWorldState = WORLD_STATE.FLOCK_PHONE; 
                 Diagnostics.log('New State: FLOCK_PHONE'); 
                 this.instructionsManager.setInstruction(IState.TAP_HOLD, false); 
-
+                this.instructionsManager.scheduleInstruction(IState.TAP_HOLD, 60000);
                 // Activate all the agents that are sleeping. 
                 this.agents.forEach(a => {
                     // Only resurrect the alive agents. 
@@ -217,7 +218,6 @@ export class World {
                         a.isActive = true; 
                     }
                 }); 
-
                 break;
             }
 

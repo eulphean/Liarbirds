@@ -26,7 +26,7 @@ const AGENT_SPEED = {
     REST: {
         FORCE: 0.001,
         SPEED: 0.001,
-        SLOWSPEED: 0
+        SLOWSPEED: 0.0001
     },
 
     LOW: {
@@ -69,11 +69,11 @@ const prepareSpawnStates = () => {
             p: true
         },
         {
-            v: new Vector3(-0.001, 0, 0), // Agent1 
+            v: new Vector3(0, 0, 0.001), // Agent1 
             p: false
         },
         {
-            v: new Vector3(-0.001, 0, 0), // Agent2
+            v: new Vector3(0.001, 0, 0), // Agent2
             p: false
         },
         {
@@ -85,7 +85,7 @@ const prepareSpawnStates = () => {
             p: true
         },
         {
-            v: new Vector3(-0.001, 0, 0), // Agent5
+            v: new Vector3(0, 0, 0.001), // Agent5
             p: false
         }
     ]; 

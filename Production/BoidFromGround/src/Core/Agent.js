@@ -65,8 +65,9 @@ export class Agent extends BaseAgent {
         }
     }
 
-    // Same functions. 
+    // // Same functions. 
     // evaluateDeathTarget() {
+    //     // Rotation of 
     //     let d = this.diffVec.subVectors(this.target, this.position).lengthSquared(); 
     //     if (d < this.arriveTolerance) { // Have I reached? 
     //        // What to do when the agent has died? 
@@ -74,35 +75,30 @@ export class Agent extends BaseAgent {
     //     }
     // }
 
-    // TODO: Lerp rotation value. 
-    enableExcitation(deathManager) {   
-        // Am I dead? 
+    enableExcitation(deathManager) {
         if (this.deathCounter > 0) {
-            Diagnostics.log(this.agentIdx + ': ' + this.deathCounter); 
-            // Am I currently excited? 
             if (!this.isExcited) {
-                this.setAnimation(ANIMATION_STATE.SWIM_FAST); 
-                this.setRotationSpeed(ROTATION_SPEED.FAST);
-                this.isExcited = true; 
-
-                // Schedule the excitation to finish after some time. 
-                Time.setTimeout(() => {
-                    this.setAnimation(ANIMATION_STATE.SWIM_SLOW); 
-                    this.setRotationSpeed(ROTATION_SPEED.SLOW); 
-                    this.isExcited = false; 
-                    this.deathCounter--; 
-
-                    // Maybe this was the agent's last rotation. 
-                    if (this.deathCounter === 0) {
-                        Diagnostics.log('Initiating death sequence'); 
-                        // DEAD DEAD DEAD
-                        this.setRotationSpeed(ROTATION_SPEED.DEATH);
-                        this.setAnimation(ANIMATION_STATE.CURL); 
-                        this.setAgentSpeed(AGENT_SPEED.REST);
-                        // Calculates the death target and shows the bed there. 
-                        deathManager.calcDeathTarget(this.agentIdx, this.position);
-                    }
-                }, EXCITATION_TIME); 
+                this.deathCounter--; 
+                if (this.deathCounter === 0) {
+                    // DEAD DEAD DEAD
+                    this.setRotationSpeed(ROTATION_SPEED.DEATH);
+                    this.setAnimation(ANIMATION_STATE.CURL); 
+                    this.setAgentSpeed(AGENT_SPEED.REST);
+                    // Calculates the death target and shows the bed there. 
+                    deathManager.calcDeathTarget(this.agentIdx, this.position);
+                    this.isRotationFromVelocity = false; 
+                } else {
+                    this.setAnimation(ANIMATION_STATE.SWIM_FAST); 
+                    this.setRotationSpeed(ROTATION_SPEED.FAST);
+                    this.isExcited = true;
+                    
+                    // Schedule the excitation to finish after some time. 
+                    Time.setTimeout(() => {
+                        this.setAnimation(ANIMATION_STATE.SWIM_SLOW); 
+                        this.setRotationSpeed(ROTATION_SPEED.SLOW); 
+                        this.isExcited = false; 
+                    }, EXCITATION_TIME); 
+                }
             }
         }
     }

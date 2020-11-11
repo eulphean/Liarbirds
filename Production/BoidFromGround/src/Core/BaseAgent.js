@@ -12,8 +12,6 @@ export class BaseAgent {
          this.sceneObject = obj['agent']; 
          this.targetObject = obj['target']; 
          this.agentIdx = obj['idx']; 
-
-         Diagnostics.log('Agent: ' + this.agentIdx);
  
          // Core Vec3 to determine agent's whereabouts. These should be reused aggressively to avoid the need
          // to create new Vec3s on the fly. That's expensive. 
@@ -23,6 +21,8 @@ export class BaseAgent {
          this.acceleration = new Vector3(0, 0, 0); 
          this.rotationA = new Quaternion(0, 0, 0, 0); 
          this.rotationB = new Quaternion(0, 0, 0, 0); 
+         this.deathRotation = new Quaternion(0, 0, 0, 0); 
+         this.deathRotation.setFromAxisAngle(new Vector3(1, 0, 0), Math.PI/2); 
          this.euler = new Euler(0, 0, 0); 
          this.mat = new Matrix4(); 
          this.target = SparkUtility.getLastPosition(this.targetObject); 
@@ -42,13 +42,15 @@ export class BaseAgent {
 
          // Randomly set this on agent creation. 
          // When it's 0, agent performs death sequence. 
-         this.deathCounter = MathUtility.random(2, 5);
+         this.deathCounter = MathUtility.random(4, 8);
          
          // Need to think about this. 
          this.skipPosition = false; 
 
          // Controls updates of the agent. 
          this.isActive = false; 
+
+         this.isRotationFromVelocity = true; 
     }
 
     // Function declaration. 
@@ -75,7 +77,7 @@ export class BaseAgent {
     }
 
     flock(nAgents) {
-        if (nAgents.length > 0) {
+        if (nAgents.length > 0 && this.hasTouchedInitialTarget) {
             // SEPERATION
             this.seperation(nAgents); 
             this.applyForce(); 
@@ -136,17 +138,24 @@ export class BaseAgent {
     }
 
     syncRotation() {
-        let azimuth = MathUtility.azimuth(this.velocity); 
-        let inclination = MathUtility.inclination(this.velocity);
+        let azimuth, inclination; 
+        if (this.isRotationFromVelocity) {
+            azimuth = MathUtility.azimuth(this.velocity); 
+            inclination = MathUtility.inclination(this.velocity);
 
-        MathUtility.axisRotation(0, 0, 1, azimuth - Math.PI/2, this.rotationA); 
-        MathUtility.axisRotation(1, 0, 0, Math.PI/2 - inclination, this.rotationB); 
+            MathUtility.axisRotation(0, 0, 1, azimuth - Math.PI/2, this.rotationA); 
+            MathUtility.axisRotation(1, 0, 0, Math.PI/2 - inclination, this.rotationB); 
+            
+            // NOTE: A conversion from Quaternion to Euler is necessary to avoid creating a
+            // new Reactive signal on every update. 
+            this.rotationA.multiply(this.rotationB); 
+        } else {
+            // Use rotationA to create a deathRotation.
+            this.rotationA.slerp(this.deathRotation, 0.005);  
+        }
 
-        // NOTE: A conversion from Quaternion to Euler is necessary to avoid creating a
-        // new Reactive signal on every update. 
-        this.rotationA.multiply(this.rotationB); 
         this.mat.makeRotationFromQuaternion(this.rotationA);
-        this.euler.setFromRotationMatrix(this.mat, 'ZYX'); // OVERRIDE the rotation order because this is what Spark suppports. 
+        this.euler.setFromRotationMatrix(this.mat, 'ZYX'); // OVERRIDE the rotation order because this is what Spark suppports.
 
         this.sceneObject.transform.rotationX = this.euler.x; 
         this.sceneObject.transform.rotationY = this.euler.y; 
@@ -211,30 +220,4 @@ export class BaseAgent {
             this.fSteer.multiplyScalar(FLOCKING_WEIGHTS.ALIGNMENT); // Apply alignment weight. 
         }
     }
-
-    calcNewTarget() {
-        // Have I reached the target or am I forcing a recalculation of the target? 
-        let wanderD = 0.2; // Max wander distance
-        let wanderR = 0.05;
-        let thetaChange = 10; 
-        let wanderTheta = MathUtility.random(-thetaChange, thetaChange); 
-
-        // this.target.set(this.initialTargetPosition.x, this.initialTargetPosition.y, this.initialTargetPosition.z); 
-        // this.target.normalize(); // Get the heading of the agent. 
-        // this.target.multiplyScalar(wanderD); // Scale it.
-        // this.target.add(this.initialTargetPosition); // Make it relative to the original target position. 
-
-        let azimuth = MathUtility.azimuth(this.target); 
-        let inclination = MathUtility.inclination(this.target);
-
-        // Calculate New Target. 
-        let xPos = wanderR * Math.cos(azimuth + wanderTheta);
-        let yPos = wanderR * Math.sin(azimuth + wanderTheta);
-        let zPos = wanderR * Math.cos(inclination + wanderTheta); 
-        let pOffset = new Vector3(xPos, yPos, zPos); 
-        this.target.add(pOffset); // With respect to current position 
-
-        // Sync the target scene object to the target. 
-        SparkUtility.syncSceneObject(this.targetObject, this.target); 
-    }  
 }
