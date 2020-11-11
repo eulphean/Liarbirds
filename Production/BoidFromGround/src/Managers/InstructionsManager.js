@@ -17,7 +17,7 @@ export const IState = {
 const I_TIME_1 = 5000; 
 const I_TIME_2 = 3000; 
 
-const maxTaps = 4; 
+const maxTaps = 3; 
 export class InstructionsManager {
     constructor() {
         this.currentState = IState.NONE;

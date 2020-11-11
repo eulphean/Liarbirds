@@ -42,7 +42,7 @@ export class BaseAgent {
 
          // Randomly set this on agent creation. 
          // When it's 0, agent performs death sequence. 
-         this.deathCounter = MathUtility.random(3, 6);
+         this.deathCounter = MathUtility.random(2, 5);
          //this.deathCounter = 2; 
          
          // Need to think about this. 
