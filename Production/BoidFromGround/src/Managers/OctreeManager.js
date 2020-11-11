@@ -8,7 +8,7 @@ import { WORLD_STATE } from '../Core/World.js'
 
 const OCTREE_PHONE_BOUNDARY = 0.05; 
 const OCTREE_HOOD_BOUNDARY = 0.08; 
-const NEIGHBOUR_RADIUS = 0.02; // Radius from the origin.
+const NEIGHBOUR_RADIUS = 0.03; // Radius from the origin.
 export class OctreeManager {
     constructor() {
         this.phoneOctree = {}; 

@@ -26,7 +26,7 @@ Promise.all([
     let sceneObjects = prepareSceneObjects(objects); 
 
     // Handle interactive gestures. 
-    handleTap(sceneObjects['camTarget']); 
+    handleTap(); 
     handlePan(sceneObjects['planeTracker'], sceneObjects['camTarget']); 
     handleLongPress(sceneObjects['planeTracker']); 
 
@@ -89,14 +89,10 @@ function handleLongPress(planeTracker) {
     });
 }
 
-function handleTap(camTarget) {
+function handleTap() {
     //Event subscription. 
-    TouchGestures.onTap().subscribeWithSnapshot({
-        'lastX' : camTarget.transform.x,
-        'lastY' : camTarget.transform.y,
-        'lastZ' : camTarget.transform.z
-    }, (gesture, snapshot) => { 
+    TouchGestures.onTap().subscribe((gesture) => { 
         // Hand it off to world. 
-        world.handleTap(snapshot); 
+        world.handleTap(); 
     });
 }
