@@ -82,7 +82,10 @@ export class World {
                 if (a.deathCounter > 0) {
                     // Get neighbors from the phoneOctree
                     if (this.curWorldState === WORLD_STATE.FLOCK_PHONE) {
-                        nAgents = this.octreeManager.getNeighbours(true, a.position);
+                        //if (a.hasTouchedInitialTarget) {
+                            a.setTarget(this.phoneTarget); 
+                            nAgents = this.octreeManager.getNeighbours(true, a.position);
+                        //}
                     }
 
                     // Get neighbors from the hoodOctree 
@@ -90,10 +93,10 @@ export class World {
                         nAgents = this.octreeManager.getNeighbours(false, a.position); 
                     }
         
-                    if (this.curWorldState === WORLD_STATE.SPAWN 
-                        || this.curWorldState === WORLD_STATE.FLOCK_PHONE) {
-                        a.evaluateInitialTarget(this.phoneTarget); 
-                    }
+                    // if (this.curWorldState === WORLD_STATE.SPAWN 
+                    //     || this.curWorldState === WORLD_STATE.FLOCK_PHONE) {
+                    //     a.evaluateInitialTarget(this.phoneTarget); 
+                    // }
 
                     if (this.curWorldState === WORLD_STATE.FLOCK_HOOD) {
                         let fTarget = this.hoodManager.getFlockTarget(); 

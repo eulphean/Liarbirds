@@ -6,8 +6,9 @@
 import { Octree } from '../Core/Octree.js'
 import { WORLD_STATE } from '../Core/World.js'
 
-const OCTREE_BOUNDARY = 0.1; 
-const NEIGHBOUR_RADIUS = 0.05; // Radius from the origin.
+const OCTREE_PHONE_BOUNDARY = 0.05; 
+const OCTREE_HOOD_BOUNDARY = 0.08; 
+const NEIGHBOUR_RADIUS = 0.02; // Radius from the origin.
 export class OctreeManager {
     constructor() {
         this.phoneOctree = {}; 
@@ -26,14 +27,14 @@ export class OctreeManager {
 
     setupPhoneOctree(phoneTarget, agents) {
         // Populate the tree with all the agent positions. 
-        this.phoneOctree = new Octree(phoneTarget, OCTREE_BOUNDARY); 
+        this.phoneOctree = new Octree(phoneTarget, OCTREE_PHONE_BOUNDARY); 
         agents.forEach(a => {
             this.phoneOctree.insertPoint(a.position, a); 
         }); 
     }
 
     setupHoodOctree(hoodFlockTargetVec, agents) {
-        this.hoodOctree = new Octree(hoodFlockTargetVec, OCTREE_BOUNDARY); 
+        this.hoodOctree = new Octree(hoodFlockTargetVec, OCTREE_HOOD_BOUNDARY); 
         agents.forEach(a => {
             this.hoodOctree.insertPoint(a.position, a); 
         }); 
@@ -59,7 +60,7 @@ export class OctreeManager {
 
     getAgentsNearPhone(phoneTarget) {
         let agents = [];
-        let points = this.phoneOctree.scanForPoints(phoneTarget, OCTREE_BOUNDARY); 
+        let points = this.phoneOctree.scanForPoints(phoneTarget, OCTREE_PHONE_BOUNDARY); 
         if (points.length > 0) {   
             points.forEach(n => {
                 let a = n['data']; 

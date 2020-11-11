@@ -77,7 +77,7 @@ export class BaseAgent {
     }
 
     flock(nAgents) {
-        if (nAgents.length > 0 && this.hasTouchedInitialTarget) {
+        if (nAgents.length > 0) {
             // SEPERATION
             this.seperation(nAgents); 
             this.applyForce(); 

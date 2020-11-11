@@ -76,28 +76,30 @@ export class Agent extends BaseAgent {
     // }
 
     enableExcitation(deathManager) {
-        if (this.deathCounter > 0) {
-            if (!this.isExcited) {
-                this.deathCounter--; 
-                if (this.deathCounter === 0) {
-                    // DEAD DEAD DEAD
-                    this.setRotationSpeed(ROTATION_SPEED.DEATH);
-                    this.setAnimation(ANIMATION_STATE.CURL); 
-                    this.setAgentSpeed(AGENT_SPEED.REST);
-                    // Calculates the death target and shows the bed there. 
-                    deathManager.calcDeathTarget(this.agentIdx, this.position);
-                    this.isRotationFromVelocity = false; 
-                } else {
-                    this.setAnimation(ANIMATION_STATE.SWIM_FAST); 
-                    this.setRotationSpeed(ROTATION_SPEED.FAST);
-                    this.isExcited = true;
-                    
-                    // Schedule the excitation to finish after some time. 
-                    Time.setTimeout(() => {
-                        this.setAnimation(ANIMATION_STATE.SWIM_SLOW); 
-                        this.setRotationSpeed(ROTATION_SPEED.SLOW); 
-                        this.isExcited = false; 
-                    }, EXCITATION_TIME); 
+        if (this.hasTouchedInitialTarget) {
+            if (this.deathCounter > 0) {
+                if (!this.isExcited) {
+                    this.deathCounter--; 
+                    if (this.deathCounter === 0) {
+                        // DEAD DEAD DEAD
+                        this.setRotationSpeed(ROTATION_SPEED.DEATH);
+                        this.setAnimation(ANIMATION_STATE.CURL); 
+                        this.setAgentSpeed(AGENT_SPEED.REST);
+                        // Calculates the death target and shows the bed there. 
+                        deathManager.calcDeathTarget(this.agentIdx, this.position);
+                        this.isRotationFromVelocity = false; 
+                    } else {
+                        this.setAnimation(ANIMATION_STATE.SWIM_FAST); 
+                        this.setRotationSpeed(ROTATION_SPEED.FAST);
+                        this.isExcited = true;
+                        
+                        // Schedule the excitation to finish after some time. 
+                        Time.setTimeout(() => {
+                            this.setAnimation(ANIMATION_STATE.SWIM_SLOW); 
+                            this.setRotationSpeed(ROTATION_SPEED.SLOW); 
+                            this.isExcited = false; 
+                        }, EXCITATION_TIME); 
+                    }
                 }
             }
         }

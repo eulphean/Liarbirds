@@ -17,7 +17,7 @@ export class HoodManager {
         // FLOCKING in the HOOD.
         let flockOriginObj = sceneObjects['hood'][0]; 
         let flockOriginPos = SparkUtility.getLastPosition(flockOriginObj); 
-        let moveFactor = MathUtility.degrees_to_radians(0.20); 
+        let moveFactor = MathUtility.degrees_to_radians(0.32); 
         // (Origin Object, Origin Vector, RadiusX, RadiusZ, Amplitude, isClockwise, MoveFactor)
         let patternObj = ellipseConstructor(flockOriginObj, flockOriginPos, 0.07, 0.04, 0.04, true, moveFactor);
         this.flockPattern = new EllipsePattern(patternObj); 

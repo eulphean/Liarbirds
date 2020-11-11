@@ -41,7 +41,7 @@ const AGENT_SPEED = {
         SLOWSPEED: 0.0001
     },
 
-    HIGH: {
+    FAST: {
         FORCE: 0.01,
         SPEED: 0.005,
         SLOWSPEED: 0.001
@@ -65,27 +65,27 @@ const prepareAgent = (sceneAgent, sceneTarget, idx, spawnState) => {
 const prepareSpawnStates = () => {
     return [
         {
-            v: new Vector3(0, 0.001, 0), // Agent0
+            v: new Vector3(0, 0.003, 0), // Agent0
             p: true
         },
         {
-            v: new Vector3(0, 0, 0.001), // Agent1 
+            v: new Vector3(0, 0, 0.002), // Agent1 
             p: false
         },
         {
-            v: new Vector3(0.001, 0, 0), // Agent2
+            v: new Vector3(-0.002, 0, 0), // Agent2
             p: false
         },
         {
-            v: new Vector3(-0.001, 0, 0), // Agent3
+            v: new Vector3(-0.001, 0, 0.001), // Agent3
             p: false
         },
         {
-            v: new Vector3(0, 0.001, 0), // Agent4
+            v: new Vector3(0, 0.003, 0), // Agent4
             p: true
         },
         {
-            v: new Vector3(0, 0, 0.001), // Agent5
+            v: new Vector3(-0.001, 0, 0.001), // Agent5
             p: false
         }
     ]; 
