@@ -43,11 +43,11 @@ const AGENT_SPEED = {
     MEDIUM: {
         FORCE: 0.004,
         SPEED: 0.004,
-        SLOWSPEED: 0.0001
+        SLOWSPEED: 0.001
     },
 
     FAST: {
-        FORCE: 0.01,
+        FORCE: 0.007,
         SPEED: 0.005,
         SLOWSPEED: 0.001
     }
@@ -98,8 +98,8 @@ const prepareSpawnStates = () => {
             p: false
         },
         {
-            v: new Vector3(0, 0.001, 0), // Agent7
-            p: false
+            v: new Vector3(0, 0.003, 0), // Agent7
+            p: true
         }
     ]; 
 }

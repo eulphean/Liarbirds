@@ -106,7 +106,7 @@ export class World {
                     if (this.curWorldState === WORLD_STATE.PATTERN_HOOD) {
                         let aTarget = this.hoodManager.getAgentPatternTarget(idx); 
                         a.setTarget(aTarget); 
-                        a.setAgentSpeed(AGENT_SPEED.MEDIUM);
+                        a.setAgentSpeed(AGENT_SPEED.FAST);
                     }
 
                     if (this.curWorldState === WORLD_STATE.REST_HOOD) {
@@ -194,7 +194,7 @@ export class World {
                 // Schedule instructions for the future. 
 
                 this.instructionsManager.clearPrevInstruction(); 
-                this.instructionsManager.setFutureInstruction(IState.TAP_HOLD, 45000); 
+                this.instructionsManager.setFutureInstruction(IState.TAP_HOLD, 40000); 
                 break;
             }
 
@@ -206,7 +206,7 @@ export class World {
                 // Schedule instructions for the future. 
 
                 this.instructionsManager.clearPrevInstruction(); 
-                this.instructionsManager.setFutureInstruction(IState.TAP_HOLD, 45000); 
+                this.instructionsManager.setFutureInstruction(IState.TAP_HOLD, 40000); 
                 break;
             }
 
@@ -216,7 +216,7 @@ export class World {
                 // Schedule instructions for the future. 
 
                 this.instructionsManager.clearPrevInstruction(); 
-                this.instructionsManager.setFutureInstruction(IState.TAP_HOLD, 45000); 
+                this.instructionsManager.setFutureInstruction(IState.TAP_HOLD, 40000); 
                 Diagnostics.log('New State: REST_HOOD'); 
                 break;
             }
@@ -224,6 +224,13 @@ export class World {
             case WORLD_STATE.REST_HOOD: {
                 this.curWorldState = WORLD_STATE.FLOCK_PHONE; 
                 Diagnostics.log('New State: FLOCK_PHONE'); 
+
+                this.instructionsManager.setInstruction(IState.TAP_HOLD, false); 
+                // Schedule instructions for the future. 
+
+                this.instructionsManager.clearPrevInstruction(); 
+                
+                this.instructionsManager.setFutureInstruction(IState.TAP_HOLD, 40000); 
                 // Activate all the agents that are sleeping. 
                 this.agents.forEach(a => {
                     // Only resurrect the alive agents. 

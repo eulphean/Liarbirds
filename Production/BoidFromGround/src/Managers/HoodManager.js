@@ -25,7 +25,7 @@ export class HoodManager {
         // // PATTERNS in the HOOD. 
         let patternOrigins = sceneObjects['patternOrigins']; 
         this.patterns = []; 
-        let phase = [0, 0, 3, 3, 5, 5];
+        let phase = [0, 0, 3, 3, 5, 5, 7, 7]; // Add new phase adding a new agent.
         agents.forEach(a => {
             // Setup pattern variables. 
             let obj = patternOrigins[a.agentIdx]; // Debug object in Scene Viewer
@@ -33,7 +33,7 @@ export class HoodManager {
             let d = a.agentIdx % 2 === 0 ? true : false; // Direction
             let isSin = d; 
             let rad = 0.07; // Radius
-            let moveFactor = MathUtility.degrees_to_radians(0.10); // How fast to move
+            let moveFactor = MathUtility.degrees_to_radians(0.15); // How fast to move
             let ph = phase[a.agentIdx]; 
             let petals = 5; 
             let amp = 0.04; 
