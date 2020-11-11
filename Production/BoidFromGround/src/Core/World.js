@@ -107,7 +107,7 @@ export class World {
                     if (this.curWorldState === WORLD_STATE.PATTERN_HOOD) {
                         let aTarget = this.hoodManager.getAgentPatternTarget(idx); 
                         a.setTarget(aTarget); 
-                        a.setAgentSpeed(AGENT_SPEED.FAST);
+                        a.setAgentSpeed(AGENT_SPEED.MEDIUM);
                     }
 
                     if (this.curWorldState === WORLD_STATE.REST_HOOD) {

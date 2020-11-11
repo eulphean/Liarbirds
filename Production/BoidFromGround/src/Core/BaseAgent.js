@@ -86,7 +86,7 @@ export class BaseAgent {
             this.cohesion(nAgents); 
             this.applyForce(); 
 
-            // ALIGNMENT
+            // // ALIGNMENT
             this.align(nAgents); 
             this.applyForce();
         }

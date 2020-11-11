@@ -72,15 +72,3 @@ export class HoodManager {
         return this.restManager.getRestTargetPosition(idx); 
     }
 }
-    //  Ellipse pattern variables. 
-    //  // Setup pattern variables. 
-    //  let obj = patternOrigins[a.agentIdx]; // Debug object in Scene Viewer
-    //  let pos = SparkUtility.getLastPosition(obj); // Target position
-    //  let d = a.agentIdx % 2 === 0 ? true : false; // Direction
-    //  let rad = MathUtility.random(0.05, 0.1, true); // Radius
-    //  let moveFactor = MathUtility.degrees_to_radians(0.4); // How fast to move
-     
-
-    //  let patternObj = ellipseConstructor(obj, pos, rad, rad, 0.01, d, moveFactor); 
-    //  let p = new EllipsePattern(patternObj);
-    //  this.patterns.push(p);  
