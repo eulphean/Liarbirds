@@ -23,6 +23,11 @@ const FLOCKING_WEIGHTS = {
 
 // Sets this.maxForce, this.maxSpeed, this.maxSlowDownSpeed, and agent's rotationSpeed. 
 const AGENT_SPEED = {
+    DEATH: {
+        FORCE: 0.001,
+        SPEED: 0.001,
+        SLOWSPEED: 0
+    },
     REST: {
         FORCE: 0.001,
         SPEED: 0.001,
@@ -86,6 +91,14 @@ const prepareSpawnStates = () => {
         },
         {
             v: new Vector3(-0.001, 0, 0.001), // Agent5
+            p: false
+        },
+        {
+            v: new Vector3(-0.001, 0, 0.001), // Agent6
+            p: false
+        },
+        {
+            v: new Vector3(0, 0.001, 0), // Agent7
             p: false
         }
     ]; 

@@ -86,7 +86,13 @@ export class Agent extends BaseAgent {
                     this.setAgentSpeed(AGENT_SPEED.REST);
                     // Calculates the death target and shows the bed there. 
                     deathManager.calcDeathTarget(this.agentIdx, this.position);
+                    this.velocity.set(0, 0, 0); 
                     this.isRotationFromVelocity = false; 
+
+                    // Fix bug for death state. 
+                    if (!this.isActive) {
+                        this.isActive = true; 
+                    }
                 } else {
                     this.setAnimation(ANIMATION_STATE.SWIM_FAST); 
                     this.setRotationSpeed(ROTATION_SPEED.FAST);

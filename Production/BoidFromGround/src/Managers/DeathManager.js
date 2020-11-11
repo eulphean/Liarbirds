@@ -18,15 +18,27 @@ export class DeathManager {
         let deathBed = this.deathBedObjects[idx];
         deathBed.hidden = false; 
 
+        let d = position.y - 0; 
+        let y; 
+        if (d > 0) {
+            if (d > 0.1) {
+                y = 0; 
+            } else {
+                y = position.y - 0.1; 
+            }
+        } else {
+            y = position.y - 0.1;
+        }
+
         // Calculate death target based on current position. 
         // y is 0 = to make the agent fall on the ground. 
-        this.targets[idx].set(position.x, 0, position.z);  
+        this.targets[idx].set(position.x, y, position.z);  
         
         // Move the death bed to the target. 
         SparkUtility.syncSceneObject(deathBed, this.targets[idx]); 
 
         // Reset the position slightly for the agents (offset, rock)
-        this.targets[idx].set(position.x + 0.005, 0.0008, position.z); 
+        this.targets[idx].set(position.x + 0.01, y-0.0001, position.z - 0.003); 
     }
     
     getDeathTarget(idx) {

@@ -33,7 +33,7 @@ export class HoodManager {
             let d = a.agentIdx % 2 === 0 ? true : false; // Direction
             let isSin = d; 
             let rad = 0.07; // Radius
-            let moveFactor = MathUtility.degrees_to_radians(0.20); // How fast to move
+            let moveFactor = MathUtility.degrees_to_radians(0.10); // How fast to move
             let ph = phase[a.agentIdx]; 
             let petals = 5; 
             let amp = 0.04; 

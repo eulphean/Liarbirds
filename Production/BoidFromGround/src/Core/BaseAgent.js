@@ -38,11 +38,12 @@ export class BaseAgent {
 
          // Lerp factor that we use to smooth rotations. 
          // Higher number indicates a faster rotation, whereas lower is smoother. 
-         this.smoothFactor = 0.01; 
+         this.smoothFactor = 0.007; 
 
          // Randomly set this on agent creation. 
          // When it's 0, agent performs death sequence. 
-         this.deathCounter = MathUtility.random(4, 8);
+         this.deathCounter = MathUtility.random(3, 6);
+         //this.deathCounter = 2; 
          
          // Need to think about this. 
          this.skipPosition = false; 

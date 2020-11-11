@@ -14,8 +14,10 @@ export const IState = {
     MOVE_CLOSER: 'move_camera_closer'
 }
 
-const PINCH_TIME = 6000; 
-const maxTaps = 3; 
+const I_TIME_1 = 5000; 
+const I_TIME_2 = 3000; 
+
+const maxTaps = 4; 
 export class InstructionsManager {
     constructor() {
         this.currentState = IState.NONE;
@@ -28,7 +30,7 @@ export class InstructionsManager {
             if (e.newValue === 'FRONT') {
                 this.setInstruction(IState.FLIP_CAMERA, true); 
             } else {
-                this.setInstructionWithTimer(IState.PINCH_ZOOM, IState.TAP_HOLD, PINCH_TIME); 
+                this.setTwoInstructions(IState.PINCH_ZOOM, IState.TAP_HOLD); 
             }
         });
     }
@@ -37,13 +39,34 @@ export class InstructionsManager {
         Instruction.bind(state, instruction); 
     }
 
-    setInstructionWithTimer(currentState, nextState, time) {
-        this.clearTimer(); 
-        this.setInstruction(currentState, true);
-        this.scheduleInstruction(nextState, time); 
+    setTwoInstructions(first, second) {
+        this.clearPrevInstruction(); 
+
+        // First
+        this.setInstruction(first, true);
+        
+        // Second
+        this.timer = Time.setTimeout(() => {
+            this.setInstruction(second, true); 
+        }, I_TIME_1);
     }   
 
-    clearTimer() {
+    setMultipleInstructions(first, second, third) {
+        // First
+        this.setInstruction(first, true);
+
+        // Second
+        this.timer = Time.setTimeout(() => {
+            this.setInstruction(second, true);
+            // Third
+            this.timer = Time.setTimeout(() => {
+                this.setInstruction(third, true); 
+            }, I_TIME_1); 
+        }, I_TIME_2); 
+        
+    }
+
+    clearPrevInstruction() {
         // Clear any pending instruction timers. 
         if (this.timer != null) {
             Time.clearTimeout(this.timer); 
@@ -51,32 +74,17 @@ export class InstructionsManager {
         }   
     }
 
-    // Only executes once. 
-    update(phoneTarget, octreeManager) {
-        //Just do this instruction pnce. 
-        // if (!this.hasInstructedForTap) {
-        //     let agents = octreeManager.getAgentsNearPhone(phoneTarget); 
-        //     if (agents.length > 0) {
-        //         this.clearTimer(); 
-        //         this.setInstruction(IState.TAP_CHANGE, true); 
-        //         this.numTaps++; 
-        //         this.hasInstructedForTap = true; 
-        //     }
-        // }
+    setFutureInstruction(first, time) {
+        this.timer = Time.setTimeout(() => {
+            this.setInstruction(first, true)
+        }, time); 
     }
 
     incrementTap() {
-        // this.numTaps++; 
+        this.numTaps++; 
 
-        // if (this.numTaps >= maxTaps) {
-        //     this.setInstruction(IState.TAP_HOLD, true); 
-        // } 
-    }
-
-    scheduleInstruction(nextState, time) {
-        // Schedule next instruction. 
-        Time.setTimeout(() => {
-            this.setInstruction(nextState, true); 
-        }, time); 
+        if (this.numTaps >= maxTaps) {
+            this.setInstruction(IState.TAP_HOLD, true); 
+        } 
     }
 }
