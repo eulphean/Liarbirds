@@ -1,14 +1,13 @@
 const color = {
-    beige: '#E4DEC0',
-    leafy: '#226D28',
-    lightleafy: '#37ae41',
-    darkleafy: '#1f6124',
-    link: 'rgb(103,52,31)'
+    dark: '#F2F0E9',
+    button: 'rgb(255, 255, 255, 0.4)',
+    link: '#E48F65'
 };
 
 const fontSize = {
     extraSmall: '8px',
     verySmall: '12px',
+    lessSmall: '14px',
     small: '16px',
     big: '20px',
     veryBig: '24px',
@@ -60,9 +59,10 @@ const padding = {
 
 const fontFamily = {
     din: 'd-dinregular',
-    righalftone: 'rig_solidbold_halftone',
     opensanslight: 'open_sanslight',
-    opensansregular: 'open_sansregular'
+    opensansregular: 'open_sansregular',
+    demode: 'demoderegular',
+    slice: 'sliceregular'
 };
 
 

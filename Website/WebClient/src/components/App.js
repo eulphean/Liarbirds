@@ -1,24 +1,19 @@
 import React from 'react'
 import Radium from 'radium'
-import { fontSize, padding, fontFamily, color } from './CommonStyles';
+import { padding } from './CommonStyles';
 import About from './About.js'
 import World from './World.js'
+import FancyButton from './FancyButton.js'
+import Posters from './Posters.js'
+import Footer from './Footer.js'
 
 const styles = {
   container: {
-    margin: padding.small,
+    marginLeft: padding.big, 
+    marginRight: padding.big,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center'
-  },
-
-  footer: {
-    fontFamily: fontFamily.opensanslight,
-    fontSize: fontSize.verySmall,
-    color: color.leafy,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
   }
 };
 
@@ -32,11 +27,10 @@ class App extends React.Component {
   render() {
     return (
       <div style={styles.container}>
-        <div style={styles.title}>
           <About />
-          <World />
-          <div style={styles.footer}>{"2020 © Amay Kataria | Phil Mulliken"}</div>
-        </div>
+          <FancyButton />
+          <Posters />
+          <Footer />
       </div>
     );
   }
