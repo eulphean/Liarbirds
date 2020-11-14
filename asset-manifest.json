@@ -1,23 +1,26 @@
 {
   "files": {
-    "main.css": "/liarbirds/static/css/main.543d26ea.chunk.css",
-    "main.js": "/liarbirds/static/js/main.e0bc4879.chunk.js",
-    "main.js.map": "/liarbirds/static/js/main.e0bc4879.chunk.js.map",
+    "main.css": "/liarbirds/static/css/main.93e93ad6.chunk.css",
+    "main.js": "/liarbirds/static/js/main.bfc249f8.chunk.js",
+    "main.js.map": "/liarbirds/static/js/main.bfc249f8.chunk.js.map",
     "runtime-main.js": "/liarbirds/static/js/runtime-main.d7010cc8.js",
     "runtime-main.js.map": "/liarbirds/static/js/runtime-main.d7010cc8.js.map",
-    "static/js/2.c491c8ea.chunk.js": "/liarbirds/static/js/2.c491c8ea.chunk.js",
-    "static/js/2.c491c8ea.chunk.js.map": "/liarbirds/static/js/2.c491c8ea.chunk.js.map",
+    "static/js/2.d253b427.chunk.js": "/liarbirds/static/js/2.d253b427.chunk.js",
+    "static/js/2.d253b427.chunk.js.map": "/liarbirds/static/js/2.d253b427.chunk.js.map",
     "index.html": "/liarbirds/index.html",
-    "precache-manifest.c734e421fb57188d7fc0c9ebecb7ea90.js": "/liarbirds/precache-manifest.c734e421fb57188d7fc0c9ebecb7ea90.js",
+    "precache-manifest.5c76c7d194ab6d258860019110ea067b.js": "/liarbirds/precache-manifest.5c76c7d194ab6d258860019110ea067b.js",
     "service-worker.js": "/liarbirds/service-worker.js",
-    "static/css/main.543d26ea.chunk.css.map": "/liarbirds/static/css/main.543d26ea.chunk.css.map",
-    "static/js/2.c491c8ea.chunk.js.LICENSE.txt": "/liarbirds/static/js/2.c491c8ea.chunk.js.LICENSE.txt",
-    "static/media/stylesheet.css": "/liarbirds/static/media/opensans-regular-webfont.d407a585.woff2"
+    "static/css/main.93e93ad6.chunk.css.map": "/liarbirds/static/css/main.93e93ad6.chunk.css.map",
+    "static/js/2.d253b427.chunk.js.LICENSE.txt": "/liarbirds/static/js/2.d253b427.chunk.js.LICENSE.txt",
+    "static/media/stylesheet.css": "/liarbirds/static/media/slice-webfont.60013d1c.woff",
+    "static/media/front_page.jpg": "/liarbirds/static/media/front_page.2814188b.jpg",
+    "static/media/hyde_park.jpg": "/liarbirds/static/media/hyde_park.6f9b0da7.jpg",
+    "static/media/postcard_back.jpg": "/liarbirds/static/media/postcard_back.696cc2ce.jpg"
   },
   "entrypoints": [
     "static/js/runtime-main.d7010cc8.js",
-    "static/js/2.c491c8ea.chunk.js",
-    "static/css/main.543d26ea.chunk.css",
-    "static/js/main.e0bc4879.chunk.js"
+    "static/js/2.d253b427.chunk.js",
+    "static/css/main.93e93ad6.chunk.css",
+    "static/js/main.bfc249f8.chunk.js"
   ]
 }
