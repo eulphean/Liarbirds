@@ -1,26 +1,26 @@
 {
   "files": {
-    "main.css": "/liarbirds/static/css/main.93e93ad6.chunk.css",
-    "main.js": "/liarbirds/static/js/main.bfc249f8.chunk.js",
-    "main.js.map": "/liarbirds/static/js/main.bfc249f8.chunk.js.map",
-    "runtime-main.js": "/liarbirds/static/js/runtime-main.d7010cc8.js",
-    "runtime-main.js.map": "/liarbirds/static/js/runtime-main.d7010cc8.js.map",
-    "static/js/2.d253b427.chunk.js": "/liarbirds/static/js/2.d253b427.chunk.js",
-    "static/js/2.d253b427.chunk.js.map": "/liarbirds/static/js/2.d253b427.chunk.js.map",
-    "index.html": "/liarbirds/index.html",
-    "precache-manifest.5c76c7d194ab6d258860019110ea067b.js": "/liarbirds/precache-manifest.5c76c7d194ab6d258860019110ea067b.js",
-    "service-worker.js": "/liarbirds/service-worker.js",
-    "static/css/main.93e93ad6.chunk.css.map": "/liarbirds/static/css/main.93e93ad6.chunk.css.map",
-    "static/js/2.d253b427.chunk.js.LICENSE.txt": "/liarbirds/static/js/2.d253b427.chunk.js.LICENSE.txt",
-    "static/media/stylesheet.css": "/liarbirds/static/media/slice-webfont.60013d1c.woff",
-    "static/media/front_page.jpg": "/liarbirds/static/media/front_page.2814188b.jpg",
-    "static/media/hyde_park.jpg": "/liarbirds/static/media/hyde_park.6f9b0da7.jpg",
-    "static/media/postcard_back.jpg": "/liarbirds/static/media/postcard_back.696cc2ce.jpg"
+    "main.css": "/static/css/main.eb44d85d.chunk.css",
+    "main.js": "/static/js/main.bfc249f8.chunk.js",
+    "main.js.map": "/static/js/main.bfc249f8.chunk.js.map",
+    "runtime-main.js": "/static/js/runtime-main.8b5d6628.js",
+    "runtime-main.js.map": "/static/js/runtime-main.8b5d6628.js.map",
+    "static/js/2.d253b427.chunk.js": "/static/js/2.d253b427.chunk.js",
+    "static/js/2.d253b427.chunk.js.map": "/static/js/2.d253b427.chunk.js.map",
+    "index.html": "/index.html",
+    "precache-manifest.2b7d7ae9157bde9087cc5a42f00dc638.js": "/precache-manifest.2b7d7ae9157bde9087cc5a42f00dc638.js",
+    "service-worker.js": "/service-worker.js",
+    "static/css/main.eb44d85d.chunk.css.map": "/static/css/main.eb44d85d.chunk.css.map",
+    "static/js/2.d253b427.chunk.js.LICENSE.txt": "/static/js/2.d253b427.chunk.js.LICENSE.txt",
+    "static/media/stylesheet.css": "/static/media/slice-webfont.60013d1c.woff",
+    "static/media/front_page.jpg": "/static/media/front_page.2814188b.jpg",
+    "static/media/hyde_park.jpg": "/static/media/hyde_park.6f9b0da7.jpg",
+    "static/media/postcard_back.jpg": "/static/media/postcard_back.696cc2ce.jpg"
   },
   "entrypoints": [
-    "static/js/runtime-main.d7010cc8.js",
+    "static/js/runtime-main.8b5d6628.js",
     "static/js/2.d253b427.chunk.js",
-    "static/css/main.93e93ad6.chunk.css",
+    "static/css/main.eb44d85d.chunk.css",
     "static/js/main.bfc249f8.chunk.js"
   ]
 }
