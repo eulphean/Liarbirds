@@ -1,7 +1,9 @@
 import React from 'react'
 import Radium from 'radium'
 
+import { pulse } from 'react-animations'
 import { color, fontFamily, fontSize, padding } from './CommonStyles.js';
+
 
 const styles = {
     container: {
@@ -17,6 +19,14 @@ const styles = {
         fontSize: fontSize.small,
         marginTop: padding.big,
         letterSpacing: '0.8px'
+    },
+
+    pulse: {
+      animationName: Radium.keyframes(pulse, 'pulse'),
+      animationDuration: '10s',
+      animationFillMode: 'forwards',
+      animationTimingFunction: 'ease-in-out',
+      animationIterationCount: '5'
     }
 };
 
@@ -29,8 +39,9 @@ class FancyButton extends React.Component {
   }
 
   render() {
+    let containerStyle = [styles.container, styles.pulse]; 
     return (
-      <a href={'https://www.instagram.com/ar/2488677321439619/'} target={'_blank'} style={styles.container}>
+      <a href={'https://www.instagram.com/ar/2488677321439619/'} target={'_blank'} style={containerStyle}>
           Open with Instagram
       </a>
     );

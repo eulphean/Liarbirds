@@ -2,6 +2,7 @@ import React from 'react'
 import Radium from 'radium'
 
 import image from './front_page.jpg'
+import { tada } from 'react-animations'
 import { color, fontFamily, fontSize, padding } from './CommonStyles.js';
 
 const styles = {
@@ -31,6 +32,14 @@ const styles = {
     img: {
       marginTop: padding.small,
       width: '100%'
+    },
+
+    tada: {
+      animationName: Radium.keyframes(tada, 'tada'),
+      animationDuration: '10s',
+      animationFillMode: 'forwards',
+      animationTimingFunction: 'ease-in-out',
+      animationIterationCount: '1'
     }
 };
 
@@ -45,9 +54,10 @@ class About extends React.Component {
   }
 
   render() {
+    let titleStyle = [styles.title, styles.tada]; 
     return (
       <div style={styles.container}>
-        <div style={styles.title}>LIARBIRDS</div>
+        <div style={titleStyle}>LIARBIRDS</div>
         <div style={styles.body}>{body}</div>
         <img style={styles.img} src={image} alt={'title'} />
       </div>
