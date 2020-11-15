@@ -95,13 +95,6 @@ function handleTap(agents) {
         TouchGestures.onTap(a).subscribe((gesture) => {
             let idx = a.name.split('.')[1]; 
             world.handleTap(idx); 
-            //Diagnostics.log(idx); 
         }); 
     }); 
 }
-
-// //Event subscription. 
-// TouchGestures.onTap().subscribe((gesture) => { 
-//     // Hand it off to world. 
-//     world.handleTap(); 
-// });
