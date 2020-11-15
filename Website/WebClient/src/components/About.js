@@ -88,7 +88,7 @@ const styles = {
     }
 };
 
-const body="We have been at a loss of crowds due to the pandemic. Physical isolation prevails and our entire social exchange has been mediated through a two-dimensional window. Boids of Paradise is an augmented encounter mediated by Instagram that modifies one’s space with a swarm of digital creatures. This crowd of creatures augments the participant’s digital environment and interacts with them by carrying out coordinated behaviors. In the moment of interaction, they become the participant’s companion as well as independent digital creatures that operate at the intersection of space, time, and state.";
+const body="What if birds aren’t real? What if they are drones designed to surveil the everyday population? If this is so, what kind of reality are we living in? And how must we cope up with it? Liarbirds thrust from this inquiry to create an interactive augmented encounter, which modifies one’s space with an active swarm of digital creatures. With their syncopated behaviors, they respond to the users, which affect their movements in space. Consequently, they intend to exist at the intersection of physical and digital space; however, the prevailing circumstances might make them perish.";
 
 class About extends React.Component {
   constructor(props) {
