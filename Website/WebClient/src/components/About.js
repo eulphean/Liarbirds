@@ -22,11 +22,11 @@ const styles = {
     },
 
     body: {
-        color: color.dark,
-        fontFamily: fontFamily.opensanslight,
-        fontSize: fontSize.lessSmall,
-        textAlign: 'center',
-        marginTop: padding.small
+      color: color.dark,
+      fontFamily: fontFamily.opensanslight,
+      fontSize: fontSize.lessSmall,
+      textAlign: 'center',
+      marginTop: padding.small
     },
 
     img: {

@@ -12,11 +12,13 @@ const styles = {
         alignSelf: 'center',
         justifyContent: 'center',
         marginTop: padding.big,
-        width: '100%'
+        width: '100%',
+        height: '100%'
     },
 
     poster: {
         width: 'calc(100%/2 - 4%)',
+        height: '100%',
         marginRight: padding.verySmall
     }
 };

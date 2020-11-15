@@ -8,25 +8,28 @@ import { color, fontFamily, fontSize, padding } from './CommonStyles.js';
 const styles = {
     container: {
         display: 'flex',
-        color: color.dark,
         flexDirection: 'column',
         alignSelf: 'center',
         alignItems: 'center',
+        textAlign: 'center',
+        color: color.dark,
+        width: '50%',
         backgroundColor: color.button,
         fontFamily: fontFamily.slice,
         padding: padding.small,
         borderRadius: '10px',
-        fontSize: fontSize.small,
+        fontSize: fontSize.big,
         marginTop: padding.big,
-        letterSpacing: '0.8px'
+        letterSpacing: '0.8px',
+        lineHeight: padding.big
     },
 
     pulse: {
-      animationName: Radium.keyframes(pulse, 'pulse'),
-      animationDuration: '10s',
+      animationName: Radium.keyframes(pulse, 'flash'),
+      animationDuration: '2s',
       animationFillMode: 'forwards',
-      animationTimingFunction: 'ease-in-out',
-      animationIterationCount: '5'
+      animationTimingFunction: 'linear',
+      animationIterationCount: '10'
     }
 };
 

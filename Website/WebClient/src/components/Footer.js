@@ -6,14 +6,15 @@ import { color, fontFamily, fontSize, padding } from './CommonStyles.js';
 const styles = {
     container: {
         fontFamily: fontFamily.din,
-        fontSize: fontSize.extraSmall,
+        fontSize: fontSize.lessSmall,
         color: color.dark,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: padding.small,
-        marginBottom: padding.verySmall
+        marginTop: padding.big,
+        marginBottom: padding.verySmall,
+        lineHeight: padding.big
     },
 
     link: {
