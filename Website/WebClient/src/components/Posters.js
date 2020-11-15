@@ -13,7 +13,15 @@ const styles = {
         justifyContent: 'center',
         marginTop: padding.big,
         width: '100%',
-        height: '100%'
+        height: '100%',
+
+        '@media (min-width: 768px)': {  
+            marginTop: padding.veryBig
+        },
+
+        '@media (min-width: 1024px)': {  
+            marginTop: padding.extraBig
+        }
     },
 
     poster: {
@@ -42,5 +50,3 @@ class Posters extends React.Component {
 }
 
 export default Radium(Posters);
-
-/// Contains the two containers side by side.

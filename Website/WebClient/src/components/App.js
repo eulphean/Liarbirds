@@ -13,9 +13,26 @@ const styles = {
     marginRight: padding.big,
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center'
+    alignItems: 'center',
+
+    '@media (min-width: 768px)': {  
+      marginLeft: padding.veryHuge,
+      marginRight: padding.veryHuge
+    },
+
+    '@media (min-width: 600px) and (orientation: landscape)': {  
+      marginLeft: padding.massive,
+      marginRight: padding.massive
+    },
+
+    '@media (min-width: 1024px)': {  
+      marginLeft: padding.massive,
+      marginRight: padding.massive
+    }
   }
-};
+}
+
+
 
 class App extends React.Component {
   constructor(props) {

@@ -9,6 +9,7 @@ const fontSize = {
     verySmall: '12px',
     lessSmall: '14px',
     small: '16px',
+    lessBig: '18px',
     big: '20px',
     veryBig: '24px',
     extraBig: '28px',

@@ -14,7 +14,18 @@ const styles = {
         justifyContent: 'center',
         marginTop: padding.big,
         marginBottom: padding.verySmall,
-        lineHeight: padding.big
+        lineHeight: padding.big,
+
+        '@media (min-width: 768px)': {  
+            fontSize: fontSize.small
+        },
+
+        '@media (min-width: 1024px)': {
+            marginTop: padding.veryBig,
+            fontSize: fontSize.big,
+            lineHeight: padding.veryBig,
+            marginBottom: padding.veryBig
+        }
     },
 
     link: {

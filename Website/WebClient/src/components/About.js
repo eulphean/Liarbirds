@@ -11,14 +11,38 @@ const styles = {
         flexDirection: 'column',
         alignSelf: 'center',
         alignItems: 'center',
-        marginTop: padding.big
+        marginTop: padding.big,
+
+        '@media (min-width: 768px)': {  
+          marginTop: padding.extraBig
+        },
+
+        '@media (min-width: 600px) and (orientation: landscape)': {  
+          marginTop: padding.huge
+        },
+
+        '@media (min-width: 1024px)': {  
+          marginTop: padding.veryHuge
+        }
     },
 
     title: {
       fontFamily: fontFamily.demode,
       color: color.dark,
       letterSpacing: '0px',
-      fontSize: fontSize.extraHuge
+      fontSize: fontSize.extraHuge,
+
+      '@media (min-width: 768px)': {  
+        fontSize: fontSize.insane
+      },
+
+      '@media (min-width: 600px) and (orientation: landscape)': {  
+        fontSize: fontSize.veryInsane
+      },
+
+      '@media (min-width: 1024px)': {  
+        fontSize: fontSize.veryInsane
+      }
     },
 
     body: {
@@ -26,12 +50,33 @@ const styles = {
       fontFamily: fontFamily.opensanslight,
       fontSize: fontSize.lessSmall,
       textAlign: 'center',
-      marginTop: padding.small
+      marginTop: padding.small,
+
+      '@media (min-width: 768px)': {  
+        marginTop: padding.big,
+        fontSize: fontSize.small
+      },
+
+      '@media (min-width: 1024px)': {  
+        fontSize: fontSize.big
+      }
     },
 
     img: {
       marginTop: padding.small,
-      width: '100%'
+      width: '100%',
+
+      '@media (min-width: 768px)': {  
+        marginTop: padding.big
+      },
+
+      '@media (min-width: 768px) and (orientation: landscape)': {  
+        marginTop: padding.veryBig
+      },
+
+      '@media (min-width: 768px)': {  
+        marginTop: padding.veryBig
+      }
     },
 
     tada: {

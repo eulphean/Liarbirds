@@ -13,7 +13,7 @@ const styles = {
         alignItems: 'center',
         textAlign: 'center',
         color: color.dark,
-        width: '50%',
+        width: '55%',
         backgroundColor: color.button,
         fontFamily: fontFamily.slice,
         padding: padding.small,
@@ -21,7 +21,28 @@ const styles = {
         fontSize: fontSize.big,
         marginTop: padding.big,
         letterSpacing: '0.8px',
-        lineHeight: padding.big
+        lineHeight: padding.big,
+
+        '@media (min-width: 768px)': {  
+          fontSize: fontSize.huge,
+          marginTop: padding.veryBig,
+          lineHeight: padding.veryBig,
+          width: '45%'
+        },
+
+        '@media (min-width: 1024px)': {
+          fontSize: fontSize.veryHuge,
+          marginTop: padding.extraBig,
+          lineHeight: padding.extraBig,
+          width: '40%'
+        },
+
+        '@media (min-width: 1200px)': {
+          fontSize: fontSize.veryHuge,
+          marginTop: padding.extraBig,
+          lineHeight: padding.extraBig,
+          width: '30%'
+        }
     },
 
     pulse: {
@@ -29,7 +50,7 @@ const styles = {
       animationDuration: '2s',
       animationFillMode: 'forwards',
       animationTimingFunction: 'linear',
-      animationIterationCount: '10'
+      animationIterationCount: 'infinite'
     }
 };
 
