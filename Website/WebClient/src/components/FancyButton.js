@@ -62,7 +62,7 @@ class FancyButton extends React.Component {
   render() {
     let containerStyle = [styles.container, styles.pulse]; 
     return (
-      <a href={'https://www.instagram.com/ar/2488677321439619/'} target={'_blank'} style={containerStyle}>
+      <a href={'https://www.instagram.com/ar/2488677321439619/'} target={'_blank'} rel="noopener noreferrer" style={containerStyle}>
           Open with Instagram
       </a>
     );
