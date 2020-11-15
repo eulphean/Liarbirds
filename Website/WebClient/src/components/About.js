@@ -22,7 +22,7 @@ const styles = {
         },
 
         '@media (min-width: 1024px)': {  
-          marginTop: padding.veryHuge
+          marginTop: padding.huge
         }
     },
 
