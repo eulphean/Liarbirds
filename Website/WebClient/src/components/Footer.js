@@ -64,7 +64,7 @@ class Footer extends React.Component {
                     target='_blank' 
                     rel="noopener noreferrer" 
                     href={phil}>
-                    Phil Mulliken
+                    Philip Mulliken
                 </a>
                 <span style={styles.developed}>, 2020&nbsp;</span>
             </div>

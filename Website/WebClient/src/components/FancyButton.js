@@ -38,9 +38,6 @@ const styles = {
         },
 
         '@media (min-width: 1200px)': {
-          fontSize: fontSize.veryHuge,
-          marginTop: padding.extraBig,
-          lineHeight: padding.extraBig,
           width: '30%'
         }
     },
