@@ -85,6 +85,12 @@ export class Agent extends BaseAgent {
                     this.setAnimation(ANIMATION_STATE.SWIM_FAST); 
                     this.setRotationSpeed(ROTATION_SPEED.FAST);
                     this.isExcited = true;
+                    this.velocity.set(0, 0.001, 0);
+                    
+                    // Break them out of rest state. 
+                    if (!this.isActive) {
+                        this.isActive = true;
+                    }
                     
                     // Schedule the excitation to finish after some time. 
                     Time.setTimeout(() => {

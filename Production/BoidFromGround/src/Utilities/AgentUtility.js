@@ -10,7 +10,7 @@ const ANIMATION_STATE = {
 const ROTATION_SPEED = {
     DEATH: -1, // No smoothing. 
     NONE: 0, 
-    FAST: 1,
+    FAST: 1.5,
     SLOW: 3, 
     VERYSLOW: 5
 }

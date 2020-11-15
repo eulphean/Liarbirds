@@ -84,7 +84,8 @@ export class InstructionsManager {
         this.numTaps++; 
 
         if (this.numTaps >= maxTaps) {
-            this.setInstruction(IState.TAP_HOLD, true); 
+            // Stop showing this instruction. 
+            this.setInstruction(IState.TAP_CHANGE, false); 
         } 
     }
 }

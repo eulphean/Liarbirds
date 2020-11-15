@@ -26,7 +26,7 @@ Promise.all([
     let sceneObjects = prepareSceneObjects(objects); 
 
     // Handle interactive gestures. 
-    handleTap(); 
+    handleTap(sceneObjects['agents']); 
     handlePan(sceneObjects['planeTracker'], sceneObjects['camTarget']); 
     handleLongPress(sceneObjects['planeTracker']); 
 
@@ -89,10 +89,19 @@ function handleLongPress(planeTracker) {
     });
 }
 
-function handleTap() {
-    //Event subscription. 
-    TouchGestures.onTap().subscribe((gesture) => { 
-        // Hand it off to world. 
-        world.handleTap(); 
-    });
+function handleTap(agents) {
+    // onTap subscription for each agent. 
+    agents.forEach(a => {
+        TouchGestures.onTap(a).subscribe((gesture) => {
+            let idx = a.name.split('.')[1]; 
+            world.handleTap(idx); 
+            //Diagnostics.log(idx); 
+        }); 
+    }); 
 }
+
+// //Event subscription. 
+// TouchGestures.onTap().subscribe((gesture) => { 
+//     // Hand it off to world. 
+//     world.handleTap(); 
+// });

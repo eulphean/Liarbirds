@@ -1,8 +1,8 @@
 // AudioManager.js
 const Audio = require('Audio'); 
-const Diagnostics = require('Diagnostics'); 
-const Animation = require('Animation');
+const Time = require('Time'); 
 
+const TIME_DELAY_INTERACT = 4000; 
 export class AudioManager {
     constructor() {
         Promise.all([
@@ -21,11 +21,19 @@ export class AudioManager {
         });
 
         this.isBgAudioPlaying = false; 
+        this.isInteractSoundPlaying = false; 
     }
 
     playInteractSound() {
-        this.interactPC.reset(); 
-        this.interactPC.setPlaying(true); 
+        if (!this.isInteractSoundPlaying) {
+            this.interactPC.reset(); 
+            this.interactPC.setPlaying(true); 
+            
+            // Give it a little delay before playing the sound again. 
+            Time.setTimeout(() => {
+                this.isInteractSoundPlaying = false; 
+            }, TIME_DELAY_INTERACT); 
+        }
     }
 
     playBgSound() {

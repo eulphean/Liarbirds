@@ -150,16 +150,17 @@ export class World {
         }, STAGGER_TIME); 
     }
 
-    handleTap() {
-        let agents = this.octreeManager.getAgentsNearPhone(this.phoneTarget); 
-        if (agents.length > 0) {
-            // When we are out of this state, stop tracking the taps. 
-            if (this.curWorldState === WORLD_STATE.FLOCK_PHONE) {
-                this.instructionsManager.incrementTap(this.curWorldState); 
+    handleTap(agentIdx) {
+        if (this.curWorldState !== WORLD_STATE.SPAWN) {
+            // We already know that an agent was tapped here. 
+            let a = this.agents[agentIdx]; 
+            
+            // Don't try and excite the agent if it's already dead or if it's already excited. 
+            if (a.deathCounter > 0 & !a.isExcited) {
+                a.enableExcitation(this.deathManager); 
+                this.instructionsManager.incrementTap(this.curWorldState);
+                this.audioManager.playInteractSound(); 
             }
-            this.audioManager.playInteractSound(); 
-            agents.forEach(a => a.enableExcitation(this.deathManager)); 
-        } else {
         }
     }
 
@@ -171,6 +172,7 @@ export class World {
         switch (this.curWorldState) {
             case WORLD_STATE.SPAWN: {
                 this.releaseAgents(); 
+
                 this.curWorldState = WORLD_STATE.FLOCK_PHONE; 
                 Diagnostics.log('New State: FLOCK_PHONE'); 
 
@@ -178,53 +180,71 @@ export class World {
                 this.instructionsManager.clearPrevInstruction(); 
                 this.instructionsManager.setMultipleInstructions(IState.SOUND_ON, 
                     IState.MOVE_CLOSER, IState.TAP_CHANGE);
+                
+                // Future next state. 
+                this.scheduleStateChange(WORLD_STATE.FLOCK_HOOD, 30000); // 30 seconds of flocking at phone. 
                 break;
             }
 
             case WORLD_STATE.FLOCK_PHONE: {
+                // Override. 
+                Time.clearTimeout(this.nextStateTimer); 
+
+                // Set current state. 
                 this.curWorldState = WORLD_STATE.FLOCK_HOOD; 
                 Diagnostics.log('New State: FLOCK_HOOD'); 
-                this.instructionsManager.setInstruction(IState.TAP_HOLD, false); 
-                // Schedule instructions for the future. 
 
-                this.instructionsManager.clearPrevInstruction(); 
-                this.instructionsManager.setFutureInstruction(IState.TAP_HOLD, 40000); 
+                // this.instructionsManager.setInstruction(IState.TAP_HOLD, false); 
+                // // Schedule instructions for the future. 
+                // // this.instructionsManager.clearPrevInstruction(); 
+                // // this.instructionsManager.setFutureInstruction(IState.TAP_HOLD, 40000); 
                 break;
             }
 
             case WORLD_STATE.FLOCK_HOOD: {
+                // Override. 
+                Time.clearTimeout(this.nextStateTimer);
+
+                // Set current state. 
                 this.curWorldState = WORLD_STATE.PATTERN_HOOD;
                 Diagnostics.log('New State: PATTERN_HOOD');  
 
-                this.instructionsManager.setInstruction(IState.TAP_HOLD, false); 
+                // this.instructionsManager.setInstruction(IState.TAP_HOLD, false); 
                 // Schedule instructions for the future. 
-
-                this.instructionsManager.clearPrevInstruction(); 
-                this.instructionsManager.setFutureInstruction(IState.TAP_HOLD, 40000); 
+                // this.instructionsManager.clearPrevInstruction(); 
+                // this.instructionsManager.setFutureInstruction(IState.TAP_HOLD, 40000); 
+                this.scheduleStateChange(WORLD_STATE.PATTERN_HOOD, 20000); 
                 break;
             }
 
             case WORLD_STATE.PATTERN_HOOD: {
-                this.curWorldState = WORLD_STATE.REST_HOOD; 
-                this.instructionsManager.setInstruction(IState.TAP_HOLD, false); 
-                // Schedule instructions for the future. 
+                // Override. 
+                Time.clearTimeout(this.nextStateTimer); 
 
-                this.instructionsManager.clearPrevInstruction(); 
-                this.instructionsManager.setFutureInstruction(IState.TAP_HOLD, 40000); 
+                // Set current state. 
+                this.curWorldState = WORLD_STATE.REST_HOOD; 
                 Diagnostics.log('New State: REST_HOOD'); 
+
+                // this.instructionsManager.setInstruction(IState.TAP_HOLD, false); 
+                // // Schedule instructions for the future. 
+                // this.instructionsManager.clearPrevInstruction(); 
+                // this.instructionsManager.setFutureInstruction(IState.TAP_HOLD, 40000); 
                 break;
             }
 
             case WORLD_STATE.REST_HOOD: {
+                // Override. 
+                Time.clearTimeout(this.nextStateTimer); 
+
+                // Set current state. 
                 this.curWorldState = WORLD_STATE.FLOCK_PHONE; 
                 Diagnostics.log('New State: FLOCK_PHONE'); 
 
-                this.instructionsManager.setInstruction(IState.TAP_HOLD, false); 
-                // Schedule instructions for the future. 
+                // this.instructionsManager.setInstruction(IState.TAP_HOLD, false); 
+                // // Schedule instructions for the future. 
+                // this.instructionsManager.clearPrevInstruction(); 
+                // this.instructionsManager.setFutureInstruction(IState.TAP_HOLD, 40000); 
 
-                this.instructionsManager.clearPrevInstruction(); 
-                
-                this.instructionsManager.setFutureInstruction(IState.TAP_HOLD, 40000); 
                 // Activate all the agents that are sleeping. 
                 this.agents.forEach(a => {
                     // Only resurrect the alive agents. 
@@ -240,4 +260,70 @@ export class World {
             }
         }
     }
+
+    scheduleStateChange(nextState, time) {
+        this.nextStateTimer = Time.setTimeout(() => {
+            switch (nextState) {
+                case WORLD_STATE.FLOCK_HOOD: {
+                    // Set current state. 
+                    this.curWorldState = WORLD_STATE.FLOCK_HOOD; 
+                    Diagnostics.log('New State: FLOCK_HOOD'); 
+
+                    // Future next state. 
+                    this.scheduleStateChange(WORLD_STATE.PATTERN_HOOD, 20000); // 30 seconds of flocking at hood. 
+                    break;
+                }
+
+                case WORLD_STATE.PATTERN_HOOD: {
+                    // Set current state. 
+                    this.curWorldState = WORLD_STATE.PATTERN_HOOD; 
+                    Diagnostics.log('New State: PATTERN_HOOD'); 
+
+                    // Future next state. 
+                    this.scheduleStateChange(WORLD_STATE.REST_HOOD, 20000); // 30 seconds of patterns at hood. 
+                    break; 
+                }
+
+                case WORLD_STATE.REST_HOOD: {
+                    // Set current state. 
+                    this.curWorldState = WORLD_STATE.REST_HOOD; 
+                    Diagnostics.log('New State: REST_HOOD'); 
+
+                    // Future next state. 
+                    this.scheduleStateChange(WORLD_STATE.FLOCK_PHONE, 15000); // 20 seconds of resting at hood. 
+                    break; 
+                }
+
+                case WORLD_STATE.FLOCK_PHONE: {
+                    // Set current state. 
+                    this.curWorldState = WORLD_STATE.FLOCK_PHONE; 
+                    Diagnostics.log('New State: FLOCK_PHONE'); 
+
+                    // Future next state. 
+                    this.scheduleStateChange(WORLD_STATE.FLOCK_HOOD, 20000); // 20 seconds of flocking at phone. 
+                    break; 
+                }
+
+                default: {
+                    // Set current state. 
+                    this.curWorldState = WORLD_STATE.FLOCK_PHONE;
+                    Diagnostics.log('Default State Break: FLOCK_PHONE'); 
+                    
+                    // Future next state. 
+                    this.scheduleStateChange(WORLD_STATE.FLOCK_HOOD, 20000); // 15 seconds of flocking at phone. 
+                }
+            }
+        }, time); 
+    }
 }
+
+        //let agents = this.octreeManager.getAgentsNearPhone(this.phoneTarget); 
+        // if (agents.length > 0) {
+        //     // When we are out of this state, stop tracking the taps. 
+        //     if (this.curWorldState === WORLD_STATE.FLOCK_PHONE) {
+        //         this.instructionsManager.incrementTap(this.curWorldState); 
+        //     }
+        //     this.audioManager.playInteractSound(); 
+        //     agents.forEach(a => a.enableExcitation(this.deathManager)); 
+        // } else {
+        // }

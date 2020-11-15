@@ -40,10 +40,10 @@ export class BaseAgent {
          // Higher number indicates a faster rotation, whereas lower is smoother. 
          this.smoothFactor = 0.007; 
 
+         // Death counter
          // Randomly set this on agent creation. 
          // When it's 0, agent performs death sequence. 
          this.deathCounter = MathUtility.random(2, 5);
-         //this.deathCounter = 2; 
          
          // Need to think about this. 
          this.skipPosition = false; 
