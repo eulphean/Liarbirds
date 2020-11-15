@@ -8,7 +8,9 @@ const OrbitControls = oc(THREE)
 
 const styles = {
     container: {
-        display: 'flex'
+        position: 'absolute',
+        zIndex: 0,
+        top: '0%',
     },
 };
 
@@ -57,11 +59,11 @@ class World extends React.Component {
     // ---------- Camera -------------------
     this.camera.position.set(200, 200, 200); 
     var controls = new OrbitControls(this.camera); 
-    controls.enablePan = true;
+    // controls.enablePan = true;
     controls.autoRotate = true; 
     controls.autoRotateSpeed = 0.25;
-    controls.enabled = true; 
-    controls.enableKeys = true;
+    controls.enabled = false; 
+    // controls.enableKeys = true;
 
     // Render loop. 
     var render = () => {
@@ -75,8 +77,14 @@ class World extends React.Component {
 
   render() {
     return (
-        <div ref={this.ref} />
+        <div style={styles.container} ref={this.ref} />
     );
+  }
+
+  updateRendererHeight(h) {
+    this.renderer.setSize(window.innerWidth, h, true);
+    this.camera.aspect = window.innerWidth/h;
+    this.camera.updateProjectionMatrix();
   }
 }
 
