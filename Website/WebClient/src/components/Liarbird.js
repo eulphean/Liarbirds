@@ -1,6 +1,5 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import * as Utility from './Utility.js'
 import Agent from './Agent.js'
 import model from '../models/jellyman.glb'; 
 
@@ -8,27 +7,27 @@ const loader = new GLTFLoader();
 
 export default class Liarbird extends Agent {
     constructor(scene) {
-        super();
+        super(scene);
         this.loadLiarbird(scene); 
     }
 
     loadLiarbird(scene) {
         loader.load(model, gltf=> {
             // Load useful variables. 
-            this.agent = gltf.scene; 
-            this.agentPosition = this.agent.position;
+            this.jellyman = gltf.scene; 
+
+            // Agent is the parent object. 
+            this.agent = new THREE.Group();
+            this.agent.add(this.jellyman); 
+            // Move the pivot close to its neck. 
+            this.jellyman.position.set(0, -1.5, 0);
+    
+            this.agentRotation = this.agent.rotation; 
             this.agentScale = this.agent.scale; 
             this.agentAnimations = gltf.animations; 
 
-            const radius = Utility.getRandomNum(50, 150);
-            const theta = THREE.Math.degToRad(Utility.getRandomNum(360)); 
-            const phi = THREE.Math.degToRad(Utility.getRandomNum(180)); 
-
-            // Scale and position. 
-            this.agentScale.set(30, 30, 30);
-            this.agentPosition.x = Math.sin(theta) * Math.cos(phi) * radius; 
-            this.agentPosition.y = 0; 
-            this.agentPosition.z = Math.cos(theta) * radius;
+            // Scale
+            this.agentScale.set(25, 25, 25);
 
             // Animation. 
             this.animationMixer = new THREE.AnimationMixer(this.agent); 
@@ -47,10 +46,26 @@ export default class Liarbird extends Agent {
         if (this.animationMixer) {
             this.animationMixer.update(delta);
 
-            // Update position. 
-            // this.agentPosition.x += 0.1;
-            // this.agentPosition.y += 0.1;
+            // Behaviors. 
+            this.updateAgent(); 
+
+            // Sync rotation and position. 
+            this.syncPosition();
+            this.syncRotation(); 
         }
+    }
+
+
+    syncPosition() {
+        // Sync position of the agent with 
+        // the actual agent scene. 
+        this.agent.position.copy(this.position);
+    }
+
+    syncRotation() {
+        // Sync the rotation of the agent with the actual
+        // agent scene.
+        // this.agentRotation.x += 0.01; 
     }
 }
 

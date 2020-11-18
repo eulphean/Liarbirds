@@ -31,7 +31,7 @@ class World extends React.Component {
     this.renderer = new THREE.WebGLRenderer({ antialias: true }); 
 
     // All the agents. 
-    this.liarbirds = []; 
+    this.liarbirds = [];
   }
 
   componentDidMount() {
@@ -82,11 +82,9 @@ class World extends React.Component {
       this.renderer.render(this.scene, this.camera);
     };
 
+    this.scene.add(new THREE.AxesHelper(30));
     initRender();
 
-    this.scene.traverse(obj => {
-      obj.frustumCulled = false; 
-    })
   }
 
   render() {
