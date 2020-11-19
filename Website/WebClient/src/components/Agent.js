@@ -1,9 +1,11 @@
 import * as THREE from 'three'
-import Target from './Target.js';
-import * as Utility from './Utility.js'
+import Target from './Target'
+import * as Utility from './Utility'
+import { EllipsePattern, ellipseConstructor } from './PatternManager'
 
 export default class Agent {
-    constructor(scene) {
+    constructor(scene, i, startY) {
+        this.idx = i; 
         // Construct all important variables. 
         this.position = new THREE.Vector3(0, 0, 0); // Get initial velocity
         this.velocity = new THREE.Vector3(0, 0.01, 0); 
@@ -12,11 +14,13 @@ export default class Agent {
         this.sumVec = new THREE.Vector3(0, 0, 0);
         this.rotationA = new THREE.Quaternion(); 
         this.rotationB = new THREE.Quaternion(); 
+
         this.target = new Target(scene); 
+
         
         // Force and speeds. 
-        this.maxForce = 1.0; 
-        this.maxSpeed = 1.0; 
+        this.maxForce = 3.0; 
+        this.maxSpeed = 3.0; 
         this.maxSlowDownSpeed = 0; 
 
         // Tolerances
@@ -27,24 +31,42 @@ export default class Agent {
         this.smoothFactor = 0.001; 
 
         // Initial position and target.
-        this.initPosition(); 
+        this.initPosition(startY); 
+
+        // Create a polar pattern. 
+        this.setupPattern();
     }
 
-    initPosition() {
-        const radius = Utility.getRandomNum(0, 50);
-        const theta = THREE.Math.degToRad(Utility.getRandomNum(360)); 
-        const phi = THREE.Math.degToRad(Utility.getRandomNum(180)); 
+    initPosition(startY) {
+        // const radius = Utility.getRandomNum(-300, 300);
+        // const theta = THREE.Math.degToRad(Utility.getRandomNum(360)); 
+        // const phi = THREE.Math.degToRad(Utility.getRandomNum(180)); 
 
-        this.position.x = Math.sin(theta) * Math.cos(phi) * radius; 
-        this.position.y = 0; 
-        this.position.z = Math.cos(theta) * radius;
+        //this.position.x = Math.sin(theta) * Math.cos(phi) * radius;
+        this.position.x = 0;  
+        // this.position.y = Math.sin(theta) * Math.sin(phi) * radius;
+        this.position.z = 0; 
+        //this.position.z = Math.cos(theta) * radius;
+        this.position.y = startY;
+    }
+
+    setupPattern() {
+        let o = this.position.clone(); 
+        let moveFactor = THREE.Math.degToRad(0.3); 
+        let d = this.idx % 2 === 0 ? true : false; 
+        // (Origin Vector, RadiusX, RadiusZ, Amplitude, isClockwise, MoveFactor)
+        let patternObj = ellipseConstructor(o, 30, 30, 10, d, moveFactor);
+        this.pattern = new EllipsePattern(patternObj);   
     }
 
     updateAgent() {
         // Behaviors. 
-        this.applyBehaviors(); 
-
+        this.applyBehaviors();
         this.updatePosition();
+
+        // Pattern
+        this.pattern.update(); 
+        this.target.setVector(this.pattern.getTargetPos());
     }
 
     applyBehaviors() {

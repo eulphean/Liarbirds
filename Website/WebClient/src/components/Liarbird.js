@@ -7,8 +7,8 @@ import * as Utility from './Utility';
 const loader = new GLTFLoader(); 
 
 export default class Liarbird extends Agent {
-    constructor(scene) {
-        super(scene);
+    constructor(scene, idx, startY) {
+        super(scene, idx, startY);
         this.loadLiarbird(scene); 
     }
 

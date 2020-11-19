@@ -58,19 +58,26 @@ class World extends React.Component {
     directionalLight.position.set(0, 50, 50).normalize();
     this.scene.add(directionalLight);	
 
+    let minHeight = -200; 
+    let maxHeight = 200; 
+    let numAgents = 12; 
+    let inc = (Math.abs(minHeight) + maxHeight)/numAgents; 
+
+    let startY = minHeight; 
     // ---------- Geometry -----------------
-    for (let i = 0; i < 12; i++) {
-        let l = new Liarbird(this.scene); 
+    for (let i = 0; i < numAgents; i++) {
+        let l = new Liarbird(this.scene, i, startY); 
         this.liarbirds.push(l); 
+        startY += inc; 
     }
 
     // ---------- Camera -------------------
-    this.camera.position.set(200, 200, 50); 
+    this.camera.position.set(100, 100, 40); 
     var controls = new OrbitControls(this.camera); 
     // controls.enablePan = true;
     controls.autoRotate = true; 
     controls.autoRotateSpeed = 0.1;
-    controls.enabled = false; 
+    controls.enabled = true; 
     controls.enableKeys = true;
 
     // Render loop. 

@@ -11,14 +11,18 @@ export default class Target {
         const theta = THREE.Math.degToRad(Utility.getRandomNum(360)); 
         const phi = THREE.Math.degToRad(Utility.getRandomNum(180)); 
 
-        this.mesh.position.x = Math.sin(theta) * Math.cos(phi) * radius; 
-        this.mesh.position.y = Math.sin(theta) * Math.sin(phi) * radius;
-        this.mesh.position.z = Math.cos(theta) * radius;
+        // this.mesh.position.x = Math.sin(theta) * Math.cos(phi) * radius; 
+        // this.mesh.position.y = Math.sin(theta) * Math.sin(phi) * radius;
+        // this.mesh.position.z = Math.cos(theta) * radius;
 
         scene.add(this.mesh);
     }
 
     getVector() {
         return this.mesh.position; 
+    }
+
+    setVector(v) {
+        this.mesh.position.copy(v);
     }
 }
