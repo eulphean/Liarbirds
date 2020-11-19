@@ -27,7 +27,8 @@ const styles = {
     poster: {
         width: 'calc(100%/2 - 4%)',
         height: '100%',
-        marginRight: padding.verySmall
+        marginRight: padding.verySmall,
+        opacity: '0.6'
     }
 };
 

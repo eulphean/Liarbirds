@@ -65,10 +65,7 @@ const styles = {
     img: {
       marginTop: padding.small,
       width: '100%',
-
-      '@media (min-width: 768px)': {  
-        marginTop: padding.big
-      },
+      opacity: '0.7',
 
       '@media (min-width: 768px) and (orientation: landscape)': {  
         marginTop: padding.veryBig

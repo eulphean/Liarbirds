@@ -7,7 +7,7 @@ export default class Target {
         let material = new THREE.MeshLambertMaterial({color: new THREE.Color(1, 0, 0), wireframe: false}); 
         this.mesh = new THREE.Mesh(geometry, material);
 
-        const radius = Utility.getRandomNum(50, 100);
+        const radius = Utility.getRandomNum(200, 300);
         const theta = THREE.Math.degToRad(Utility.getRandomNum(360)); 
         const phi = THREE.Math.degToRad(Utility.getRandomNum(180)); 
 

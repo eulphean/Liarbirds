@@ -17,6 +17,7 @@ const styles = {
     alignItems: 'center',
     marginLeft: padding.big, 
     marginRight: padding.big,
+    overflowX: 'hidden',
 
     '@media (min-width: 768px)': {  
       marginLeft: padding.veryHuge,
@@ -29,8 +30,8 @@ const styles = {
     },
 
     '@media (min-width: 1024px)': {  
-      marginLeft: padding.massive,
-      marginRight: padding.massive
+      marginLeft: padding.veryInsane,
+      marginRight: padding.veryInsane
     }
   }
 }
@@ -49,22 +50,22 @@ class App extends React.Component {
     return (
       <div>
           <World ref={this.worldRef} />
-          {/* <div ref={this.totalRef} style={styles.content}>
+          <div ref={this.totalRef} style={styles.content}>
             <About />
             <FancyButton />
             <Posters />
             <Footer />
-          </div> */}
+          </div>
       </div>
     );
   }
 
   componentDidMount() {
-    // setTimeout(() => {
-    //   let totalHeight = this.totalRef.current.scrollHeight; 
-    //   this.worldRef.current.updateRendererHeight(totalHeight);
-    //   console.log(totalHeight);
-    // }, 500); 
+    setTimeout(() => {
+      let totalHeight = this.totalRef.current.scrollHeight; 
+      this.worldRef.current.updateRendererHeight(totalHeight);
+      console.log(totalHeight);
+    }, 500); 
   }
 
   componentDidUpdate() {

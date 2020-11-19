@@ -38,7 +38,7 @@ const styles = {
         },
 
         '@media (min-width: 1200px)': {
-          width: '30%'
+          width: '33%'
         }
     },
 

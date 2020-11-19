@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import Agent from './Agent.js'
 import model from '../models/jellyman.glb'; 
+import * as Utility from './Utility';
 
 const loader = new GLTFLoader(); 
 
@@ -25,6 +26,8 @@ export default class Liarbird extends Agent {
             this.agentRotation = this.agent.rotation; 
             this.agentScale = this.agent.scale; 
             this.agentAnimations = gltf.animations; 
+
+            console.log(gltf.mesh);
 
             // Scale
             this.agentScale.set(25, 25, 25);
@@ -55,7 +58,6 @@ export default class Liarbird extends Agent {
         }
     }
 
-
     syncPosition() {
         // Sync position of the agent with 
         // the actual agent scene. 
@@ -63,9 +65,19 @@ export default class Liarbird extends Agent {
     }
 
     syncRotation() {
-        // Sync the rotation of the agent with the actual
-        // agent scene.
-        // this.agentRotation.x += 0.01; 
+        // Agent rotation
+        let azimuth, inclination; 
+        azimuth = Utility.azimuth(this.velocity); 
+        inclination = Utility.inclination(this.velocity);
+
+        Utility.axisRotation(0, 0, 1, azimuth - Math.PI/2, this.rotationA); 
+        Utility.axisRotation(1, 0, 0, Math.PI/2 - inclination, this.rotationB); 
+                    
+        this.rotationA.multiply(this.rotationB);
+        this.agent.setRotationFromQuaternion(this.rotationA);
+
+        // Jellyman rotation
+        this.jellyman.rotation.y += 0.05;
     }
 }
 

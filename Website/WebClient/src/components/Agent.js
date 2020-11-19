@@ -6,15 +6,17 @@ export default class Agent {
     constructor(scene) {
         // Construct all important variables. 
         this.position = new THREE.Vector3(0, 0, 0); // Get initial velocity
-        this.velocity = new THREE.Vector3(0, 0, 0); 
+        this.velocity = new THREE.Vector3(0, 0.01, 0); 
         this.acceleration = new THREE.Vector3(0, 0, 0); 
         this.fSteer = new THREE.Vector3(0, 0, 0); 
         this.sumVec = new THREE.Vector3(0, 0, 0);
+        this.rotationA = new THREE.Quaternion(); 
+        this.rotationB = new THREE.Quaternion(); 
         this.target = new Target(scene); 
         
         // Force and speeds. 
-        this.maxForce = 0.5; 
-        this.maxSpeed = 0.5; 
+        this.maxForce = 1.0; 
+        this.maxSpeed = 1.0; 
         this.maxSlowDownSpeed = 0; 
 
         // Tolerances
