@@ -22,7 +22,7 @@ export default class Liarbird extends Agent {
             this.agent.add(this.jellyman); 
             // Move the pivot close to its neck. 
             this.jellyman.position.set(0, -1.5, 0);
-    
+            this.jellyman.castShadow = true;
             this.agentRotation = this.agent.rotation; 
             this.agentScale = this.agent.scale; 
             this.agentAnimations = gltf.animations; 

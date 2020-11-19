@@ -50,22 +50,22 @@ class App extends React.Component {
     return (
       <div>
           <World ref={this.worldRef} />
-          <div ref={this.totalRef} style={styles.content}>
+          {/* <div ref={this.totalRef} style={styles.content}>
             <About />
             <FancyButton />
             <Posters />
             <Footer />
-          </div>
+          </div> */}
       </div>
     );
   }
 
   componentDidMount() {
-    setTimeout(() => {
-      let totalHeight = this.totalRef.current.scrollHeight; 
-      this.worldRef.current.updateRendererHeight(totalHeight);
-      console.log(totalHeight);
-    }, 500); 
+    // setTimeout(() => {
+    //   let totalHeight = this.totalRef.current.scrollHeight; 
+    //   this.worldRef.current.updateRendererHeight(totalHeight);
+    //   console.log(totalHeight);
+    // }, 500); 
   }
 
   componentDidUpdate() {

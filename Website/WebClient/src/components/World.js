@@ -49,12 +49,14 @@ class World extends React.Component {
     this.ref.current.appendChild(stats.dom);
 
     // -------- Lighting ----------------
-    var ambientLight = new THREE.AmbientLight(0xcccccc);
+    var ambientLight = new THREE.AmbientLight(0xD7D3D3);
+
     this.scene.add( ambientLight );
           
     var directionalLight = new THREE.DirectionalLight(0xffffff);
-    directionalLight.position.set( 0, 1, 1 ).normalize();
-    this.scene.add( directionalLight );	
+    directionalLight.intensity = 3.0;
+    directionalLight.position.set(0, 50, 50).normalize();
+    this.scene.add(directionalLight);	
 
     // ---------- Geometry -----------------
     for (let i = 0; i < 12; i++) {
