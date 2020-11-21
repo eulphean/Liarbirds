@@ -1,10 +1,16 @@
 import * as THREE from 'three'
 import Target from './Target'
 import * as Utility from './Utility'
-import { EllipsePattern, ellipseConstructor } from './PatternManager'
+import { RosePattern, roseConstructor} from './PatternManager'
+
+const FLOCKING_WEIGHTS = {
+    SEPERATION: 5.0,
+    COHESION: 1.5,
+    ALIGNMENT: 1.5
+}
 
 export default class Agent {
-    constructor(scene, i, startY) {
+    constructor(scene, i, startY, phase) {
         this.idx = i; 
         // Construct all important variables. 
         this.position = new THREE.Vector3(0, 0, 0); // Get initial velocity
@@ -12,15 +18,17 @@ export default class Agent {
         this.acceleration = new THREE.Vector3(0, 0, 0); 
         this.fSteer = new THREE.Vector3(0, 0, 0); 
         this.sumVec = new THREE.Vector3(0, 0, 0);
+        this.diffVec = new THREE.Vector3(0, 0, 0); 
         this.rotationA = new THREE.Quaternion(); 
         this.rotationB = new THREE.Quaternion(); 
 
-        this.target = new Target(scene); 
+        this.initialPatternPosition = new THREE.Vector3(0, startY, 0); 
 
-        
+        this.target = new THREE.Vector3(0, 0, 0); 
+  
         // Force and speeds. 
-        this.maxForce = 3.0; 
-        this.maxSpeed = 3.0; 
+        this.maxForce = 1.5; 
+        this.maxSpeed = 1.5; 
         this.maxSlowDownSpeed = 0; 
 
         // Tolerances
@@ -31,53 +39,62 @@ export default class Agent {
         this.smoothFactor = 0.001; 
 
         // Initial position and target.
-        this.initPosition(startY); 
+        this.initPosition(); 
 
         // Create a polar pattern. 
-        this.setupPattern();
+        this.setupPattern(phase);
     }
 
-    initPosition(startY) {
-        // const radius = Utility.getRandomNum(-300, 300);
-        // const theta = THREE.Math.degToRad(Utility.getRandomNum(360)); 
-        // const phi = THREE.Math.degToRad(Utility.getRandomNum(180)); 
-
-        //this.position.x = Math.sin(theta) * Math.cos(phi) * radius;
+    initPosition() {
         this.position.x = 0;  
-        // this.position.y = Math.sin(theta) * Math.sin(phi) * radius;
         this.position.z = 0; 
-        //this.position.z = Math.cos(theta) * radius;
-        this.position.y = startY;
+        this.position.y = -90;
     }
 
-    setupPattern() {
-        let o = this.position.clone(); 
-        let moveFactor = THREE.Math.degToRad(0.3); 
-        let d = this.idx % 2 === 0 ? true : false; 
-        // (Origin Vector, RadiusX, RadiusZ, Amplitude, isClockwise, MoveFactor)
-        let patternObj = ellipseConstructor(o, 30, 30, 10, d, moveFactor);
-        this.pattern = new EllipsePattern(patternObj);   
+    setupPattern(phase) {
+        // Setup pattern variables. 
+        let pos = this.initialPatternPosition.clone(); // Target position
+        let d = this.idx % 2 === 0 ? true : false; // Direction
+        let isSin = d; 
+        let rad = 50; // Radius
+        let moveFactor = THREE.Math.degToRad(0.1); // How fast to move
+        let petals = 5; 
+        let amp = 20; 
+        let patternObj = roseConstructor(pos, rad, phase, petals, amp, isSin, d, moveFactor); 
+        this.rosePattern = new RosePattern(patternObj); 
     }
 
-    updateAgent() {
+    updateAgent(nAgents) {
         // Behaviors. 
-        this.applyBehaviors();
+        this.applyBehaviors(nAgents);
         this.updatePosition();
-
-        // Pattern
-        this.pattern.update(); 
-        this.target.setVector(this.pattern.getTargetPos());
     }
 
-    applyBehaviors() {
+    applyBehaviors(nAgents) {
         this.seek();
         this.applyForce(); 
+
+        this.flock(nAgents); 
+    }
+
+    flock(nAgents) {
+        if (nAgents.length > 0) {
+            // Seperation
+            this.seperation(nAgents);
+            this.applyForce();
+
+            // Cohesion
+            this.cohesion(nAgents);
+            this.applyForce();
+
+            // Alignment
+            this.align(nAgents); 
+            this.applyForce(); 
+        }
     }
 
     seek() {
-        let target = this.target.getVector(); 
-
-        this.fSteer.subVectors(target, this.position); 
+        this.fSteer.subVectors(this.target, this.position); 
         let d = this.fSteer.lengthSq();
         this.fSteer.normalize();
 
@@ -113,5 +130,64 @@ export default class Agent {
 
         // Reset acceleration. 
         this.acceleration.multiplyScalar(0);
+    }
+
+    // Receives neighboring agents using Octree calculations. 
+    seperation(nAgents) {
+        this.fSteer.set(0, 0, 0); 
+        this.sumVec.set(0, 0, 0); 
+
+        if (nAgents.length > 0) {
+            nAgents.forEach(a => {
+                this.diffVec.subVectors(this.position, a.position); 
+                this.diffVec.normalize(); 
+                this.diffVec.divideScalar(this.diffVec.length());  // Weight the vector properly based on the distance from the target. 
+                this.sumVec.add(this.diffVec); 
+            });
+            
+            // Calculate desired force using the average desired velocity 
+            this.sumVec.divideScalar(nAgents.length); 
+            if (this.sumVec.lengthSq() > 0) {
+                this.sumVec.normalize(); 
+                this.sumVec.clampLength(-99999, this.maxSpeed);
+                this.fSteer.subVectors(this.sumVec, this.velocity);
+                this.fSteer.clampLength(-99999, this.maxForce); 
+                this.fSteer.multiplyScalar(FLOCKING_WEIGHTS.SEPERATION); // Apply seperation weight. 
+            }
+        }
+    }
+    
+    // Receives neighboring agents using Octree calculations. 
+    cohesion(nAgents) {
+        this.target.set(0, 0, 0); 
+        this.fSteer.set(0, 0, 0); 
+
+        if (nAgents.length > 0) {
+            nAgents.forEach(a => {
+                this.target.add(a.position); 
+            }); 
+
+            this.target.divideScalar(nAgents.length); 
+            this.seek(); // Seek the new target
+            this.fSteer.multiplyScalar(FLOCKING_WEIGHTS.COHESION); 
+        }
+    }
+    
+    // Receives neighboring agents using Octree calculations. 
+    align(nAgents) {
+        this.fSteer.set(0, 0, 0); 
+
+        if (nAgents.length > 0) {
+            nAgents.forEach(a => {
+                this.fSteer.add(a.velocity); 
+            }); 
+        
+            this.fSteer.divideScalar(nAgents.length); 
+            this.fSteer.normalize(); 
+            this.fSteer.multiplyScalar(this.maxSpeed); 
+            this.fSteer.sub(this.velocity); 
+            this.fSteer.clampLength(-99999, this.maxForce); 
+            this.fSteer.multiplyScalar(FLOCKING_WEIGHTS.ALIGNMENT); // Apply alignment weight. 
+        }
     }
 }

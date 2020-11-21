@@ -7,27 +7,29 @@ import * as Utility from './Utility';
 const loader = new GLTFLoader(); 
 
 export default class Liarbird extends Agent {
-    constructor(scene, idx, startY) {
-        super(scene, idx, startY);
+    constructor(scene, idx, startY, phase) {
+        super(scene, idx, startY, phase);
         this.loadLiarbird(scene); 
     }
 
     loadLiarbird(scene) {
         loader.load(model, gltf=> {
-            // Load useful variables. 
+            // Set important gltf properties.  
             this.jellyman = gltf.scene; 
+            // Move the pivot close to its neck. 
+            this.jellyman.position.set(0, -1.5, 0);
+            this.jellyman.frustumCulled = false;
 
             // Agent is the parent object. 
             this.agent = new THREE.Group();
             this.agent.add(this.jellyman); 
-            // Move the pivot close to its neck. 
-            this.jellyman.position.set(0, -1.5, 0);
-            this.jellyman.castShadow = true;
+            this.agent.frustumCulled = false;
+            this.agent.castShadow = true;
+            this.agent.receiveShadow = true; 
+
             this.agentRotation = this.agent.rotation; 
             this.agentScale = this.agent.scale; 
             this.agentAnimations = gltf.animations; 
-
-            console.log(gltf.mesh);
 
             // Scale
             this.agentScale.set(25, 25, 25);
@@ -37,6 +39,8 @@ export default class Liarbird extends Agent {
             var action = this.animationMixer.clipAction(this.agentAnimations[0]);
             action.play(); 
 
+            console.log(this.agent);
+
             // Add it to the scene. 
             scene.add(this.agent); 
         }, undefined, function ( error ) {
@@ -44,13 +48,13 @@ export default class Liarbird extends Agent {
         }); 
     }
 
-    update(delta) {
+    update(delta, nAgents) {
         // Animation update. 
         if (this.animationMixer) {
             this.animationMixer.update(delta);
 
             // Behaviors. 
-            this.updateAgent(); 
+            this.updateAgent(nAgents); 
 
             // Sync rotation and position. 
             this.syncPosition();
@@ -78,6 +82,16 @@ export default class Liarbird extends Agent {
 
         // Jellyman rotation
         this.jellyman.rotation.y += 0.05;
+    }
+
+    updateRosePattern() {
+         // Pattern updates.
+         this.rosePattern.update();
+         this.setTarget(this.rosePattern.getTargetPos()); 
+    }
+
+    setTarget(target) {
+        this.target.copy(target);
     }
 }
 

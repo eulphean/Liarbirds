@@ -1,5 +1,5 @@
 const color = {
-    dark: '#F2F0E9',
+    dark: '#000000',
     button: 'rgb(255, 255, 255, 0.4)',
     link: '#E48F65'
 };

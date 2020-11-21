@@ -53,7 +53,7 @@ const styles = {
       marginTop: padding.small,
 
       '@media (min-width: 768px)': {  
-        marginTop: padding.big,
+        marginTop: padding.veryBig,
         fontSize: fontSize.small
       },
 
@@ -65,7 +65,7 @@ const styles = {
     img: {
       marginTop: padding.small,
       width: '100%',
-      opacity: '0.7',
+      opacity: '0.75',
 
       '@media (min-width: 768px) and (orientation: landscape)': {  
         marginTop: padding.veryBig
@@ -85,7 +85,14 @@ const styles = {
     }
 };
 
-const body="What if birds aren’t real? What if they are drones designed to surveil the everyday population? If this is so, what kind of reality are we living in? And how must we cope up with it? Liarbirds thrust from this inquiry to create an interactive augmented encounter, which modifies one’s space with an active swarm of digital creatures. With their syncopated behaviors, they respond to the users, which affect their movements in space. Consequently, they intend to exist at the intersection of physical and digital space; however, the prevailing circumstances might make them perish.";
+const bodyA="Birds aren't real."
+const bodyB = "There's an instagram community of the same name with 280 thousand followers. The claim is that birds, and Pigeons in particular, are in fact drones designed by the United States government to surveil the population. This is, of course, a parody of a much more serious situation."
+const bodyC = "The Internet allows for communities to be formed around fringe ideas, which then permeate culture. This can be productive as well as vile; we now see a good few ractionary conspiracy theories being taken seriously.";
+const bodyD = "Birds aren't real";
+const bodyE = "is a parody of conspiracy theory culture, one so complete that it can easily be mistaken for genuine."; 
+const bodyF = "Liarbirds";
+const bodyG = "is a play on this cultural phenomenon by making fake birds real. It fills the space with an active swarm of digital creatures that respond to user gestures. Consequently, Liarbirds exist in both physical and digital space."; 
+
 
 class About extends React.Component {
   constructor(props) {
@@ -100,7 +107,13 @@ class About extends React.Component {
     return (
       <div style={styles.container}>
         <div style={titleStyle}>LIARBIRDS</div>
-        <div style={styles.body}>{body}</div>
+        <div style={styles.body}>
+          <i>&quot;{bodyA}&quot;</i>&nbsp;&nbsp;{bodyB}&nbsp;<br/><br/>
+          {bodyC}<i>&nbsp;&quot;{bodyD}&quot;&nbsp;&nbsp;</i>
+          {bodyE}
+          <i>&nbsp;&quot;{bodyF}&quot;&nbsp;&nbsp;</i>
+          {bodyG}
+        </div>
         <img style={styles.img} src={image} alt={'title'} />
       </div>
     );

@@ -7,14 +7,6 @@ export default class Target {
         let material = new THREE.MeshLambertMaterial({color: new THREE.Color(1, 0, 0), wireframe: false}); 
         this.mesh = new THREE.Mesh(geometry, material);
 
-        const radius = Utility.getRandomNum(200, 300);
-        const theta = THREE.Math.degToRad(Utility.getRandomNum(360)); 
-        const phi = THREE.Math.degToRad(Utility.getRandomNum(180)); 
-
-        // this.mesh.position.x = Math.sin(theta) * Math.cos(phi) * radius; 
-        // this.mesh.position.y = Math.sin(theta) * Math.sin(phi) * radius;
-        // this.mesh.position.z = Math.cos(theta) * radius;
-
         scene.add(this.mesh);
     }
 
