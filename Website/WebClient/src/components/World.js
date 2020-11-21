@@ -34,8 +34,8 @@ class World extends React.Component {
     
     this.scene = new THREE.Scene(); 
     // (FOV, AspectRatio, Near Clipping, Far Clipping)
-    this.camera = new THREE.PerspectiveCamera(100, window.innerWidth/window.innerHeight, 0.05, 10000);
-    this.camera.position.set(100, 150, 150); 
+    this.camera = new THREE.PerspectiveCamera(100, window.innerWidth/window.innerHeight, 0.05, 20000);
+    this.camera.position.set(0, 150, 100); 
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
     this.camera.frustumCulled = false; 
 
@@ -80,8 +80,8 @@ class World extends React.Component {
     this.scene.add(directionalLight);	
 
     // ---------- Geometry -----------------
-    let minHeight = -80; 
-    let maxHeight = 80; 
+    let minHeight = -100; 
+    let maxHeight = 100; 
     let numAgents = 12; 
     let phase = [0, 0, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11]; 
     let inc = (Math.abs(minHeight) + maxHeight)/numAgents; 
@@ -107,7 +107,7 @@ class World extends React.Component {
     let patternObj = ellipseConstructor(o, 60, 0, 80, true, moveFactor);
     this.flockPattern = new EllipsePattern(patternObj);   
 
-    // this.scene.add(new THREE.AxesHelper(30));
+    this.scene.add(new THREE.AxesHelper(30));
     this.initThreeRender(); 
     this.scheduleStates(); 
   }
@@ -160,9 +160,12 @@ class World extends React.Component {
   }
 
   updateRendererHeight(h) {
-    this.renderer.setSize(window.innerWidth, h, true);
-    this.camera.aspect = (window.innerWidth + 500)/(h+200);
-    this.renderer.setViewport(-250, 0, window.innerWidth + 250, h+200);
+    let newWidth = window.innerWidth + 500; 
+    console.log(newWidth);
+    let newHeight = h; 
+    this.renderer.setSize(newWidth, newHeight, true);
+    this.camera.aspect = newWidth/newHeight;
+    this.renderer.setViewport(-500, 0, window.innerWidth+500, h+500);
     this.camera.updateProjectionMatrix();
   }
 

@@ -14,7 +14,7 @@ export default class Agent {
         this.idx = i; 
         // Construct all important variables. 
         this.position = new THREE.Vector3(0, 0, 0); // Get initial velocity
-        this.velocity = new THREE.Vector3(0, -0.3, 0); 
+        this.velocity = new THREE.Vector3(0.1, 0.3, 0); 
         this.acceleration = new THREE.Vector3(0, 0, 0); 
         this.fSteer = new THREE.Vector3(0, 0, 0); 
         this.sumVec = new THREE.Vector3(0, 0, 0);
@@ -46,9 +46,9 @@ export default class Agent {
     }
 
     initPosition(startY) {
-        this.position.x = startY 
-        this.position.z = 0; 
-        this.position.y = 175;
+        this.position.x = -50;
+        this.position.z = 100; 
+        this.position.y = startY;
     }
 
     setupPattern(phase) {

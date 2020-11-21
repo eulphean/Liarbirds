@@ -1,7 +1,7 @@
 const color = {
     dark: '#000000',
     button: 'rgb(255, 255, 255, 0.4)',
-    link: '#E48F65'
+    link: '#D34C00'
 };
 
 const fontSize = {
