@@ -80,8 +80,8 @@ class World extends React.Component {
     this.scene.add(directionalLight);	
 
     // ---------- Geometry -----------------
-    let minHeight = -100; 
-    let maxHeight = 60; 
+    let minHeight = -80; 
+    let maxHeight = 80; 
     let numAgents = 12; 
     let phase = [0, 0, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11]; 
     let inc = (Math.abs(minHeight) + maxHeight)/numAgents; 
@@ -161,8 +161,8 @@ class World extends React.Component {
 
   updateRendererHeight(h) {
     this.renderer.setSize(window.innerWidth, h, true);
-    this.camera.aspect = (window.innerWidth)/h;
-    this.renderer.setViewport(0, 0, window.innerWidth + 200, h+200);
+    this.camera.aspect = (window.innerWidth + 500)/(h+200);
+    this.renderer.setViewport(-250, 0, window.innerWidth + 250, h+200);
     this.camera.updateProjectionMatrix();
   }
 

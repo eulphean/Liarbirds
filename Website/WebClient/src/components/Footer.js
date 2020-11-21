@@ -14,7 +14,7 @@ const styles = {
         justifyContent: 'center',
         marginTop: padding.big,
         marginBottom: padding.verySmall,
-        lineHeight: padding.small,
+        lineHeight: padding.big,
 
         '@media (min-width: 768px)': {  
             fontSize: fontSize.small
