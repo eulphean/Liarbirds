@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import Target from './Target'
+// import Target from './Target'
 import * as Utility from './Utility'
 import { RosePattern, roseConstructor} from './PatternManager'
 
@@ -14,7 +14,7 @@ export default class Agent {
         this.idx = i; 
         // Construct all important variables. 
         this.position = new THREE.Vector3(0, 0, 0); // Get initial velocity
-        this.velocity = new THREE.Vector3(0, 0.01, 0); 
+        this.velocity = new THREE.Vector3(0, -0.3, 0); 
         this.acceleration = new THREE.Vector3(0, 0, 0); 
         this.fSteer = new THREE.Vector3(0, 0, 0); 
         this.sumVec = new THREE.Vector3(0, 0, 0);
@@ -39,16 +39,16 @@ export default class Agent {
         this.smoothFactor = 0.001; 
 
         // Initial position and target.
-        this.initPosition(); 
+        this.initPosition(startY); 
 
         // Create a polar pattern. 
         this.setupPattern(phase);
     }
 
-    initPosition() {
-        this.position.x = 0;  
+    initPosition(startY) {
+        this.position.x = startY 
         this.position.z = 0; 
-        this.position.y = -90;
+        this.position.y = 175;
     }
 
     setupPattern(phase) {

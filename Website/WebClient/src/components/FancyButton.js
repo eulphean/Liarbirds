@@ -14,7 +14,7 @@ const styles = {
         textAlign: 'center',
         color: color.dark,
         width: '55%',
-        backgroundColor: color.button,
+        backgroundImage: 'linear-gradient(to right, #F2F0E9 0%, #eef1f5 100%)',
         fontFamily: fontFamily.slice,
         padding: padding.small,
         borderRadius: '10px',

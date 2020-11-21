@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import * as Utility from './Utility';
 
 export default class Target {
     constructor(scene) {

@@ -14,7 +14,7 @@ const styles = {
         justifyContent: 'center',
         marginTop: padding.big,
         marginBottom: padding.verySmall,
-        lineHeight: padding.big,
+        lineHeight: padding.small,
 
         '@media (min-width: 768px)': {  
             fontSize: fontSize.small
@@ -22,19 +22,20 @@ const styles = {
 
         '@media (min-width: 1024px)': {
             marginTop: padding.veryBig,
-            fontSize: fontSize.big,
-            lineHeight: padding.veryBig,
-            marginBottom: padding.veryBig
+            fontSize: fontSize.small,
+            lineHeight: padding.big,
+            marginBottom: padding.small
         }
     },
-
+    
     link: {
         color: color.link
     }
 };
 
 const amay = 'https://amaykataria.com'; 
-const phil = 'https://philipmulliken.com'; 
+const phil = 'https://philipmulliken.com';
+const silkcube = 'https://instagram.com/silkcube'; 
 class Footer extends React.Component {
   constructor(props) {
     super(props);
@@ -46,9 +47,7 @@ class Footer extends React.Component {
   render() {
     return (
         <div style={styles.container}>
-            <div style={styles.developed}>
-                 Developed by Silkcube
-            </div>
+            <div>Developed by <a href={silkcube} target='_blank' rel="noopener noreferrer" style={styles.link}>Silkcube</a></div>
             <div>
                 <span>©&nbsp;</span>
                 <a 
@@ -58,7 +57,7 @@ class Footer extends React.Component {
                     href={amay}>
                     Amay Kataria
                 </a>
-                <span style={styles.developed}>&nbsp;|&nbsp;</span>
+                <span>&nbsp;|&nbsp;</span>
                 <a 
                     style={styles.link} 
                     target='_blank' 
@@ -66,7 +65,7 @@ class Footer extends React.Component {
                     href={phil}>
                     Philip Mulliken
                 </a>
-                <span style={styles.developed}>, 2020&nbsp;</span>
+                <span>, 2020&nbsp;</span>
             </div>
         </div>
     );

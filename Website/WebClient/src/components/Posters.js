@@ -28,7 +28,7 @@ const styles = {
         width: 'calc(100%/2 - 4%)',
         height: '100%',
         marginRight: padding.verySmall,
-        opacity: '0.65'
+        opacity: '0.75'
     }
 };
 

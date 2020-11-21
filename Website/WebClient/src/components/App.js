@@ -66,7 +66,7 @@ class App extends React.Component {
       let totalHeight = this.totalRef.current.scrollHeight; 
       this.worldRef.current.updateRendererHeight(totalHeight);
       console.log(totalHeight);
-    }, 500); 
+    }, 300); 
   }
 
   componentDidUpdate() {

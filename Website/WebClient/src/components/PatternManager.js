@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import Target from './Target.js'
 
 class Pattern {
     constructor(patternObj) {

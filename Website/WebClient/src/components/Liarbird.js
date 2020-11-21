@@ -39,8 +39,6 @@ export default class Liarbird extends Agent {
             var action = this.animationMixer.clipAction(this.agentAnimations[0]);
             action.play(); 
 
-            console.log(this.agent);
-
             // Add it to the scene. 
             scene.add(this.agent); 
         }, undefined, function ( error ) {

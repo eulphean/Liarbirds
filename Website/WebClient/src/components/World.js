@@ -3,13 +3,11 @@ import Radium from 'radium'
 import * as THREE from 'three'
 import oc from 'three-orbit-controls'
 import Liarbird from './Liarbird.js'
-import Stats from 'stats.js'
+// import Stats from 'stats.js'
 import { OctreeManager } from './OctreeManager.js'
 import { EllipsePattern, ellipseConstructor } from './PatternManager.js'
-import { fadeIn } from 'react-animations'
 
 const OrbitControls = oc(THREE); 
-const loader = new THREE.TextureLoader();
 export const WORLD_STATE = {
   PATTERN: 0,
   FLOCK: 1
@@ -22,13 +20,6 @@ const styles = {
         top: '0%',
         overflowX: 'hidden',
         overflowY: 'auto'
-    },
-
-    fadeIn: {
-      animationName: Radium.keyframes(fadeIn, 'fade'),
-      animationDuration: '0s',
-      animationFillMode: 'forwards',
-      animationTimingFunction: 'linear'
     }
 };
 
@@ -43,8 +34,10 @@ class World extends React.Component {
     
     this.scene = new THREE.Scene(); 
     // (FOV, AspectRatio, Near Clipping, Far Clipping)
-    this.camera = new THREE.PerspectiveCamera(100, window.innerWidth/window.innerHeight, 0.05, 2000);
+    this.camera = new THREE.PerspectiveCamera(100, window.innerWidth/window.innerHeight, 0.05, 10000);
     this.camera.position.set(100, 150, 150); 
+    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+    this.camera.frustumCulled = false; 
 
     // Renders the scene as a canvas element. 
     this.renderer = new THREE.WebGLRenderer({
@@ -62,7 +55,7 @@ class World extends React.Component {
 
     this.controls = new OrbitControls(this.camera); 
 
-    this.stats = new Stats(); 
+    // this.stats = new Stats(); 
 
     this.clock = new THREE.Clock(); 
   }
@@ -75,7 +68,7 @@ class World extends React.Component {
 
     // Mount the canvas at the current div. 
     this.ref.current.appendChild(this.renderer.domElement); 
-    this.ref.current.appendChild(this.stats.dom);
+    // this.ref.current.appendChild(this.stats.dom);
 
     // -------- Lighting ----------------
     var ambientLight = new THREE.AmbientLight(0xD7D3D3);
@@ -149,7 +142,6 @@ class World extends React.Component {
   }
 
   render() {
-    let containStyle = [styles.container, styles.fadeIn]; 
     return (
         <div style={styles.container} ref={this.ref} />
     );
@@ -157,11 +149,11 @@ class World extends React.Component {
 
   initThreeRender() {
     // Render loop. 
-    this.stats.begin();
+    // this.stats.begin();
     this.update(); 
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
-    this.stats.end();
+    // this.stats.end();
 
     // Register this function as a callback to every repaint from the browser.
     requestAnimationFrame(this.initThreeRender.bind(this)); 
@@ -169,7 +161,8 @@ class World extends React.Component {
 
   updateRendererHeight(h) {
     this.renderer.setSize(window.innerWidth, h, true);
-    this.camera.aspect = (window.innerWidth)/(h);
+    this.camera.aspect = (window.innerWidth)/h;
+    this.renderer.setViewport(0, 0, window.innerWidth + 200, h+200);
     this.camera.updateProjectionMatrix();
   }
 
