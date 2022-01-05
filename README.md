@@ -1,4 +1,12 @@
 # Liarbirds
+Commissioned by [Hyde Park Art Center](https://www.hydeparkart.org/) in Chicago, [Liarbirds](https://liarbirds.art) is an interactive Augmented Reality project developed by Amay Kataria & Phil Mulliken. It is an augmented encounter developed within the ecosystem of Instagram to respond to online communities manifested around fringe ideas like conspiracy theories that permeate our everyday culture. In particular, it takes the idea “Birds aren’t real” as a point of departure, which claims that pigeons are in fact drones deployed by the United States government to surveil the population. Liarbirds is a play on this cultural phenomenon that makes fake birds real again by superimposing a swarm of digital creatures on one’s physical space through the mediation of Augmented Reality. These digital birds respond to user gestures while occupying a space of hybridity and emergent behavior. 
+
+![liarbirds_front](https://user-images.githubusercontent.com/4178424/148282777-fae175de-41f1-4b53-8da7-d24ee81addd9.png)
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/4178424/148282790-d48e9dc1-d4bb-42f7-aeba-d0897d468b65.jpg">
+</p>
+
+### Build process
 To run the work, open the BoidsFromGround project from Production folder.<br>
 Here are the steps to get started.
 <br><br>
