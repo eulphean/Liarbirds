@@ -1,27 +1,27 @@
 {
   "files": {
-    "main.css": "/static/css/main.562eed68.chunk.css",
-    "main.js": "/static/js/main.513a2873.chunk.js",
-    "main.js.map": "/static/js/main.513a2873.chunk.js.map",
-    "runtime-main.js": "/static/js/runtime-main.8b5d6628.js",
-    "runtime-main.js.map": "/static/js/runtime-main.8b5d6628.js.map",
-    "static/js/2.b1ed0f07.chunk.js": "/static/js/2.b1ed0f07.chunk.js",
-    "static/js/2.b1ed0f07.chunk.js.map": "/static/js/2.b1ed0f07.chunk.js.map",
-    "index.html": "/index.html",
-    "precache-manifest.d50d3fb5333fc5fae6162cb549a417d5.js": "/precache-manifest.d50d3fb5333fc5fae6162cb549a417d5.js",
-    "service-worker.js": "/service-worker.js",
-    "static/css/main.562eed68.chunk.css.map": "/static/css/main.562eed68.chunk.css.map",
-    "static/js/2.b1ed0f07.chunk.js.LICENSE.txt": "/static/js/2.b1ed0f07.chunk.js.LICENSE.txt",
-    "static/media/stylesheet.css": "/static/media/slice-webfont.60013d1c.woff",
-    "static/media/front_page.jpg": "/static/media/front_page.2814188b.jpg",
-    "static/media/hyde_park.jpg": "/static/media/hyde_park.6049994a.jpg",
-    "static/media/jellyman.glb": "/static/media/jellyman.5ff4e054.glb",
-    "static/media/postcard_back.jpg": "/static/media/postcard_back.d5d726e7.jpg"
+    "main.css": "/Liarbirds/static/css/main.dbfc8850.chunk.css",
+    "main.js": "/Liarbirds/static/js/main.7f8ececc.chunk.js",
+    "main.js.map": "/Liarbirds/static/js/main.7f8ececc.chunk.js.map",
+    "runtime-main.js": "/Liarbirds/static/js/runtime-main.b26479b8.js",
+    "runtime-main.js.map": "/Liarbirds/static/js/runtime-main.b26479b8.js.map",
+    "static/js/2.5421ec5f.chunk.js": "/Liarbirds/static/js/2.5421ec5f.chunk.js",
+    "static/js/2.5421ec5f.chunk.js.map": "/Liarbirds/static/js/2.5421ec5f.chunk.js.map",
+    "index.html": "/Liarbirds/index.html",
+    "precache-manifest.4c573392824173f374b20287c111bd3a.js": "/Liarbirds/precache-manifest.4c573392824173f374b20287c111bd3a.js",
+    "service-worker.js": "/Liarbirds/service-worker.js",
+    "static/css/main.dbfc8850.chunk.css.map": "/Liarbirds/static/css/main.dbfc8850.chunk.css.map",
+    "static/js/2.5421ec5f.chunk.js.LICENSE.txt": "/Liarbirds/static/js/2.5421ec5f.chunk.js.LICENSE.txt",
+    "static/media/stylesheet.css": "/Liarbirds/static/media/slice-webfont.60013d1c.woff",
+    "static/media/front_page.jpg": "/Liarbirds/static/media/front_page.2814188b.jpg",
+    "static/media/hyde_park.jpg": "/Liarbirds/static/media/hyde_park.6049994a.jpg",
+    "static/media/jellyman.glb": "/Liarbirds/static/media/jellyman.5ff4e054.glb",
+    "static/media/postcard_back.jpg": "/Liarbirds/static/media/postcard_back.d5d726e7.jpg"
   },
   "entrypoints": [
-    "static/js/runtime-main.8b5d6628.js",
-    "static/js/2.b1ed0f07.chunk.js",
-    "static/css/main.562eed68.chunk.css",
-    "static/js/main.513a2873.chunk.js"
+    "static/js/runtime-main.b26479b8.js",
+    "static/js/2.5421ec5f.chunk.js",
+    "static/css/main.dbfc8850.chunk.css",
+    "static/js/main.7f8ececc.chunk.js"
   ]
 }
