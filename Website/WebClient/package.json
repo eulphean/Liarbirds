@@ -2,7 +2,7 @@
   "name": "HPACAR",
   "version": "0.1.0",
   "private": false,
-  "homepage": "https://amaykataria.com/Liarbirds/,
+  "homepage": "https://amaykataria.com/Liarbirds/",
   "dependencies": {
     "gh-pages": "^2.1.1",
     "math-ds": "^1.2.1",
